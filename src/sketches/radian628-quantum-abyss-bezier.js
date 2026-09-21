@@ -22,28 +22,28 @@ import * as THREE from 'three';
 //
 // Motion: the origin of the whole field rides a closed cubic Bézier loop
 // (Catmull–Rom anchors -> Bézier handles, so the loop is C¹), sampled by arc
-// length so it glides at a steady pace; the anchors breathe, so the loop never
-// repeats exactly. The frame also slowly spins. `showPath` draws the loop.
+// length so it glides at a steady pace. The loop is fully parametric — number
+// of anchors, star winding, irregularity, tension, stretch, rotation, offset,
+// breathing, ease, direction — see the pathXxx params. The frame also slowly
+// spins. `showPath` draws the loop and the centre.
 
 const N_NEURONS = 12;
-const PATH_SEGMENTS = 5; // cubic Bézier pieces in the closed loop
+const PATH_MAX_POINTS = 9; // most anchors a loop can have
 const PATH_TABLE = 160; // samples per piece for the arc-length table (fine enough that its facets never show as kinks)
 const PATH_UNIFORM = 64; // points sent to the shader for the overlay
 const PATH_LAP = 18; // seconds per lap at pathSpeed 1
+const TWO_PI = Math.PI * 2;
+const CURVE_SPAN = 6; // table points either side used to estimate the loop's curvature
+const MIN_PACE = 0.15; // slowest the centre is ever made to crawl (a cusp would otherwise stop it)
 
-// Anchors of the loop in uv units (screen height = 2), before pathRadius scaling:
-// a lightly irregular pentagon (radii 1, .85, .95, .88, 1 at 72° steps). Keep it
-// gentle — an earlier layout with one anchor far out on a side had a hairpin with
-// turning radius ~0.01 and the centre visibly whipped round it; this one never
-// turns tighter than ~0.24 x pathRadius, even at the worst point of the breathing.
-const ANCHORS = [
-  [1.0, 0.0],
-  [0.2627, 0.8084],
-  [-0.7686, 0.5584],
-  [-0.7119, -0.5172],
-  [0.309, -0.9511],
-];
-const PATH_BREATH = 0.06; // how far the anchors drift, as a fraction of the loop radius
+// Anchor k sits at angle 2π·k·winding/points and radius 1 − irregularity·PATTERN[k].
+// The pattern is fixed, so a given slider setting is always the same shape; at the
+// defaults (5 points, irregularity 0.3) the radii are 1, .85, .95, .88, 1 — a gently
+// irregular pentagon whose tightest corner is ~0.24 x pathRadius. (An earlier layout
+// with one anchor far out on a side had a hairpin with turning radius ~0.01 and the
+// centre visibly whipped round it: raising irregularity, or lowering pathTension,
+// or winding a star, trades that gentleness for a livelier path.)
+const PATH_PATTERN = [0, 0.5, 0.17, 0.4, 0, 0.6, 0.25, 0.45, 0.1];
 
 // B(s) for the cubic with control points p0..p3 (Bernstein form).
 function cubic(p0, p1, p2, p3, s, out) {
@@ -56,11 +56,13 @@ function cubic(p0, p1, p2, p3, s, out) {
   out[1] = b0 * p0[1] + b1 * p1[1] + b2 * p2[1] + b3 * p3[1];
 }
 
-// Fills `table` (x,y pairs) with the closed loop through `pts`, one Catmull–Rom
-// piece converted to a cubic Bézier per anchor pair:
-//   P1 = A[i] + (A[i+1] − A[i−1])/6,   P2 = A[i+1] − (A[i+2] − A[i])/6
-function sampleLoop(pts, table) {
-  const n = pts.length;
+// Fills `table` (x,y pairs) with the closed loop through the first n anchors, one
+// Catmull–Rom piece converted to a cubic Bézier per anchor pair:
+//   P1 = A[i] + τ(A[i+1] − A[i−1])/6,   P2 = A[i+1] − τ(A[i+2] − A[i])/6
+// τ = tension: 1 is the standard Catmull–Rom curve, lower pulls the handles in
+// toward straight lines between anchors, higher lets them overshoot into loops.
+function sampleLoop(pts, n, tension, table) {
+  const h = tension / 6;
   const p1 = [0, 0];
   const p2 = [0, 0];
   const out = [0, 0];
@@ -70,10 +72,10 @@ function sampleLoop(pts, table) {
     const b = pts[i];
     const c = pts[(i + 1) % n];
     const d = pts[(i + 2) % n];
-    p1[0] = b[0] + (c[0] - a[0]) / 6;
-    p1[1] = b[1] + (c[1] - a[1]) / 6;
-    p2[0] = c[0] - (d[0] - b[0]) / 6;
-    p2[1] = c[1] - (d[1] - b[1]) / 6;
+    p1[0] = b[0] + (c[0] - a[0]) * h;
+    p1[1] = b[1] + (c[1] - a[1]) * h;
+    p2[0] = c[0] - (d[0] - b[0]) * h;
+    p2[1] = c[1] - (d[1] - b[1]) * h;
     for (let j = 0; j < PATH_TABLE; j++) {
       cubic(b, p1, p2, c, j / PATH_TABLE, out);
       table[k++] = out[0];
@@ -82,9 +84,9 @@ function sampleLoop(pts, table) {
   }
 }
 
-// Point a fraction f (0..1) of the way round the sampled loop, by arc length.
-function pointAlong(table, cumulative, f, out) {
-  const count = table.length / 2;
+// Point a fraction f (any real; 0..1 is one lap) of the way round the sampled loop
+// of `count` table points, by arc length.
+function pointAlong(table, cumulative, count, f, out) {
   const target = (f - Math.floor(f)) * cumulative[count];
   let lo = 0;
   let hi = count;
@@ -99,6 +101,28 @@ function pointAlong(table, cumulative, f, out) {
   const b = ((lo + 1) % count) * 2;
   out[0] = table[a] + (table[b] - table[a]) * w;
   out[1] = table[a + 1] + (table[b + 1] - table[a + 1]) * w;
+}
+
+// The loop's anchors for the current path params, in uv units, written into `out`.
+// `breath` and `turn` are accumulated phases (see update). Returns the anchor count.
+function buildAnchors(p, breath, turn, out) {
+  const n = Math.round(p.pathPoints);
+  const winding = Math.min(Math.round(p.pathWinding), Math.max(1, (n - 1) >> 1)); // keeps neighbours distinct
+  const sx = Math.sqrt(p.pathStretch);
+  const sy = 1 / sx; // stretch keeps the loop's area
+  const angle = p.pathRotation + turn;
+  const ca = Math.cos(angle);
+  const sa = Math.sin(angle);
+  for (let k = 0; k < n; k++) {
+    const theta = (TWO_PI * k * winding) / n;
+    const r = 1 - p.pathIrregularity * PATH_PATTERN[k];
+    // anchors drift a little so the loop never repeats exactly
+    const x = (r * Math.cos(theta) + p.pathBreath * Math.sin(breath * 0.11 + k * 1.7)) * sx;
+    const y = (r * Math.sin(theta) + p.pathBreath * Math.cos(breath * 0.13 + k * 2.3)) * sy;
+    out[k][0] = (x * ca - y * sa) * p.pathRadius + p.pathOffsetX;
+    out[k][1] = (x * sa + y * ca) * p.pathRadius + p.pathOffsetY;
+  }
+  return n;
 }
 
 // A small recurrent network whose state (12 numbers) steers the field.
@@ -154,10 +178,29 @@ function stepNetwork(net, params, time, out) {
 const PARAMS = {
   // --- motion ---
   speed: { value: 1.0, min: 0.0, max: 3.0, step: 0.05 },
-  pathSpeed: { value: 1.0, min: 0.0, max: 4.0, step: 0.05 },
-  pathRadius: { value: 0.55, min: 0.0, max: 1.2, step: 0.01 },
   spin: { value: 0.06, min: -0.5, max: 0.5, step: 0.005 },
   showPath: { value: 0.0, min: 0.0, max: 1.0, step: 1.0 },
+
+  // --- path: shape ---
+  pathPoints: { value: 5.0, min: 3.0, max: 9.0, step: 1.0 }, // anchors on the loop
+  pathWinding: { value: 1.0, min: 1.0, max: 3.0, step: 1.0 }, // 2+ visits anchors in star order (pentagram, …)
+  pathIrregularity: { value: 0.3, min: 0.0, max: 0.6, step: 0.01 }, // 0 = regular polygon
+  pathTension: { value: 1.0, min: 0.4, max: 1.3, step: 0.01 }, // 1 = Catmull–Rom; lower = straighter, higher = loopier
+  pathStretch: { value: 1.0, min: 0.5, max: 2.0, step: 0.01 }, // >1 wide, <1 tall
+
+  // --- path: placement ---
+  pathRadius: { value: 0.55, min: 0.0, max: 1.6, step: 0.01 },
+  pathRotation: { value: 0.0, min: -3.14, max: 3.14, step: 0.01 },
+  pathTurn: { value: 0.0, min: -1.0, max: 1.0, step: 0.01 }, // rad/s the loop itself turns at
+  pathOffsetX: { value: 0.0, min: -1.5, max: 1.5, step: 0.01 },
+  pathOffsetY: { value: 0.0, min: -1.0, max: 1.0, step: 0.01 },
+
+  // --- path: motion ---
+  pathSpeed: { value: 1.0, min: -4.0, max: 4.0, step: 0.05 }, // negative runs the loop backwards
+  pathEase: { value: 0.0, min: 0.0, max: 0.9, step: 0.01 }, // 0 = steady pace; up = lingers at one end of the loop
+  pathCornerSlow: { value: 1.0, min: 0.0, max: 1.0, step: 0.01 }, // 1 = slow down for tight corners; 0 = constant speed (whips round stars)
+  pathBreath: { value: 0.06, min: 0.0, max: 0.25, step: 0.005 }, // how far the anchors drift
+  pathBreathRate: { value: 1.0, min: 0.0, max: 3.0, step: 0.05 },
 
   // --- field ---
   baseFreq: { value: 2.8, min: 0.5, max: 8.0, step: 0.1 },
@@ -190,7 +233,9 @@ export default {
   description:
     'Quantum Abyss Neural without the seams: every angular term is single-valued, the kaleidoscope folds are ' +
     'continuous mirror folds, and the whole field is centred on a point that glides round a closed cubic ' +
-    'Bézier loop while the frame slowly spins. Turn on showPath to see the curve.',
+    'Bézier loop while the frame slowly spins. The loop is fully adjustable — points, star winding, ' +
+    'irregularity, tension, stretch, rotation, offset, direction, ease and corner slow-down are all pathXxx ' +
+    'params. Turn on showPath to see the curve.',
 
   tags: ['fractal', '2d', 'radian628', 'glsl', 'quantum', 'neural', 'bezier', 'seamless', 'kaleidoscope', 'motion'],
 
@@ -511,16 +556,19 @@ export default {
   },
 
   setup() {
-    const count = PATH_SEGMENTS * PATH_TABLE;
+    const count = PATH_MAX_POINTS * PATH_TABLE;
     return {
       clock: 0,
       spin: 0,
-      pathTime: 0, // its own clock: pathSpeed 0 freezes the centre *and* the loop's breathing
+      turn: 0, // accumulated pathTurn: the loop's own rotation, on the field clock
+      pathTime: 0, // integral of pathSpeed: where the centre is along the loop
+      breath: 0, // integral of pathSpeed x pathBreathRate: the anchors' drift phase
       lap: 0,
       net: makeNetwork(),
-      anchors: ANCHORS.map(() => [0, 0]),
+      anchors: Array.from({ length: PATH_MAX_POINTS }, () => [0, 0]),
       table: new Float64Array(count * 2),
-      cumulative: new Float64Array(count + 1),
+      cumulative: new Float64Array(count + 1), // arc length up to each table point
+      timeCum: new Float64Array(count + 1), // the same, weighted by 1/pace: time to reach each table point
       here: [0, 0],
     };
   },
@@ -531,35 +579,63 @@ export default {
     const dt = ctx.delta * p.speed;
     state.clock += dt;
     state.spin += dt * p.spin;
+    state.turn += dt * p.pathTurn;
     state.pathTime += ctx.delta * p.pathSpeed;
+    state.breath += ctx.delta * p.pathSpeed * p.pathBreathRate;
     state.lap = state.pathTime / PATH_LAP;
 
-    // Anchors breathe slowly so the loop never repeats exactly.
     const { anchors, table, cumulative } = state;
-    for (let k = 0; k < ANCHORS.length; k++) {
-      anchors[k][0] = (ANCHORS[k][0] + PATH_BREATH * Math.sin(state.pathTime * 0.11 + k * 1.7)) * p.pathRadius;
-      anchors[k][1] = (ANCHORS[k][1] + PATH_BREATH * Math.cos(state.pathTime * 0.13 + k * 2.3)) * p.pathRadius;
-    }
-    sampleLoop(anchors, table);
+    const n = buildAnchors(p, state.breath, state.turn, anchors);
+    sampleLoop(anchors, n, p.pathTension, table);
 
     // Arc-length table, so the centre glides at a steady pace along the loop.
-    const count = table.length / 2;
+    const count = n * PATH_TABLE;
     cumulative[0] = 0;
     for (let i = 0; i < count; i++) {
       const a = i * 2;
       const b = ((i + 1) % count) * 2;
       cumulative[i + 1] = cumulative[i] + Math.hypot(table[b] - table[a], table[b + 1] - table[a + 1]);
     }
-    pointAlong(table, cumulative, state.lap, state.here);
+    // Corner slow-down: the centre keeps a bounded lateral acceleration, so its pace drops
+    // like sqrt(R / R0) where the loop's radius of curvature R falls below R0. A lap still
+    // takes the same time — it is faster on the straights. Nothing changes while R >= R0
+    // (the default loop's tightest corner is just above it), so this only matters for
+    // stars, low tension, strong stretch and the like.
+    const R0 = 0.25 * p.pathRadius;
+    const slow = p.pathCornerSlow;
+    const { timeCum } = state;
+    timeCum[0] = 0;
+    for (let i = 0; i < count; i++) {
+      let pace = 1;
+      if (slow > 0 && R0 > 1e-6) {
+        const a = ((i - CURVE_SPAN + count) % count) * 2;
+        const b = i * 2;
+        const c = ((i + CURVE_SPAN) % count) * 2;
+        const ab = Math.hypot(table[b] - table[a], table[b + 1] - table[a + 1]);
+        const bc = Math.hypot(table[c] - table[b], table[c + 1] - table[b + 1]);
+        const ca = Math.hypot(table[a] - table[c], table[a + 1] - table[c + 1]);
+        const area2 = Math.abs((table[b] - table[a]) * (table[c + 1] - table[a + 1]) - (table[b + 1] - table[a + 1]) * (table[c] - table[a]));
+        if (area2 > 1e-12) {
+          const radius = (ab * bc * ca) / (2 * area2); // circumradius of three nearby table points
+          pace = 1 + slow * (Math.min(1, Math.max(MIN_PACE, Math.sqrt(radius / R0))) - 1);
+        }
+      }
+      timeCum[i + 1] = timeCum[i] + (cumulative[i + 1] - cumulative[i]) / pace;
+    }
+
+    // Ease: f = lap − e·sin(2π·lap)/2π keeps increasing for e < 1, but its speed varies
+    // between 1 − e and 1 + e per lap, so the centre lingers on one side of the loop.
+    const eased = state.lap - (p.pathEase * Math.sin(TWO_PI * state.lap)) / TWO_PI;
+    pointAlong(table, timeCum, count, eased, state.here);
     u.uCenter.value.set(state.here[0], state.here[1]);
 
     // Evenly spaced points on the loop for the showPath overlay (last == first).
     const path = u.uPath.value;
     for (let k = 0; k < PATH_UNIFORM; k++) {
-      pointAlong(table, cumulative, k / (PATH_UNIFORM - 1), state.here);
+      pointAlong(table, cumulative, count, k / (PATH_UNIFORM - 1), state.here);
       path[k].set(state.here[0], state.here[1]);
     }
-    pointAlong(table, cumulative, state.lap, state.here);
+    pointAlong(table, timeCum, count, eased, state.here);
 
     u.uT.value = state.clock;
     u.uSpin.value = state.spin;
