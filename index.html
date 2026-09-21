@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>three-katex-shader</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="canvas-container"></div>
+    <div id="math-overlay"></div>
+    <div id="sketch-label"></div>
+    <div id="toolbar" class="toolbar">
+      <button id="code-toggle" class="toolbar-btn" type="button">Code</button>
+      <button id="params-toggle" class="toolbar-btn" type="button">🎚️ Params</button>
+      <button id="voice-toggle" class="toolbar-btn" type="button">🗣️ Voice</button>
+      <button id="audio-toggle" class="toolbar-btn" type="button">🎤 Enable Audio</button>
+      <button id="comments-toggle" class="toolbar-btn" type="button">💬 Comments</button>
+      <button id="ai-toggle" class="toolbar-btn" type="button">🤖 AI</button>
+      <button id="sound-toggle" class="toolbar-btn" type="button">🎹 Sound</button>
+      <button id="media-toggle" class="toolbar-btn" type="button">🎬 Media</button>
+      <button id="view-toggle" class="toolbar-btn" type="button" title="Hide the controls (H)">👁 View</button>
+    </div>
+    <div id="code-panel" class="code-panel hidden"></div>
+    <div id="params-panel" class="params-panel hidden"></div>
+    <div id="comments-panel" class="comments-panel hidden"></div>
+    <div id="ai-panel" class="ai-panel hidden"></div>
+    <div id="sound-panel" class="params-panel hidden"></div>
+    <div id="media-panel" class="params-panel hidden"></div>
+    <div id="rec-indicator" title="Recording"><span></span>REC</div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
