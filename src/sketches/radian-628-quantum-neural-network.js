@@ -43,8 +43,11 @@ export default {
       step: 0.01
     },
 
+    // The fold map is chaotic: past ~8 iterations neighbouring pixels
+    // decorrelate and the image turns to noise. 4-7 shows the fractal; raise
+    // it for finer, noisier detail.
     iterations: {
-      value: 18.0,
+      value: 6.0,
       min: 4.0,
       max: 32.0,
       step: 1.0
@@ -1336,6 +1339,11 @@ export default {
           finalPhase
         );
 
+      // orbit is a sum over every iteration, so it grows with uIterations.
+      // Everything below (orbitIntensity, highlights) is tuned for a value
+      // around 0-3; unnormalised it reached 15-25 and saturated to white.
+      orbit = orbit / max(uIterations, 1.0) * 4.0;
+
 
       // ----------------------------------------------------------
       // Final coordinates
@@ -1728,6 +1736,9 @@ export default {
       // Dynamic exposure
       // ----------------------------------------------------------
 
+      // Exposure trim: the additive glows below overshoot at some phases and wash the frame out.
+      color *= 0.55;
+
       color *=
         0.85
         +
@@ -1819,7 +1830,7 @@ export default {
       },
 
       uIterations: {
-        value: 18.0
+        value: 6.0
       },
 
       uSpiralTightness: {
@@ -1960,9 +1971,9 @@ export default {
             1013904223
           ) >>> 0;
 
-        return
-          seed /
-          4294967296;
+        // One line: a bare `return` before a newline returns undefined (ASI),
+        // which made every weight NaN and the whole render black.
+        return seed / 4294967296;
       }
 
 
