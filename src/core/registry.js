@@ -1,5 +1,6 @@
 import { compileSketch } from './sketchCompiler.js';
 import { getStoredEdits } from './sourceStore.js';
+import { syncPendingToDisk } from './diskSync.js';
 import { TAXONOMY } from './taxonomy.js';
 
 const modules = import.meta.glob('../sketches/*.js', { eager: true });
@@ -98,3 +99,4 @@ function hydrateFromStorage() {
 }
 
 hydrateFromStorage();
+syncPendingToDisk();

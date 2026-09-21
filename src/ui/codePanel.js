@@ -1,5 +1,6 @@
 import { sketches, updateSketch, addSketch, getGroupedCategories } from '../core/registry.js';
-import { getEditableSource, saveEdit, resetEdit, hasEdit } from '../core/sourceStore.js';
+import { getEditableSource, saveEdit, resetEdit, hasEdit, wasWrittenToDisk } from '../core/sourceStore.js';
+import { persistSketch, trashSketch } from '../core/diskSync.js';
 import { compileSketch } from '../core/sketchCompiler.js';
 import { shaderStarterSource, geometryStarterSource } from '../core/starterTemplates.js';
 import { getGroupForCategory, getAllCategories } from '../core/taxonomy.js';
@@ -270,6 +271,16 @@ export function createCodePanel(container, manager) {
     status.className = `code-panel-status${kind ? ` ${kind}` : ''}`;
   }
 
+  // Follows up a status line once the dev server has answered: the edit is
+  // already applied and in localStorage, so a failed disk write is a warning.
+  function reportDiskSave(id, result, what) {
+    if (result.ok) {
+      setStatus(`✓ ${what} · saved to ${result.path}`, 'ok');
+    } else if (result.error) {
+      setStatus(`✓ ${what} · browser only, not saved to disk: ${result.error}`, 'ok');
+    }
+  }
+
   function loadIntoEditor(id) {
     editor.value = getEditableSource(id);
     setStatus(hasEdit(id) ? 'edited (previously applied)' : '');
@@ -382,10 +393,14 @@ export function createCodePanel(container, manager) {
       setStatus('✗ can’t delete the only sketch left', 'error');
       return;
     }
-    if (!window.confirm(`Delete "${name}"? This can't be undone.`)) return;
+    const undo = import.meta.env.DEV
+      ? 'Its file is moved to .trash/ so you can get it back.'
+      : "This can't be undone.";
+    if (!window.confirm(`Delete "${name}"? ${undo}`)) return;
 
     manager.removeSketch(id);
     resetEdit(id);
+    trashSketch(id);
     refresh();
 
     const nowCurrent = sketches[manager.currentIndex];
@@ -405,21 +420,30 @@ export function createCodePanel(container, manager) {
     const id = currentId;
     try {
       const def = compileSketch(editor.value);
+      const code = editor.value;
       updateSketch(id, def);
-      saveEdit(id, editor.value);
+      saveEdit(id, code);
       if (sketches[manager.currentIndex]?.id === id) {
         manager.reload();
       }
       refresh();
       setStatus('✓ applied', 'ok');
+      persistSketch(id, code).then((result) => reportDiskSave(id, result, 'applied'));
     } catch (err) {
       setStatus(`✗ ${err.message}`, 'error');
     }
   }
 
   resetBtn.addEventListener('click', () => {
-    resetEdit(currentId);
-    loadIntoEditor(currentId);
+    const id = currentId;
+    const fileWasRewritten = wasWrittenToDisk(id);
+    resetEdit(id);
+    loadIntoEditor(id);
+    // The file was overwritten by an earlier Run; put back what it held at page load.
+    if (fileWasRewritten) {
+      const code = editor.value;
+      if (code) persistSketch(id, code).then((result) => reportDiskSave(id, result, 'reset'));
+    }
   });
 
   runBtn.addEventListener('click', run);
@@ -663,6 +687,7 @@ export function createCodePanel(container, manager) {
       const def = compileSketch(source);
       const entry = addSketch(def);
       saveEdit(entry.id, source);
+      persistSketch(entry.id, source).then((result) => reportDiskSave(entry.id, result, 'created'));
       newForm.classList.add('hidden');
       activeGroup = getGroupForCategory(category);
       activeCategory = category;
