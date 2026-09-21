@@ -55,12 +55,13 @@ export function editableToModule(existingFile, editable, helperNames) {
   const at = returns[returns.length - 1].index;
   const moduleBody = body.slice(0, at) + 'export default' + body.slice(at + 'return'.length);
 
-  // Scan for helper use ignoring comments, '…'/"…" strings, `.property` names and object keys.
-  // Template literals stay in: `${lerp(…)}` is real code, and a stray word in
-  // GLSL text only ever costs an unused import, never a wrong one.
+  // Scan for helper use ignoring comments, template-literal text (GLSL), '…'/"…"
+  // strings, `.property` names and object keys. Only the `${…}` code inside a
+  // template counts: `${lerp(…)}` is real, the word "TAU" in shader text is not.
   const code = body
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .replace(/\/\/.*$/gm, '')
+    .replace(/`(?:[^`\\]|\\.)*`/g, (tpl) => [...tpl.matchAll(/\$\{([^}]*)\}/g)].map((m) => m[1]).join(' '))
     .replace(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"/g, "''")
     .replace(/(^|[{,])(\s*)\w+(\s*:)/gm, '$1$2_$3'); // object keys, e.g. `segments: [200, 100]`
   const uses = (n) => new RegExp(`(?<![.\\w$])${n}(?![\\w$])`).test(code);
