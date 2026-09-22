@@ -663,12 +663,8 @@ export default {
         structure += weight * mix(layer.w, fogStructure, fog);
       }
 
-      // The core at the vanishing point: a light at the end of the tunnel, or a throbbing pit.
+      // Hell's pit throbs; the pulse also drives the glow around the vanishing point below.
       float pulse = 1.0 + hell * 0.6 * pow(0.5 + 0.5 * sin(t * 2.2), 6.0);
-      float core = exp(-18.0 * rs) * pulse;
-      float coreWave = 0.5 + 0.5 * sin(rs * (80.0 + NU(5) * 20.0) - t * 4.0);
-      vec3 coreTint = mix(mix(vec3(0.65, 0.85, 1.0), vec3(1.0, 0.32, 0.06) * 1.3, hell), vec3(1.0, 0.96, 0.8) * 1.0, heaven);
-      color += core * coreWave * coreTint;
 
       color *= 1.0 + sin(t * (0.7 + NU(6) * 0.25) + NU(7) * 5.0) * NU(11) * 0.08;
       // exposure trim: the additive glows overshoot at some phases
