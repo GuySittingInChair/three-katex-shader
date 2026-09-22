@@ -52,7 +52,10 @@ export function createParamsPanel(container, manager) {
       btn.type = 'button';
       btn.className = 'params-panel-action';
       btn.textContent = action.label || key;
-      btn.addEventListener('click', () => manager.runAction(key));
+      btn.addEventListener('click', () => {
+        manager.runAction(key);
+        refresh(); // an action may have moved params; bring the sliders along
+      });
       actionsEl.appendChild(btn);
     }
 

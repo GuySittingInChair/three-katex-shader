@@ -26,6 +26,22 @@ import * as THREE from 'three';
 // of anchors, star winding, irregularity, tension, stretch, rotation, offset,
 // breathing, ease, direction — see the pathXxx params. The frame also slowly
 // spins. `showPath` draws the loop and the centre.
+//
+// Realms: `realm` runs from −1 (hell) through 0 (the abyss) to +1 (heaven), and the
+// buttons jump straight to a preset. What makes each read as itself is not just
+// colour, so the realm changes four things together:
+//   destination  the vanishing point is the goal — a red-black pit that throbs, or a
+//                light at the end of the tunnel — via depth fog toward the centre
+//   geometry     hell is turbulent (more sphere inversion and warp, fewer arms,
+//                camera shake, faster spin); heaven is serene and symmetric (less
+//                inversion, more arms). Inversion is the noise-vs-calm dial.
+//   light        god rays and slow motes in heaven; lava veins and rising embers in hell
+//   grade        a fire ramp with crushed blacks vs a lifted, pearly, gold-white ramp
+//
+// 3D trip: the field is log-polar, so flying forward is a zoom about the vanishing
+// point. Each pixel's distance from it is remapped by a power (`tunnel`, the
+// perspective), and `layers` copies of the field at staggered zoom depths are
+// crossfaded with sin² weights (which sum to a constant) so the flight never pops.
 
 const N_NEURONS = 12;
 const PATH_MAX_POINTS = 9; // most anchors a loop can have
@@ -33,6 +49,7 @@ const PATH_TABLE = 160; // samples per piece for the arc-length table (fine enou
 const PATH_UNIFORM = 64; // points sent to the shader for the overlay
 const PATH_LAP = 18; // seconds per lap at pathSpeed 1
 const TWO_PI = Math.PI * 2;
+const FLIGHT_DEPTH = 1.8; // ln of the zoom one layer covers between being born far away and leaving near
 const CURVE_SPAN = 6; // table points either side used to estimate the loop's curvature
 const MIN_PACE = 0.15; // slowest the centre is ever made to crawl (a cusp would otherwise stop it)
 
@@ -181,6 +198,21 @@ const PARAMS = {
   spin: { value: 0.06, min: -0.5, max: 0.5, step: 0.005 },
   showPath: { value: 0.0, min: 0.0, max: 1.0, step: 1.0 },
 
+  // --- realm: hell <-> heaven (the buttons set these for you) ---
+  realm: { value: 0.0, min: -1.0, max: 1.0, step: 0.01 }, // -1 hell · 0 the abyss · +1 heaven
+  realmStrength: { value: 1.0, min: 0.0, max: 1.0, step: 0.01 }, // how much of the realm's look and feel is applied
+  realmChaos: { value: 1.0, min: 0.0, max: 1.0, step: 0.01 }, // …how much it reshapes the fractal itself: turbulent hell, serene heaven
+  glowRays: { value: 1.0, min: 0.0, max: 2.0, step: 0.01 }, // heaven: god rays and halo · hell: lava veins
+  embers: { value: 1.0, min: 0.0, max: 2.0, step: 0.01 }, // sparks rising in hell, slow motes of light in heaven
+  heat: { value: 1.0, min: 0.0, max: 2.0, step: 0.01 }, // heat shimmer (hell) / drifting haze (heaven)
+
+  // --- 3D trip ---
+  flightSpeed: { value: 0.2, min: -1.5, max: 1.5, step: 0.01 }, // fly toward the vanishing point (zooms per second); negative = backwards
+  tunnel: { value: 1.0, min: 0.5, max: 1.6, step: 0.01 }, // perspective: <1 pinches detail toward the centre, >1 flattens
+  layers: { value: 2.0, min: 1.0, max: 4.0, step: 1.0 }, // depth layers crossfaded into an endless zoom (1 = flat, no flight; GPU cost x layers)
+  depthFog: { value: 0.35, min: 0.0, max: 2.0, step: 0.01 }, // haze that thickens toward the vanishing point
+  shake: { value: 0.0, min: 0.0, max: 1.0, step: 0.01 }, // camera shake (much stronger in hell)
+
   // --- path: shape ---
   pathPoints: { value: 5.0, min: 3.0, max: 9.0, step: 1.0 }, // anchors on the loop
   pathWinding: { value: 1.0, min: 1.0, max: 3.0, step: 1.0 }, // 2+ visits anchors in star order (pentagram, …)
@@ -235,7 +267,9 @@ export default {
     'continuous mirror folds, and the whole field is centred on a point that glides round a closed cubic ' +
     'Bézier loop while the frame slowly spins. The loop is fully adjustable — points, star winding, ' +
     'irregularity, tension, stretch, rotation, offset, direction, ease and corner slow-down are all pathXxx ' +
-    'params. Turn on showPath to see the curve.',
+    'params. Turn on showPath to see the curve. The realm slider (and the Hell / Heaven buttons) turns the ' +
+    'abyss into a fall through a burning pit or a climb toward a light, as an endless 3D flight along that ' +
+    'curve: flight speed, perspective, depth layers, fog and shake are all parameters.',
 
   tags: ['fractal', '2d', 'radian628', 'glsl', 'quantum', 'neural', 'bezier', 'seamless', 'kaleidoscope', 'motion'],
 
@@ -246,6 +280,40 @@ export default {
   latex: 'z_{n+1}=F(z_n,\\Psi_n,|\\Psi_n|^2,N_t),\\qquad \\mathbf c(t)=\\sum_{i=0}^{3} b_{i,3}(s)\\,\\mathbf P_i',
 
   params: PARAMS,
+
+  // One-click realms. They just set params, so everything stays adjustable afterwards.
+  actions: {
+    hell: {
+      label: 'Descend into Hell',
+      run(ctx) {
+        Object.assign(ctx.params, {
+          realm: -1, realmStrength: 1, realmChaos: 1, glowRays: 1.2, embers: 1.4, heat: 1.2,
+          flightSpeed: 0.5, tunnel: 0.7, layers: 3, depthFog: 1.2, shake: 0.5,
+          spin: 0.12, pathSpeed: 1.4,
+        });
+      },
+    },
+    heaven: {
+      label: 'Ascend to Heaven',
+      run(ctx) {
+        Object.assign(ctx.params, {
+          realm: 1, realmStrength: 1, realmChaos: 1, glowRays: 1.3, embers: 0.9, heat: 0.6,
+          flightSpeed: 0.18, tunnel: 0.85, layers: 3, depthFog: 0.5, shake: 0,
+          spin: 0.03, pathSpeed: 0.7,
+        });
+      },
+    },
+    abyss: {
+      label: 'Return to the Abyss',
+      run(ctx) {
+        Object.assign(ctx.params, {
+          realm: 0, realmStrength: 1, realmChaos: 1, glowRays: 1, embers: 1, heat: 1,
+          flightSpeed: 0.2, tunnel: 1, layers: 2, depthFog: 0.35, shake: 0,
+          spin: 0.06, pathSpeed: 1,
+        });
+      },
+    },
+  },
 
   fragmentShader: `
     uniform float uT;
@@ -270,12 +338,22 @@ export default {
     uniform float uNeuralInfluence;
     uniform float uNeural[${N_NEURONS}];
 
+    uniform float uRealm;      // signed, already scaled by realmStrength: -1 hell .. +1 heaven
+    uniform float uRays;
+    uniform float uEmbers;
+    uniform float uHeat;
+    uniform float uFlight;     // flight phase, in zoom cycles
+    uniform float uTunnel;
+    uniform float uLayers;
+    uniform float uFogDensity;
+
     varying vec2 vUv;
 
     #define PI 3.14159265359
     #define TAU 6.28318530718
     #define EPS 0.0001
     #define NU(i) uNeural[i]
+    #define ZOOM_RANGE ${FLIGHT_DEPTH.toFixed(2)}
 
     mat2 rotation(float a) {
       float c = cos(a);
@@ -452,15 +530,46 @@ export default {
       return length(p - a - ab * h);
     }
 
-    void main() {
-      vec2 uv = (vUv - 0.5) * 2.0;
-      uv.x *= uResolution.x / uResolution.y;
-      float t = uT;
+    float hash21(vec2 p) {
+      p = fract(p * vec2(123.34, 456.21));
+      p += dot(p, p + 45.32);
+      return fract(p.x * p.y);
+    }
 
-      // The field's origin rides the Bézier loop; the frame slowly spins.
-      vec2 p = uv - uCenter;
-      p *= 1.0 + 0.075 * sin(t * 0.31) + NU(0) * uNeuralInfluence * 0.025;
-      p = rotation(NU(2) * uNeuralInfluence * 0.12 + uSpin) * p;
+    // Twinkling points of light on a jittered grid that drifts upward: embers in
+    // hell, motes in heaven.
+    float sparks(vec2 uv, float t, float scale, float rise, float sway) {
+      vec2 g = uv * scale + vec2(sway * sin(t * 0.7 + uv.y * 3.0), -rise * t);
+      vec2 id = floor(g);
+      vec2 f = fract(g) - 0.5;
+      float h = hash21(id);
+      vec2 jitter = (vec2(hash21(id + 7.1), hash21(id + 3.3)) - 0.5) * 0.6;
+      float twinkle = 0.55 + 0.45 * sin(t * (2.0 + 5.0 * h) + h * 40.0);
+      return step(0.92, h) * smoothstep(0.12, 0.0, length(f - jitter)) * twinkle;
+    }
+
+    // Gradient maps for the realms, x = luminance 0..1.
+    vec3 hellRamp(float x) {
+      vec3 c = mix(vec3(0.015, 0.0, 0.02), vec3(0.45, 0.02, 0.0), smoothstep(0.0, 0.35, x));
+      c = mix(c, vec3(1.0, 0.32, 0.02), smoothstep(0.3, 0.65, x));
+      return mix(c, vec3(1.0, 0.85, 0.35), smoothstep(0.65, 1.0, x));
+    }
+    vec3 heavenRamp(float x) {
+      // deep sky -> pale blue -> pearl -> gold -> white, spread over the whole range so detail survives
+      vec3 c = mix(vec3(0.28, 0.40, 0.74), vec3(0.62, 0.73, 0.96), smoothstep(0.0, 0.3, x));
+      c = mix(c, vec3(0.96, 0.88, 0.93), smoothstep(0.25, 0.55, x));
+      c = mix(c, vec3(1.0, 0.92, 0.70), smoothstep(0.5, 0.82, x));
+      return mix(c, vec3(1.0), smoothstep(0.85, 1.0, x));
+    }
+
+    // Colour of the field at field-space point p (rgb), before the core glow, exposure and
+    // tone map (applied once, after the depth layers are blended), plus a 0..1 "structure"
+    // scalar (w) for the realm grade. Luminance alone is a poor grading input: where the
+    // fold map is calm it barely varies, and a luminance ramp squashes the picture into one
+    // flat band. The hue angle and interference pattern always vary.
+    vec4 fieldColor(vec2 p, float t) {
+      float hell = max(-uRealm, 0.0);
+      float heaven = max(uRealm, 0.0);
       p = logarithmicCoordinates(p, t);
 
       float orbit;
@@ -491,32 +600,111 @@ export default {
       color *= 0.55 + 2.2 * smoothstep(0.15, 2.8, orbit);
       color *= 1.0 + NU(10) * 0.45 + NU(11) * 0.25;
 
-      float veins = smoothstep(0.55, 0.97, abs(interference));
-      vec3 electricColor = mix(vec3(0.02, 0.75, 1.0), vec3(1.0, 0.05, 0.7), 0.5 + 0.5 * sin(phase + t + NU(9)));
-      color += veins * electricColor * (1.4 + NU(10) * 0.6);
+      // veins: electric in the abyss, lava cracks in hell, holy light in heaven
+      float veins = smoothstep(0.55, 0.97, abs(interference)) * (1.0 + hell * 0.6 * uRays);
+      float mixer = 0.5 + 0.5 * sin(phase + t + NU(9));
+      vec3 electric = mix(vec3(0.02, 0.75, 1.0), vec3(1.0, 0.05, 0.7), mixer);
+      electric = mix(electric, mix(vec3(1.0, 0.22, 0.02), vec3(1.0, 0.62, 0.12), mixer), hell);
+      electric = mix(electric, mix(vec3(1.0, 0.9, 0.55), vec3(0.6, 0.8, 1.0), mixer), heaven);
+      color += veins * electric * (1.4 + NU(10) * 0.6);
 
       float shell = exp(-16.0 * abs(finalProbability - 0.48));
-      color += shell * vec3(0.15, 0.55, 0.95) * (1.6 + NU(11) * 0.5);
-
-      // the glowing core follows the Bézier centre
-      float coreRadius = length(uv - uCenter);
-      float core = exp(-18.0 * coreRadius);
-      float coreWave = 0.5 + 0.5 * sin(coreRadius * (80.0 + NU(5) * 20.0) - t * 4.0);
-      color += core * coreWave * vec3(0.65, 0.85, 1.0);
+      vec3 shellColor = mix(mix(vec3(0.15, 0.55, 0.95), vec3(0.9, 0.22, 0.04), hell), vec3(0.95, 0.85, 0.6), heaven);
+      color += shell * shellColor * (1.6 + NU(11) * 0.5);
 
       color += exp(-1.8 * r) * finalProbability * vec3(0.015, 0.08, 0.16);
 
       float highlights = pow(clamp(orbit * (0.075 + NU(10) * 0.025), 0.0, 1.0), 1.4);
-      color += highlights * vec3(0.8, 0.95, 1.0) * 2.0;
+      vec3 highlightColor = mix(mix(vec3(0.8, 0.95, 1.0), vec3(1.0, 0.55, 0.25), hell), vec3(1.0, 0.97, 0.9), heaven);
+      color += highlights * highlightColor * 2.0;
+      float structure = 0.5 + 0.5 * sin(TAU * colorPhase + 1.3 * interference);
+      return vec4(color, mix(structure, clamp(0.3 + bands, 0.0, 1.0), 0.3));
+    }
+
+    void main() {
+      vec2 uv = (vUv - 0.5) * 2.0;
+      uv.x *= uResolution.x / uResolution.y;
+      float t = uT;
+      float hell = max(-uRealm, 0.0);
+      float heaven = max(uRealm, 0.0);
+
+      // Heat shimmer in hell, slow drifting haze in heaven: a small warp of the whole frame.
+      uv += uHeat * (hell * 0.012 * vec2(sin(uv.y * 23.0 + t * 2.7), cos(uv.x * 19.0 + t * 2.1))
+                   + heaven * 0.006 * vec2(sin(uv.y * 7.0 + t * 0.6), cos(uv.x * 6.0 + t * 0.5)));
+
+      // The vanishing point is the Bézier centre; q0 is the pixel's offset from it.
+      vec2 q0 = uv - uCenter;
+      float rs = length(q0);
+      vec2 dir = rs > 1e-5 ? q0 / rs : vec2(1.0, 0.0);
+      float breath = 1.0 + 0.075 * sin(t * 0.31) + NU(0) * uNeuralInfluence * 0.025;
+      float turn = NU(2) * uNeuralInfluence * 0.12 + uSpin;
+
+      vec3 fogColor = mix(vec3(0.02, 0.015, 0.04), vec3(0.30, 0.035, 0.0), hell);
+      fogColor = mix(fogColor, vec3(0.85, 0.78, 0.66), heaven);
+
+      // Depth layers: the same field at staggered zoom depths. A layer is born far away
+      // (phase 0, faint and foggy), grows toward the camera and fades out (phase 1); the
+      // sin² weights of the layers sum to a constant, so the loop has no seam in time.
+      int layers = int(uLayers + 0.5);
+      vec3 color = vec3(0.0);
+      float structure = 0.0;
+      float fogStructure = 0.3 - 0.2 * hell + 0.55 * heaven; // what fog does to the grade input
+      for (int k = 0; k < 4; k++) {
+        if (k >= layers) break;
+        float phase = layers == 1 ? 0.0 : fract(uFlight + float(k) / float(layers));
+        float s = sin(PI * phase);
+        float weight = layers == 1 ? 1.0 : 2.0 * s * s / float(layers);
+        // perspective: a power of the distance from the vanishing point, scaled by the layer's depth
+        vec2 p = dir * (pow(max(rs, 1e-4), uTunnel) * exp(-ZOOM_RANGE * phase)) * breath;
+        vec4 layer = fieldColor(rotation(turn) * p, t);
+        float young = layers == 1 ? 0.0 : 1.0 - phase;
+        float fog = 1.0 - exp(-uFogDensity * (1.0 - 0.35 * heaven) * (1.6 * exp(-2.4 * rs) + 0.8 * young));
+        color += weight * mix(layer.rgb, fogColor, fog);
+        structure += weight * mix(layer.w, fogStructure, fog);
+      }
+
+      // The core at the vanishing point: a light at the end of the tunnel, or a throbbing pit.
+      float pulse = 1.0 + hell * 0.6 * pow(0.5 + 0.5 * sin(t * 2.2), 6.0);
+      float core = exp(-18.0 * rs) * pulse;
+      float coreWave = 0.5 + 0.5 * sin(rs * (80.0 + NU(5) * 20.0) - t * 4.0);
+      vec3 coreTint = mix(mix(vec3(0.65, 0.85, 1.0), vec3(1.0, 0.32, 0.06) * 1.3, hell), vec3(1.0, 0.96, 0.8) * 1.0, heaven);
+      color += core * coreWave * coreTint;
 
       color *= 1.0 + sin(t * (0.7 + NU(6) * 0.25) + NU(7) * 5.0) * NU(11) * 0.08;
-      // exposure trim: the additive glows above overshoot at some phases
+      // exposure trim: the additive glows overshoot at some phases
       color *= 0.55 * (0.85 + 0.2 * sin(t * 0.27));
 
-      // ACES-style tone map, gamma, vignette
+      // ACES-style tone map, gamma
       color = (color * (2.51 * color + 0.03)) / (color * (2.43 * color + 0.59) + 0.14);
       color = pow(max(color, vec3(0.0)), vec3(0.82));
-      color *= 1.0 - 0.32 * smoothstep(0.35, 1.65, length(uv));
+
+      // Grade: re-map luminance through the realm's ramp, keeping a little of the original hue.
+      float L = dot(color, vec3(0.299, 0.587, 0.114));
+      vec3 tint = mix(vec3(1.0), clamp(color / max(L, 1e-3), 0.6, 1.6), 0.25);
+      color = mix(color, hellRamp(pow(clamp(mix(L, structure, 0.5), 0.0, 1.0), 1.15)) * tint, hell);
+      color = mix(color, heavenRamp(clamp(0.05 + 0.9 * mix(L, structure, 0.75), 0.0, 1.0)) * tint, heaven);
+
+      // Heaven: rays fanning out of the vanishing point, and a halo. Only whole-number
+      // multiples of the angle, so there is no seam.
+      float th = atan(q0.y, q0.x);
+      float ray = 0.5 + 0.5 * cos(14.0 * th + 0.35 * t + 1.7 * sin(3.0 * th - 0.5 * t));
+      color += heaven * uRays * pow(ray, 6.0) * exp(-rs * 1.8) * vec3(1.0, 0.9, 0.6) * 0.32;
+      color += heaven * uRays * exp(-rs * 6.0) * vec3(1.0, 0.95, 0.8) * 0.28;
+      color += hell * exp(-rs * 7.0) * pulse * vec3(0.9, 0.12, 0.0) * 0.35;   // the pit's throat
+
+      // Embers rise fast in hell; motes drift slowly in heaven.
+      float amount = (hell + heaven) * uEmbers;
+      if (amount > 0.001) {
+        float rise = hell > 0.0 ? 0.55 : 0.07;
+        float sway = hell > 0.0 ? 0.6 : 0.15;
+        float sp = sparks(uv, t, 6.0, rise, sway) + 0.8 * sparks(uv + 3.7, t, 11.0, rise * 1.4, sway) + 0.6 * sparks(uv + 9.1, t, 19.0, rise * 1.9, sway);
+        vec3 sparkColor = hell > 0.0 ? vec3(1.0, 0.42, 0.08) * 1.6 : vec3(1.0, 0.95, 0.75) * 1.1;
+        color += sp * sparkColor * amount * 0.9;
+      }
+
+      // vignette: soot in hell, almost none in heaven
+      float vignette = mix(mix(0.32, 0.5, hell), 0.10, heaven);
+      color *= 1.0 - vignette * smoothstep(0.35, 1.65, length(uv));
 
       if (uShowPath > 0.5) {
         float dMin = 1e9;
@@ -552,6 +740,14 @@ export default {
       uColorSaturation: value('colorSaturation'),
       uNeuralInfluence: value('neuralInfluence'),
       uNeural: { value: new Float32Array(N_NEURONS) },
+      uRealm: { value: 0 },
+      uRays: value('glowRays'),
+      uEmbers: value('embers'),
+      uHeat: value('heat'),
+      uFlight: { value: 0 },
+      uTunnel: value('tunnel'),
+      uLayers: value('layers'),
+      uFogDensity: value('depthFog'),
     };
   },
 
@@ -560,6 +756,7 @@ export default {
     return {
       clock: 0,
       spin: 0,
+      flight: 0, // accumulated flight phase, in zoom cycles
       turn: 0, // accumulated pathTurn: the loop's own rotation, on the field clock
       pathTime: 0, // integral of pathSpeed: where the centre is along the loop
       breath: 0, // integral of pathSpeed x pathBreathRate: the anchors' drift phase
@@ -578,7 +775,15 @@ export default {
     const u = state.uniforms;
     const dt = ctx.delta * p.speed;
     state.clock += dt;
-    state.spin += dt * p.spin;
+
+    // The realm, as a signed strength: hell < 0 < heaven. It reshapes the fractal (effective
+    // params below), speeds or calms the flight and spin, and drives the look in the shader.
+    const realm = p.realm * p.realmStrength;
+    const hell = Math.max(-realm, 0);
+    const heaven = Math.max(realm, 0);
+    const chaos = p.realmChaos;
+    state.spin += dt * p.spin * (1 + 2 * hell);
+    state.flight += dt * p.flightSpeed * (1 + 0.6 * hell - 0.3 * heaven);
     state.turn += dt * p.pathTurn;
     state.pathTime += ctx.delta * p.pathSpeed;
     state.breath += ctx.delta * p.pathSpeed * p.pathBreathRate;
@@ -627,7 +832,13 @@ export default {
     // between 1 − e and 1 + e per lap, so the centre lingers on one side of the loop.
     const eased = state.lap - (p.pathEase * Math.sin(TWO_PI * state.lap)) / TWO_PI;
     pointAlong(table, timeCum, count, eased, state.here);
-    u.uCenter.value.set(state.here[0], state.here[1]);
+    // Camera shake nudges the vanishing point: barely there in heaven, violent in hell.
+    const shake = p.shake * (0.15 + 0.85 * hell) * 0.03;
+    const c = state.clock;
+    u.uCenter.value.set(
+      state.here[0] + shake * (Math.sin(c * 23.1) + 0.6 * Math.sin(c * 37.7 + 1.3) + 0.4 * Math.sin(c * 61.3 + 2.9)),
+      state.here[1] + shake * (Math.sin(c * 19.7 + 0.7) + 0.6 * Math.sin(c * 43.1 + 2.1) + 0.4 * Math.sin(c * 71.9 + 0.4)),
+    );
 
     // Evenly spaced points on the loop for the showPath overlay (last == first).
     const path = u.uPath.value;
@@ -641,18 +852,29 @@ export default {
     u.uSpin.value = state.spin;
     u.uShowPath.value = p.showPath;
     u.uBaseFreq.value = p.baseFreq;
-    u.uWarpAmt.value = p.warpAmt;
+    // Effective fractal params: inversion is the noise-vs-calm dial, so hell turns it up
+    // (plus warp and wave strength, fewer arms) and heaven turns it down (more arms).
+    u.uWarpAmt.value = p.warpAmt * (1 + (0.5 * hell - 0.25 * heaven) * chaos);
     u.uIterations.value = p.iterations;
     u.uSpiralTightness.value = p.spiralTightness;
-    u.uArms.value = p.arms;
-    u.uWaveStrength.value = p.waveStrength;
+    u.uArms.value = Math.max(1, p.arms + Math.round((4 * heaven - 2 * hell) * chaos));
+    u.uWaveStrength.value = p.waveStrength * (1 + 0.6 * hell * chaos);
     u.uPhaseFeedback.value = p.phaseFeedback;
-    u.uInversion.value = p.inversion;
+    u.uInversion.value = Math.max(0, p.inversion + (0.28 * hell - 0.04 * heaven) * chaos);
     u.uNonlinear.value = p.nonlinear;
     u.uFrequencyCount.value = p.frequencyCount;
     u.uProbability.value = p.probability;
     u.uColorSaturation.value = p.colorSaturation;
     u.uNeuralInfluence.value = p.neuralInfluence;
+
+    u.uRealm.value = realm;
+    u.uRays.value = p.glowRays;
+    u.uEmbers.value = p.embers;
+    u.uHeat.value = p.heat;
+    u.uFlight.value = state.flight;
+    u.uTunnel.value = p.tunnel;
+    u.uLayers.value = p.layers;
+    u.uFogDensity.value = p.depthFog;
 
     stepNetwork(state.net, p, state.clock, u.uNeural.value);
   },
