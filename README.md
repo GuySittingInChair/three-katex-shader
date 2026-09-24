@@ -1,5 +1,7 @@
 # three-katex-shader
 
+**Live at [aiship.lol](https://aiship.lol).**
+
 Animated math sketches in the browser. Each sketch is a mathematically defined
 transformation playing on a loop (Hopf fibrations, minimal surfaces, fractals,
 reaction–diffusion, splines, …), with its equation shown live in KaTeX, using the same
@@ -56,7 +58,7 @@ own computer**. Nothing is sent to a cloud service.
 
 3. **On the hosted site**, your browser talks to Ollama directly, so Ollama has to be told
    to accept requests from that site. Set `OLLAMA_ORIGINS` to the site's address (for
-   example `https://sketches.example.com`) and restart Ollama:
+   example `https://aiship.lol`) and restart Ollama:
 
    - **Linux** (installed as a service):
 
@@ -64,11 +66,11 @@ own computer**. Nothing is sent to a cloud service.
      sudo systemctl edit ollama.service
      # add these two lines, save, then:
      #   [Service]
-     #   Environment="OLLAMA_ORIGINS=https://sketches.example.com"
+     #   Environment="OLLAMA_ORIGINS=https://aiship.lol"
      sudo systemctl daemon-reload && sudo systemctl restart ollama
      ```
 
-   - **macOS**: `launchctl setenv OLLAMA_ORIGINS "https://sketches.example.com"`, then quit
+   - **macOS**: `launchctl setenv OLLAMA_ORIGINS "https://aiship.lol"`, then quit
      and reopen the Ollama app.
    - **Windows**: add a user environment variable `OLLAMA_ORIGINS` with the site's address,
      then quit Ollama from the system tray and start it again.
