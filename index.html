@@ -2,41 +2,145 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>three-katex-shader</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
-      crossorigin="anonymous"
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0b0f" />
+    <title>aiship · learn math visually</title>
+    <meta
+      name="description"
+      content="Animated equations where every symbol is explained. Watch the math, read it, change it and share what you make."
     />
+    <meta property="og:title" content="aiship · learn math visually" />
+    <meta
+      property="og:description"
+      content="Animated equations where every symbol is explained. Watch the math, read it, change it and share what you make."
+    />
+    <meta property="og:image" content="https://aiship.lol/thumbs/hopfFibration.jpg" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
-  <body>
+  <body data-page="viewer">
     <div id="canvas-container"></div>
+
+    <!-- Landing page (/) -->
+    <main id="landing" class="landing" hidden>
+      <section class="hero">
+        <div class="hero-inner">
+          <p class="eyebrow"><span class="brand-mark">aiship</span> · learn math visually</p>
+          <h1>Watch the math.<br />Then read it.</h1>
+          <p class="lede">
+            Animated equations where the numbers on screen are the ones drawing the picture, and every symbol is
+            explained: what it means, and how to type it.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" data-link data-sketch="hopfFibration" href="/s/hopfFibration">Start with the Hopf fibration</a>
+            <a class="btn btn-ghost" href="#gallery"><span>Browse <span data-role="sketch-count"></span> sketches</span></a>
+          </div>
+        </div>
+        <div class="hero-equation" id="hero-equation" aria-label="The equation drawing the background, with live values"></div>
+      </section>
+
+      <section class="section ways">
+        <article>
+          <h2>Watch</h2>
+          <p>Each sketch is a shape defined by an equation, playing on a loop. Nothing is keyframed: what moves is the formula.</p>
+        </article>
+        <article>
+          <h2>Read</h2>
+          <p>Open <b>Explain</b> on any sketch to see every symbol in its live equation, what it means, and the exact keys to type it.</p>
+        </article>
+        <article>
+          <h2>Make</h2>
+          <p>Change the code and watch it run. Share what you make; after a quick review it shows up here for everyone.</p>
+        </article>
+      </section>
+
+      <section class="section" id="gallery">
+        <div class="section-head">
+          <h2>Sketches</h2>
+          <p>Fractals, fibrations, minimal surfaces, reaction–diffusion, splines. Tap one to open it.</p>
+        </div>
+        <div id="landing-grid"></div>
+      </section>
+
+      <section class="section split">
+        <div>
+          <h2>New to the notation?</h2>
+          <p>
+            The field guide covers the symbols, LaTeX, loops, shaders and the math behind the sketches. It's written
+            for people who know what a for-loop is but not what a fibration is.
+          </p>
+        </div>
+        <a class="btn btn-ghost" data-link data-guide href="/s/hopfFibration">Open the field guide</a>
+      </section>
+
+      <section class="section split">
+        <div>
+          <h2>Built in the open</h2>
+          <p>
+            Sign in with GitHub to comment, add notes to explanations and share your own sketches. The code is MIT
+            licensed, and runs locally with a free AI model on your own computer.
+          </p>
+        </div>
+        <div class="split-actions">
+          <a class="btn btn-ghost" href="https://github.com/GuySittingInChair/three-katex-shader" target="_blank" rel="noopener">View on GitHub</a>
+          <button class="btn btn-ghost" type="button" data-role="landing-signin">Sign in with GitHub</button>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span class="brand-mark">aiship</span>
+        <span>MIT licensed · made with three.js and KaTeX</span>
+      </footer>
+    </main>
+
+    <!-- Viewer (/s/<id>) -->
+    <header class="topbar" id="topbar">
+      <a class="brand" href="/" data-link>aiship</a>
+      <button class="sketch-title" id="sketch-title" type="button" aria-label="Choose a sketch">
+        <span class="sketch-title-name"></span>
+        <span class="sketch-title-meta"></span>
+      </button>
+      <div class="topbar-right">
+        <button id="review-toggle" class="bar-btn hidden" type="button">Review</button>
+        <button id="account-toggle" class="bar-btn account-btn" type="button">Sign in</button>
+      </div>
+    </header>
+
     <div id="math-overlay"></div>
-    <div id="sketch-label"></div>
-    <div id="toolbar" class="toolbar">
-      <button id="code-toggle" class="toolbar-btn" type="button">Code</button>
-      <button id="params-toggle" class="toolbar-btn" type="button">🎚️ Params</button>
-      <button id="explain-toggle" class="toolbar-btn" type="button" title="What the symbols mean (E)">📖 Explain</button>
-      <button id="voice-toggle" class="toolbar-btn" type="button">🗣️ Voice</button>
-      <button id="audio-toggle" class="toolbar-btn" type="button">🎤 Enable Audio</button>
-      <button id="comments-toggle" class="toolbar-btn" type="button">💬 Comments</button>
-      <button id="ai-toggle" class="toolbar-btn" type="button">🤖 AI</button>
-      <button id="sound-toggle" class="toolbar-btn" type="button">🎹 Sound</button>
-      <button id="media-toggle" class="toolbar-btn" type="button">🎬 Media</button>
-      <button id="view-toggle" class="toolbar-btn" type="button" title="Hide the controls (H)">👁 View</button>
-      <button id="review-toggle" class="toolbar-btn hidden" type="button">🛡 Review</button>
+
+    <nav class="dock" id="dock" aria-label="Sketch tools">
+      <button id="prev-btn" class="dock-btn dock-nav" type="button" aria-label="Previous sketch"></button>
+      <button id="explain-toggle" class="dock-btn" type="button" title="What the symbols mean (E)"></button>
+      <button id="params-toggle" class="dock-btn" type="button" title="Sliders"></button>
+      <button id="comments-toggle" class="dock-btn" type="button" title="Comments"></button>
+      <button id="code-toggle" class="dock-btn" type="button" title="Edit the code"></button>
+      <button id="more-toggle" class="dock-btn" type="button" aria-haspopup="true" aria-expanded="false"></button>
+      <button id="next-btn" class="dock-btn dock-nav" type="button" aria-label="Next sketch"></button>
+    </nav>
+
+    <div id="more-menu" class="menu hidden" role="menu">
+      <button id="ai-toggle" type="button" role="menuitem">AI helper</button>
+      <button id="sound-toggle" type="button" role="menuitem">Sound instrument</button>
+      <button id="media-toggle" type="button" role="menuitem">Music &amp; recording</button>
+      <button id="audio-toggle" type="button" role="menuitem">Use microphone</button>
+      <button id="voice-toggle" type="button" role="menuitem">Voice commands</button>
+      <button id="view-toggle" type="button" role="menuitem">Hide controls <kbd>H</kbd></button>
+      <button id="fullscreen-toggle" type="button" role="menuitem">Fullscreen <kbd>F</kbd></button>
     </div>
-    <button id="account-toggle" class="toolbar-btn account-btn" type="button">Sign in with GitHub</button>
-    <div id="code-panel" class="code-panel hidden"></div>
-    <div id="params-panel" class="params-panel hidden"></div>
-    <div id="comments-panel" class="comments-panel hidden"></div>
-    <div id="ai-panel" class="ai-panel hidden"></div>
-    <div id="sound-panel" class="params-panel hidden"></div>
-    <div id="media-panel" class="params-panel hidden"></div>
-    <div id="explain-panel" class="params-panel hidden"></div>
-    <div id="review-panel" class="params-panel hidden"></div>
+
+    <div id="code-panel" class="code-panel panel panel-left hidden"></div>
+    <div id="params-panel" class="params-panel panel hidden"></div>
+    <div id="comments-panel" class="comments-panel panel hidden"></div>
+    <div id="ai-panel" class="ai-panel panel hidden"></div>
+    <div id="sound-panel" class="params-panel panel hidden"></div>
+    <div id="media-panel" class="params-panel panel hidden"></div>
+    <div id="explain-panel" class="params-panel panel panel-wide hidden"></div>
+    <div id="review-panel" class="params-panel panel panel-wide hidden"></div>
+    <div id="picker-panel" class="panel panel-picker hidden">
+      <div class="panel-head"><h2>Sketches</h2></div>
+      <div id="picker-grid"></div>
+    </div>
+
     <div id="rec-indicator" title="Recording"><span></span>REC</div>
     <script type="module" src="/src/main.js"></script>
   </body>

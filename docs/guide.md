@@ -4,7 +4,7 @@ A reference for the math, notation and code in `three-katex-shader`. It is meant
 kept open next to a sketch and added to as you learn. Nothing here needs to be read in
 order: look things up.
 
-In the app, click **📖 Explain** (or press **E**) to read this guide beside the running
+In the app, open **Explain** from the dock (or press **E**) to read this guide beside the running
 sketch. Its "This sketch" view looks up every symbol in the live equation in the tables
 of sections 3 and 4, so a row you add there shows up in the app. A section containing a
 line that starts with `File:` followed by the sketch's path (as in section 9) becomes that

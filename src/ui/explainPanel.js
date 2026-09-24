@@ -133,7 +133,7 @@ function glyph(entry, key) {
   return glyphCache.get(id);
 }
 
-export function createExplainPanel(container, manager, { onVisibilityChange } = {}) {
+export function createExplainPanel(container, manager) {
   const sections = parseSections(guideSource);
   const glossary = parseGlossary(guideSource);
 
@@ -325,9 +325,7 @@ export function createExplainPanel(container, manager, { onVisibilityChange } = 
 
   function setOpen(open) {
     container.classList.toggle('hidden', !open);
-    document.body.classList.toggle('explain-open', open);
     if (open && sketchDirty) renderSketch();
-    onVisibilityChange?.(open);
   }
 
   manager.onChange(() => {
@@ -340,6 +338,7 @@ export function createExplainPanel(container, manager, { onVisibilityChange } = 
     show: () => setOpen(true),
     hide: () => setOpen(false),
     toggle: () => setOpen(!isOpen()),
+    showTab,
     setLatex(next) {
       tex = next || '';
       if (isOpen() && !sketchDirty) renderSymbols();

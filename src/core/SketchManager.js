@@ -7,7 +7,7 @@ const easeInOutCubic = (x) =>
   x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 
 export class SketchManager {
-  constructor(renderer, size, domElement) {
+  constructor(renderer, size, domElement, initialIndex = 0) {
     this.renderer = renderer;
     this.size = size;
     this.domElement = domElement;
@@ -18,8 +18,8 @@ export class SketchManager {
     // the shared registry object, and survives switching away and back.
     this.liveParams = new Map();
 
-    this.currentIndex = 0;
-    this.current = this._makeRunner(sketches[0]);
+    this.currentIndex = Math.min(Math.max(initialIndex, 0), sketches.length - 1);
+    this.current = this._makeRunner(sketches[this.currentIndex]);
     this.current.build();
 
     this.incoming = null;
@@ -130,6 +130,12 @@ export class SketchManager {
     this.incoming = { runner: this._makeRunner(sketches[index]), index };
     this.incoming.runner.build();
     this.transitionElapsed = 0;
+  }
+
+  goToId(id) {
+    const index = sketches.findIndex((s) => s.id === id);
+    if (index !== -1) this.goTo(index);
+    return index !== -1;
   }
 
   next() { this.goTo((this.currentIndex + 1) % sketches.length); }

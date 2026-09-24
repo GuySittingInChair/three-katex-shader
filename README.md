@@ -12,17 +12,23 @@ Built with [three.js](https://threejs.org/), [KaTeX](https://katex.org/) and
 
 ## Using it
 
+The landing page (`/`) has a gallery of every sketch, and each sketch has its own address,
+`/s/<sketch-id>`. In a sketch, tap its name in the top bar to pick another one. The dock
+at the bottom has previous/next, **Explain**, **Params**, **Comments**, **Code**, and
+**More** (AI helper, sound, recording, microphone, voice, hide controls). It all works on
+phones too; panels open as sheets from the bottom.
+
 | Key | Does |
 |---|---|
 | ← / → (or P / N) | previous / next sketch |
 | E | **Explain** panel: every symbol in the current equation, what it means and how to type it, plus a walkthrough of the sketch |
 | H | cycle view: everything → equation only → clean |
+| Esc | close panels |
 | F | fullscreen |
 | R | record video |
-| B, 1–8 | play the built-in sound instrument (open 🎹 Sound first) |
+| B, 1–8 | play the built-in sound instrument (open Sound from More first) |
 
-The toolbar also has the code editor (edit any sketch live), sliders, and an AI helper
-that runs on your own computer (see [AI panel](#ai-panel-ollama)).
+The AI helper runs on your own computer (see [AI panel](#ai-panel-ollama)).
 
 New to the math or the code? Start with **[docs/guide.md](docs/guide.md)**. It's a
 field guide to the symbols, LaTeX, JavaScript loops, shaders and the math behind the
@@ -97,7 +103,9 @@ supabase/       database schema and access rules for sign-in, comments, notes, s
   sections 3–4 shows up in the Explain panel automatically.
 - **Sketches:** copy an existing sketch in `src/sketches/`. A sketch should be a
   transformation defined by an equation (`motion(t)`), with its `latex` showing the live
-  values. The guide covers the anatomy of a sketch.
+  values. The guide covers the anatomy of a sketch. With `npm run dev` running, run
+  `npm run thumbs -- <sketch-id>` to capture its gallery thumbnail into `public/thumbs/`
+  (needs Firefox; set `FIREFOX=/path/to/firefox` if it isn't found).
 
 Open a pull request with your change.
 
