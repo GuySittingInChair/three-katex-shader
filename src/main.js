@@ -10,6 +10,9 @@ import { createParamsPanel } from './ui/paramsPanel.js';
 import { createMediaPanel } from './ui/mediaPanel.js';
 import { createSoundPanel } from './ui/soundPanel.js';
 import { createExplainPanel } from './ui/explainPanel.js';
+import { createReviewPanel } from './ui/reviewPanel.js';
+import { createAccountButton } from './ui/accountButton.js';
+import { createCommunitySketches } from './core/communitySketches.js';
 import { createAbyss } from './core/abyss.js';
 import { createToast, createViewMode } from './ui/viewMode.js';
 import { createRecorder } from './core/recorder.js';
@@ -58,7 +61,10 @@ function syncMath(force = false) {
 }
 
 function renderOverlays(sketch) {
-  label.textContent = `${sketch.name}  ·  ← / → to switch`;
+  const by = sketch.community
+    ? `  ·  by @${sketch.community.author}${sketch.community.status === 'pending' ? ' (waiting for review)' : ''}`
+    : '';
+  label.textContent = `${sketch.name}${by}  ·  ← / → to switch`;
   lastLatex = null;
   syncMath(true);
 }
@@ -68,7 +74,18 @@ manager.onChange(renderOverlays);
 // --- Code panel ---
 const codeToggle = document.getElementById('code-toggle');
 const codePanel = document.getElementById('code-panel');
-const codePanelApi = createCodePanel(codePanel, manager);
+const codePanelApi = createCodePanel(codePanel, manager, {
+  onShared: () => community.reload(),
+});
+
+// --- Community: sign-in, shared sketches, admin review ---
+const community = createCommunitySketches(manager, {
+  onListChange: () => {
+    codePanelApi.refresh();
+    renderOverlays(manager.getCurrent());
+  },
+});
+createAccountButton(document.getElementById('account-toggle'), { toast });
 codeToggle.addEventListener('click', () => {
   codePanel.classList.toggle('hidden');
 });
@@ -135,6 +152,19 @@ function toggleExplain() {
 }
 explainToggle.addEventListener('click', toggleExplain);
 
+// --- Review (admin only: pending guide notes and shared sketches) ---
+const reviewToggle = document.getElementById('review-toggle');
+const reviewPanel = document.getElementById('review-panel');
+const reviewApi = createReviewPanel(reviewPanel, manager, {
+  toggleButton: reviewToggle,
+  toast,
+  onReviewed: () => community.reload(),
+});
+reviewToggle.addEventListener('click', () => {
+  hideRightPanels(reviewPanel);
+  if (!reviewPanel.classList.toggle('hidden')) reviewApi.show();
+});
+
 // --- Sound (the Abyss instrument) ---
 const abyss = createAbyss();
 const soundToggle = document.getElementById('sound-toggle');
@@ -169,7 +199,7 @@ window.addEventListener('drop', (e) => {
 // Hides the other right-docked panels, leaving `except` alone — shared
 // by Comments/AI/Params/Media so only one is ever open at a time.
 function hideRightPanels(except) {
-  for (const panel of [commentsPanel, aiPanel, paramsPanel, mediaPanel, soundPanel, explainPanel]) {
+  for (const panel of [commentsPanel, aiPanel, paramsPanel, mediaPanel, soundPanel, explainPanel, reviewPanel]) {
     if (panel === except) continue;
     panel.classList.add('hidden');
     if (panel === commentsPanel) commentPanelApi.hide();

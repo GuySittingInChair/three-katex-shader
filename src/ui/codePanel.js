@@ -2,6 +2,7 @@ import { sketches, updateSketch, addSketch, getGroupedCategories } from '../core
 import { getEditableSource, saveEdit, resetEdit, hasEdit, wasWrittenToDisk } from '../core/sourceStore.js';
 import { persistSketch, trashSketch } from '../core/diskSync.js';
 import { compileSketch } from '../core/sketchCompiler.js';
+import { getUser, shareSketch, updateSharedSketch } from '../core/community.js';
 import { shaderStarterSource, geometryStarterSource } from '../core/starterTemplates.js';
 import { getGroupForCategory, getAllCategories } from '../core/taxonomy.js';
 import { streamChat } from '../core/aiClient.js';
@@ -211,7 +212,7 @@ function applyExtractedCandidate(source, candidate, existingNames) {
   return { applied: true, source: withUpdateLine };
 }
 
-export function createCodePanel(container, manager) {
+export function createCodePanel(container, manager, { onShared } = {}) {
   container.innerHTML = `
     <div class="code-panel-tabs"></div>
     <div class="code-panel-list"></div>
@@ -238,6 +239,7 @@ export function createCodePanel(container, manager) {
       <button class="code-panel-generate" type="button" title="Put the cursor on a '// instruction' comment line and expand it into code (Ctrl+Shift+G)">✨ Generate</button>
       <button class="code-panel-annotate" type="button" title="Ask the local AI to walk through this sketch with inline commentary, notebook-style (Ctrl+Shift+A)">🪶 Annotate</button>
       <button class="code-panel-extract" type="button" title="Ask the local AI to find hardcoded math constants and turn them into real, adjustable params (Ctrl+Shift+E)">🔬 Extract Params</button>
+      <button class="code-panel-share" type="button" title="Share this sketch on the site. Others see it after it has been reviewed.">⇪ Share</button>
       <span class="code-panel-status"></span>
     </div>
   `;
@@ -249,6 +251,7 @@ export function createCodePanel(container, manager) {
   const generateBtn = container.querySelector('.code-panel-generate');
   const annotateBtn = container.querySelector('.code-panel-annotate');
   const extractBtn = container.querySelector('.code-panel-extract');
+  const shareBtn = container.querySelector('.code-panel-share');
   const resetBtn = container.querySelector('.code-panel-reset');
   const status = container.querySelector('.code-panel-status');
 
@@ -369,7 +372,14 @@ export function createCodePanel(container, manager) {
       const openBtn = document.createElement('button');
       openBtn.type = 'button';
       openBtn.className = 'code-panel-list-open';
-      openBtn.innerHTML = `<span class="code-panel-list-name">${s.name}</span><span class="code-panel-list-cat">${s.category || 'Uncategorized'}</span>`;
+      // Shared sketches' names and categories are typed by strangers: text, never HTML.
+      const nameEl = document.createElement('span');
+      nameEl.className = 'code-panel-list-name';
+      nameEl.textContent = s.community ? `${s.name} · @${s.community.author}` : s.name;
+      const catEl = document.createElement('span');
+      catEl.className = 'code-panel-list-cat';
+      catEl.textContent = s.community?.status === 'pending' ? 'pending review' : s.category || 'Uncategorized';
+      openBtn.append(nameEl, catEl);
       openBtn.addEventListener('click', () => selectSketch(s.id, { jump: true }));
 
       const deleteBtn = document.createElement('button');
@@ -699,12 +709,47 @@ export function createCodePanel(container, manager) {
     }
   });
 
+  // Shares the editor's code: a sketch you already shared is updated (and
+  // goes back for review), anything else becomes a new shared sketch.
+  shareBtn.addEventListener('click', async () => {
+    if (!getUser()) {
+      setStatus('Sign in with GitHub to share (button at the top right)', 'error');
+      return;
+    }
+    let def;
+    try {
+      def = compileSketch(editor.value);
+    } catch (err) {
+      setStatus(`✗ fix this before sharing: ${err.message}`, 'error');
+      return;
+    }
+    const shared = sketches.find((s) => s.id === currentId)?.community;
+    const payload = { name: def.name, category: def.category || 'Uncategorized', code: editor.value };
+    shareBtn.disabled = true;
+    try {
+      const row = shared?.mine ? await updateSharedSketch(shared.id, payload) : await shareSketch(payload);
+      setStatus(
+        row.status === 'approved'
+          ? '✓ shared and published'
+          : '✓ shared: it appears for everyone once it has been reviewed',
+        'ok'
+      );
+      onShared?.();
+    } catch (err) {
+      setStatus(`✗ couldn't share: ${err.message}`, 'error');
+    } finally {
+      shareBtn.disabled = false;
+    }
+  });
+
   // Keep the panel in sync when the sketch changes via arrow keys.
   manager.onChange((sketch) => {
     if (currentId !== sketch.id) selectSketch(sketch.id);
+    else renderList();
   });
 
   return {
+    refresh,
     // Drops code (e.g. from the AI panel) into the editor for the
     // currently-open sketch. Left un-applied until the user hits Run, so
     // an AI suggestion never overwrites a sketch without a review step.

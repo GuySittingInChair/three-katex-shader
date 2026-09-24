@@ -216,6 +216,7 @@ body {
 .code-panel-generate,
 .code-panel-annotate,
 .code-panel-extract,
+.code-panel-share,
 .code-panel-new-create,
 .code-panel-new-cancel {
   background: #1a1a20;
@@ -232,13 +233,15 @@ body {
 .code-panel-generate:hover,
 .code-panel-annotate:hover,
 .code-panel-extract:hover,
+.code-panel-share:hover,
 .code-panel-new-create:hover,
 .code-panel-new-cancel:hover {
   background: #26262e;
 }
 .code-panel-generate:disabled,
 .code-panel-annotate:disabled,
-.code-panel-extract:disabled {
+.code-panel-extract:disabled,
+.code-panel-share:disabled {
   opacity: 0.5;
   cursor: default;
 }
@@ -814,6 +817,169 @@ body.explain-open[data-view]:not([data-view='full']) #math-overlay {
   vertical-align: top;
 }
 .explain-doc th { background: rgba(255, 255, 255, 0.06); }
+
+/* ---- Community: account, comments, notes, review ---- */
+.hidden {
+  display: none !important;
+}
+.account-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.account-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.comment-avatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+.comment-header .comment-time {
+  margin-left: 0;
+  flex: 1;
+}
+.comment-delete {
+  background: none;
+  border: 0;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 2px;
+}
+.comment-delete:hover {
+  color: #ff8a8a;
+}
+.comments-signin {
+  flex: 0 0 auto;
+  background: rgba(124, 196, 255, 0.15);
+  color: #fff;
+  border: 1px solid rgba(124, 196, 255, 0.5);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.explain-notes {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.explain-note {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 7px 10px;
+}
+.explain-note-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+.explain-note-body {
+  font-size: 0.84rem;
+  line-height: 1.5;
+  margin-top: 3px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.explain-note-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.explain-note-form textarea {
+  width: 100%;
+  background: #1a1a20;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 0.84rem;
+  resize: vertical;
+}
+.params-panel.review-panel {
+  width: min(560px, 92vw);
+}
+.review-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.review-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.review-meta {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+.review-body {
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.review-code {
+  max-height: 260px;
+  overflow: auto;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: #ffe2a8;
+}
+.review-actions {
+  display: flex;
+  gap: 8px;
+}
+.review-btn {
+  background: #1a1a20;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.review-btn.approve {
+  border-color: rgba(120, 220, 160, 0.6);
+  color: #b6ffcf;
+}
+.review-btn.reject {
+  border-color: rgba(255, 138, 138, 0.5);
+  color: #ffb3b3;
+}
+body[data-view='equation'] .account-btn,
+body[data-view='clean'] .account-btn {
+  display: none;
+}
 
 /* ---- Canvas: letterbox when a recording preset resizes the drawing buffer ---- */
 #canvas-container canvas {

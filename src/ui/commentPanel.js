@@ -1,43 +1,41 @@
-import { fetchComments, postComment, COMMENTS_AVAILABLE } from '../core/commentClient.js';
+import { listComments, addComment, deleteComment, onAuthChange, getUser, isAdmin, signIn } from '../core/community.js';
 
-const POLL_INTERVAL = 3000;
+const POLL_INTERVAL = 8000;
 
 export function createCommentPanel(container, manager) {
-  if (!COMMENTS_AVAILABLE) {
-    container.innerHTML = `
-      <div class="comments-panel-title">Comments</div>
-      <div class="comments-panel-empty">Comments are coming soon, together with sign-in. For now, run the project locally to try them (see the README).</div>
-    `;
-    return { show() {}, hide() {} };
-  }
-
   container.innerHTML = `
     <div class="comments-panel-title"></div>
     <div class="comments-panel-status"></div>
     <div class="comments-panel-list"></div>
     <div class="comments-panel-form">
-      <input class="comments-author" type="text" placeholder="Your name (or bot name)" />
-      <textarea class="comments-text" rows="2" placeholder="Say something about this sketch..."></textarea>
+      <textarea class="comments-text" rows="3" maxlength="2000" placeholder="Say something about this sketch..."></textarea>
       <button class="comments-post" type="button">Post</button>
     </div>
+    <button class="comments-signin" type="button">Sign in with GitHub to comment</button>
   `;
 
   const title = container.querySelector('.comments-panel-title');
   const status = container.querySelector('.comments-panel-status');
   const list = container.querySelector('.comments-panel-list');
-  const authorInput = container.querySelector('.comments-author');
+  const form = container.querySelector('.comments-panel-form');
   const textInput = container.querySelector('.comments-text');
   const postBtn = container.querySelector('.comments-post');
+  const signInBtn = container.querySelector('.comments-signin');
 
   let currentSketchId = manager.getCurrent().id;
   let pollHandle = null;
+  let lastRendered = '';
 
   function setStatus(text, kind) {
     status.textContent = text;
     status.className = `comments-panel-status${kind ? ` ${kind}` : ''}`;
   }
 
+  // textContent throughout: comments are written by strangers.
   function renderComments(comments) {
+    const signature = JSON.stringify([getUser()?.id, comments.map((c) => c.id)]);
+    if (signature === lastRendered) return;
+    lastRendered = signature;
     list.innerHTML = '';
     if (comments.length === 0) {
       const empty = document.createElement('div');
@@ -46,40 +44,63 @@ export function createCommentPanel(container, manager) {
       list.appendChild(empty);
       return;
     }
-    // textContent everywhere below — comment authors/text come from any
-    // local process hitting the API, so they're untrusted input.
+    const me = getUser()?.id;
     comments.forEach((c) => {
       const item = document.createElement('div');
       item.className = 'comment-item';
 
       const header = document.createElement('div');
+      header.className = 'comment-header';
+      if (c.author?.avatar_url) {
+        const img = document.createElement('img');
+        img.className = 'comment-avatar';
+        img.src = c.author.avatar_url;
+        img.alt = '';
+        header.appendChild(img);
+      }
       const authorSpan = document.createElement('span');
       authorSpan.className = 'comment-author';
-      authorSpan.textContent = c.author;
+      authorSpan.textContent = c.author?.username ?? 'someone';
       const timeSpan = document.createElement('span');
       timeSpan.className = 'comment-time';
-      timeSpan.textContent = new Date(c.createdAt).toLocaleTimeString();
-      header.appendChild(authorSpan);
-      header.appendChild(timeSpan);
+      timeSpan.textContent = new Date(c.created_at).toLocaleString();
+      header.append(authorSpan, timeSpan);
+
+      if (c.user_id === me || isAdmin()) {
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'comment-delete';
+        del.title = 'Delete comment';
+        del.textContent = '×';
+        del.addEventListener('click', async () => {
+          if (!window.confirm('Delete this comment?')) return;
+          try {
+            await deleteComment(c.id);
+            await refresh();
+          } catch (err) {
+            setStatus(`✗ ${err.message}`, 'error');
+          }
+        });
+        header.appendChild(del);
+      }
 
       const body = document.createElement('div');
       body.className = 'comment-text';
-      body.textContent = c.text;
+      body.textContent = c.body;
 
-      item.appendChild(header);
-      item.appendChild(body);
+      item.append(header, body);
       list.appendChild(item);
     });
+    list.scrollTop = list.scrollHeight;
   }
 
   async function refresh() {
-    title.textContent = manager.getCurrent().name;
+    title.textContent = `Comments · ${manager.getCurrent().name}`;
     try {
-      const comments = await fetchComments(currentSketchId);
-      renderComments(comments);
-      setStatus('');
-    } catch {
-      setStatus('Comment server not reachable — run `npm run server`.', 'error');
+      renderComments(await listComments(currentSketchId));
+      if (status.classList.contains('error')) setStatus('');
+    } catch (err) {
+      setStatus(`Couldn't load comments: ${err.message}`, 'error');
     }
   }
 
@@ -94,15 +115,24 @@ export function createCommentPanel(container, manager) {
     pollHandle = null;
   }
 
+  onAuthChange((user) => {
+    form.classList.toggle('hidden', !user);
+    signInBtn.classList.toggle('hidden', Boolean(user));
+    lastRendered = '';
+    if (pollHandle) refresh();
+  });
+
+  signInBtn.addEventListener('click', () => signIn());
+
   postBtn.addEventListener('click', async () => {
     const text = textInput.value.trim();
     if (!text) return;
-    const author = authorInput.value.trim() || 'you';
     postBtn.disabled = true;
     try {
-      await postComment(currentSketchId, author, text);
+      await addComment(currentSketchId, text);
       textInput.value = '';
       await refresh();
+      setStatus('');
     } catch (err) {
       setStatus(`✗ ${err.message}`, 'error');
     } finally {
@@ -112,6 +142,7 @@ export function createCommentPanel(container, manager) {
 
   manager.onChange((sketch) => {
     currentSketchId = sketch.id;
+    lastRendered = '';
     if (pollHandle) refresh(); // only while the panel is open
   });
 

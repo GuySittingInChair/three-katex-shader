@@ -35,7 +35,7 @@ git clone <this repository's URL>
 cd three-katex-shader
 npm install
 npm run dev          # the app, at http://localhost:5173
-npm run dev:all      # the app plus the local server for comments and the AI panel
+npm run dev:all      # the app plus the local server the AI panel uses
 ```
 
 When running locally, sketches you create or edit in the code panel are saved as real
@@ -84,7 +84,8 @@ src/lib/        shared math and geometry helpers (motion.js: lerp, smooth, phase
 src/core/       app engine: sketch runner, LaTeX, audio, recording
 src/ui/         the panels
 docs/guide.md   the learning guide, also shown in the Explain panel
-server/         local-only server for comments and the Ollama proxy
+server/         local-only Ollama proxy (and an old local comments API used by server/example-bot.mjs)
+supabase/       database schema and access rules for sign-in, comments, notes, shared sketches
 ```
 
 ## Contributing
@@ -108,8 +109,35 @@ npm run build        # output in dist/
 
 On Vercel, import the repository as a new project and keep the detected **Vite**
 settings. Every push to the main branch redeploys. On the hosted site, the AI panel talks to
-the visitor's own Ollama (see above), and comments are switched off until sign-in is
-added.
+the visitor's own Ollama (see above).
+
+## Community features (Supabase)
+
+Signing in with GitHub lets visitors:
+
+- **comment** on any sketch (💬 Comments),
+- **add notes** to a sketch's explanation (📖 Explain → Community notes),
+- **share sketches** from the code editor (⇪ Share).
+
+Notes and shared sketches are **reviewed before anyone else sees them**. A shared sketch is
+JavaScript that runs in every viewer's browser, so the admin reads it first in the
+🛡 Review panel, which only the admin can see. Until it's approved, a sketch only
+runs for the person who shared it.
+
+The data lives in [Supabase](https://supabase.com/). The access rules are in
+[`supabase/migrations/0001_community.sql`](supabase/migrations/0001_community.sql).
+To run your own copy with your own database:
+
+1. Create a Supabase project and run that SQL file in its SQL Editor. First change the
+   GitHub user id in `handle_new_user()` to your own (`gh api user --jq .id`), so that you
+   become the admin.
+2. Create a GitHub OAuth app whose callback URL is
+   `https://<your-project>.supabase.co/auth/v1/callback`, and enable the GitHub provider
+   in Supabase with its client id and secret.
+3. In Supabase → Authentication → URL Configuration, set your site's address and add
+   `http://localhost:5173/**` as a redirect URL.
+4. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` (in `.env.local`, or in
+   Vercel's environment variables). Without them the app uses this project's database.
 
 ## License
 

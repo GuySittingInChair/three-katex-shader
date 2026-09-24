@@ -1,6 +1,7 @@
 import katex from 'katex';
 import { marked } from 'marked';
 import guideSource from '../../docs/guide.md?raw';
+import { listNotes, addNote, deleteNote, onAuthChange, getUser, isAdmin, signIn } from '../core/community.js';
 
 // Right-docked reading panel built entirely from docs/guide.md:
 //   • "This sketch" — the symbols in the live equation, looked up in the guide's
@@ -153,6 +154,15 @@ export function createExplainPanel(container, manager, { onVisibilityChange } = 
         <summary>The equation’s source, as typed in the sketch</summary>
         <pre><code data-role="source"></code></pre>
       </details>
+      <h3>Community notes</h3>
+      <p class="explain-hint">Explanations, questions answered, things that helped. New notes appear for everyone once reviewed.</p>
+      <div class="explain-notes" data-role="notes"></div>
+      <div class="explain-note-form" data-role="note-form">
+        <textarea rows="3" maxlength="5000" placeholder="Add a note about this sketch’s math or code…"></textarea>
+        <button type="button" class="explain-tab">Add note</button>
+        <span class="explain-hint" data-role="note-status"></span>
+      </div>
+      <button type="button" class="explain-tab hidden" data-role="note-signin">Sign in with GitHub to add a note</button>
       <div class="explain-doc" data-role="walkthrough"></div>
     </div>
     <div class="explain-body explain-doc hidden" data-view="guide"></div>
@@ -235,8 +245,81 @@ export function createExplainPanel(container, manager, { onVisibilityChange } = 
     }
     lastSignature = null;
     renderSymbols();
+    renderNotes();
     views.sketch.scrollTop = 0;
   }
+
+  // Notes are written by other visitors: rendered as plain text only.
+  async function renderNotes() {
+    const sketchId = manager.getCurrent().id;
+    const holder = $('notes');
+    let notes;
+    try {
+      notes = await listNotes(sketchId);
+    } catch (err) {
+      holder.textContent = `Couldn't load notes: ${err.message}`;
+      return;
+    }
+    if (manager.getCurrent().id !== sketchId) return;
+    holder.textContent = '';
+    if (!notes.length) {
+      const empty = document.createElement('p');
+      empty.className = 'explain-hint';
+      empty.textContent = 'No notes yet.';
+      holder.append(empty);
+    }
+    const me = getUser()?.id;
+    for (const note of notes) {
+      const card = document.createElement('div');
+      card.className = 'explain-note';
+      const meta = document.createElement('div');
+      meta.className = 'explain-note-meta';
+      meta.textContent = `@${note.author?.username ?? 'someone'} · ${new Date(note.created_at).toLocaleDateString()}${note.status === 'pending' ? ' · waiting for review' : ''}`;
+      if (note.user_id === me || isAdmin()) {
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'comment-delete';
+        del.title = 'Delete note';
+        del.textContent = '×';
+        del.addEventListener('click', async () => {
+          if (!window.confirm('Delete this note?')) return;
+          await deleteNote(note.id).catch((err) => ($('note-status').textContent = err.message));
+          renderNotes();
+        });
+        meta.append(del);
+      }
+      const body = document.createElement('div');
+      body.className = 'explain-note-body';
+      body.textContent = note.body;
+      card.append(meta, body);
+      holder.append(card);
+    }
+  }
+
+  const noteForm = $('note-form');
+  const noteInput = noteForm.querySelector('textarea');
+  const noteButton = noteForm.querySelector('button');
+  noteButton.addEventListener('click', async () => {
+    const text = noteInput.value.trim();
+    if (!text) return;
+    noteButton.disabled = true;
+    try {
+      await addNote(manager.getCurrent().id, text);
+      noteInput.value = '';
+      $('note-status').textContent = isAdmin() ? 'Published.' : 'Thanks! It will appear for everyone once reviewed.';
+      renderNotes();
+    } catch (err) {
+      $('note-status').textContent = `Couldn't add: ${err.message}`;
+    } finally {
+      noteButton.disabled = false;
+    }
+  });
+  $('note-signin').addEventListener('click', () => signIn());
+  onAuthChange((user) => {
+    noteForm.classList.toggle('hidden', !user);
+    $('note-signin').classList.toggle('hidden', Boolean(user));
+    if (!container.classList.contains('hidden') && !sketchDirty) renderNotes();
+  });
 
   const isOpen = () => !container.classList.contains('hidden');
 
