@@ -3,3 +3,5 @@ dist/
 .trash/
 *.log
 .DS_Store
+.vercel
+.env*
