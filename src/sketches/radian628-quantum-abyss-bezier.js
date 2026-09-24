@@ -253,6 +253,16 @@ const PARAMS = {
   probability: { value: 1.0, min: 0.0, max: 2.0, step: 0.01 },
   colorSaturation: { value: 1.25, min: 0.5, max: 3.0, step: 0.1 },
 
+  // --- colour pipeline: base colour -> contrast -> glow -> rare emission -> tone map ---
+  hueSpread: { value: 3.0, min: 1.0, max: 6.0, step: 0.1 }, // how many palette regions one frame spans (the raw phase only covers a sliver of the wheel)
+  bandHardness: { value: 0.7, min: 0.0, max: 1.0, step: 0.01 }, // 0 = smooth gradient between palette regions, 1 = hard poster bands
+  seams: { value: 0.55, min: 0.0, max: 1.0, step: 0.01 }, // dark hairlines where palette regions meet
+  contrast: { value: 1.3, min: 0.6, max: 3.0, step: 0.05 }, // >1 pushes the weak structure toward black
+  glow: { value: 1.0, min: 0.0, max: 3.0, step: 0.01 }, // soft atmospheric glow around the probability shells
+  emission: { value: 1.0, min: 0.0, max: 3.0, step: 0.01 }, // strength of the rare emissive (cyan / magenta) structures
+  exposure: { value: 1.2, min: 0.3, max: 2.5, step: 0.01 },
+  layerSeparation: { value: 2.0, min: 1.0, max: 4.0, step: 0.1 }, // 1 = old soft depth crossfade; higher = less double exposure between depth layers
+
   // --- neural ---
   neuralInfluence: { value: 0.75, min: 0.0, max: 2.0, step: 0.01 },
   neuralMemory: { value: 0.82, min: 0.0, max: 0.99, step: 0.01 },
@@ -346,6 +356,15 @@ export default {
     uniform float uTunnel;
     uniform float uLayers;
     uniform float uFogDensity;
+
+    uniform float uHueSpread;
+    uniform float uBandHardness;
+    uniform float uSeams;
+    uniform float uContrast;
+    uniform float uGlow;
+    uniform float uEmission;
+    uniform float uExposure;
+    uniform float uLayerSeparation;
 
     varying vec2 vUv;
 
@@ -516,13 +535,67 @@ export default {
       return p;
     }
 
-    vec3 quantumPalette(float phase, float probability, float saturation) {
-      float hue = phase / TAU;
-      vec3 color = 0.5 + 0.5 * cos(TAU * (hue + vec3(0.0, 0.33, 0.67)));
-      vec3 gray = vec3(dot(color, vec3(0.299, 0.587, 0.114)));
-      color = mix(gray, color, saturation);
-      return color * (0.12 + probability * 2.4);
+    // ---- spectral palette -------------------------------------------------------
+    // Six discrete regions round the colour wheel instead of a continuous cosine rainbow.
+    // Each owns a stretch of the wheel (magenta and cyan are the narrow accents) and only
+    // blends into the next over the last part of its stretch, so neighbouring structures
+    // land in visibly different regions instead of averaging into one teal/purple.
+    // Each region also says how much it may emit: cyan strongly, magenta a little, teal
+    // and deep blue barely, navy and violet never.
+    #define R1 0.20
+    #define R2 0.38
+    #define R3 0.54
+    #define R4 0.68
+    #define R5 0.92
+
+    vec3 regionColor(float i) {
+      if (i < 0.5) return vec3(0.010, 0.018, 0.070);  // dark navy
+      if (i < 1.5) return vec3(0.030, 0.110, 0.460);  // deep blue
+      if (i < 2.5) return vec3(0.000, 0.720, 1.000);  // electric cyan
+      if (i < 3.5) return vec3(0.000, 0.520, 0.450);  // teal
+      if (i < 4.5) return vec3(0.300, 0.060, 0.580);  // deep violet
+      return vec3(0.800, 0.040, 0.550);               // magenta accent
     }
+
+    float regionEmission(float i) {
+      if (i < 0.5) return 0.0;
+      if (i < 1.5) return 0.12;
+      if (i < 2.5) return 1.0;
+      if (i < 3.5) return 0.06;
+      if (i < 4.5) return 0.0;
+      return 0.35;
+    }
+
+    // x: position on the wheel (any real). Returns the pigment, how emissive that spot of
+    // the wheel is allowed to be, and the distance (in wheel units) to the nearest
+    // region boundary, for the seams.
+    vec3 spectral(float x, out float emitSelect, out float boundaryDist) {
+      x = fract(x);
+      float i = 0.0, a = 0.0, b = R1;
+      if (x >= R1) { i = 1.0; a = R1; b = R2; }
+      if (x >= R2) { i = 2.0; a = R2; b = R3; }
+      if (x >= R3) { i = 3.0; a = R3; b = R4; }
+      if (x >= R4) { i = 4.0; a = R4; b = R5; }
+      if (x >= R5) { i = 5.0; a = R5; b = 1.0; }
+      float f = (x - a) / (b - a);
+      float soft = mix(1.0, 0.04, uBandHardness);    // share of the region used for the blend
+      float w = smoothstep(1.0 - soft, 1.0, f);
+      float j = mod(i + 1.0, 6.0);
+      emitSelect = mix(regionEmission(i), regionEmission(j), w);
+      float blendMid = b - 0.5 * soft * (b - a);     // where this region hands over to the next
+      boundaryDist = min(abs(x - blendMid), x - a);
+      return mix(regionColor(i), regionColor(j), w);
+    }
+
+    float luma(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
+
+    // Everything the tone map needs, kept apart until the very end.
+    struct Shade {
+      vec3 base;       // pigment x diffuse brightness
+      vec3 glow;       // soft atmospheric glow
+      vec3 emit;       // sparse, genuinely emissive light
+      float structure; // 0..1 grading input for the realms
+    };
 
     float segmentDistance(vec2 p, vec2 a, vec2 b) {
       vec2 ab = b - a;
@@ -562,14 +635,20 @@ export default {
       return mix(c, vec3(1.0), smoothstep(0.85, 1.0, x));
     }
 
-    // Colour of the field at field-space point p (rgb), before the core glow, exposure and
-    // tone map (applied once, after the depth layers are blended), plus a 0..1 "structure"
-    // scalar (w) for the realm grade. Luminance alone is a poor grading input: where the
-    // fold map is calm it barely varies, and a luminance ramp squashes the picture into one
-    // flat band. The hue angle and interference pattern always vary.
-    vec4 fieldColor(vec2 p, float t) {
+    // Shading of the field at field-space point p, split into base colour, glow and emission
+    // (blended over the depth layers, then exposed and tone mapped once in main), plus a 0..1
+    // "structure" scalar for the realm grade. The fractal and the network are untouched;
+    // only how their outputs become colour is decided here, in stages:
+    //   1 base colour  where on the spectral wheel this point sits (phase, orbit, interference;
+    //                  the network only nudges the wheel position and the saturation)
+    //   2 structure    diffuse brightness from orbit traps + probability through a contrast
+    //                  curve, dark seams at region boundaries, no brightness floor
+    //   3 glow         a faint haze of the local pigment around the probability shells
+    //   4 emission     a sparse mask: thin interference veins and coherent phase fronts, gated
+    //                  by the wheel region (cyan yes, magenta a little, the rest no)
+    Shade fieldColor(vec2 p, float t) {
       float hell = max(-uRealm, 0.0);
-      float heaven = max(uRealm, 0.0);
+      float infl = uNeuralInfluence;
       p = logarithmicCoordinates(p, t);
 
       float orbit;
@@ -578,10 +657,15 @@ export default {
       vec2 q = quantumFold(p, t, orbit, totalProbability, finalPhase);
       // orbit sums over every iteration; the colour code below is tuned for ~0-3
       orbit = orbit / max(uIterations, 1.0) * 4.0;
+      // quantumFold also adds neuralEnergy()·0.08·(1 + NU(11)) to the orbit on every
+      // iteration: the same amount for every pixel, i.e. a global brightness knob driven by
+      // the network. Take it back out here (leaving quantumFold as it is) so the orbit only
+      // measures structure.
+      float orbitS = max(orbit - 4.0 * neuralEnergy() * 0.08 * (1.0 + NU(11)), 0.0);
 
       float r = length(q) + EPS;
       float angle = atan(q.y, q.x);
-      vec2 finalPsi = rotation(NU(3) * uNeuralInfluence * 0.3) * quantumWave(q, t, uIterations);
+      vec2 finalPsi = rotation(NU(3) * infl * 0.3) * quantumWave(q, t, uIterations);
       float finalProbability = probabilityDensity(finalPsi);
       float phase = atan(finalPsi.y, finalPsi.x);
 
@@ -590,35 +674,70 @@ export default {
       interference *= sin(r * (19.0 + NU(6) * 7.0) - angle * (armsI() + 2.0) + NU(7) * 2.0 + t * 0.73);
 
       float bands = pow(clamp(finalProbability, 0.0, 1.0), 2.7) * uProbability;
-      bands *= 1.0 + NU(8) * uNeuralInfluence * 0.25;
+      bands *= 1.0 + NU(8) * infl * 0.25;
       bands = clamp(bands, 0.0, 1.5);
 
-      float colorPhase = phase / TAU + orbit * 0.015 + interference * 0.04 + t * 0.018;
-      colorPhase += NU(3) * 0.08 + NU(8) * 0.16 + NU(9) * 0.05;
-      vec3 color = quantumPalette(colorPhase, bands, uColorSaturation);
+      // ---- 1. base colour -----------------------------------------------------------
+      // Measured: in any one frame the raw phase term only covers a sliver of the wheel
+      // (at calm moments ~90% of pixels sit within a tenth of it) and that sliver drifts, so
+      // mapping it straight onto a palette paints the whole frame one colour. Stretch it
+      // (hueSpread) and let interference and probability, which vary locally, move points
+      // across region boundaries too. When the fold map settles near a fixed point, only the
+      // probability summed over the iterations still varies across the screen, so it's in too.
+      float colorPhase = (phase / TAU + orbitS * 0.015) * uHueSpread
+                       + interference * 0.55 + finalProbability * 1.2 + totalProbability * 0.3 + t * 0.018;
+      colorPhase += NU(3) * 0.08 + NU(8) * 0.16 + NU(9) * 0.05;   // network: hue position only
+      float emitSelect, boundaryDist;
+      vec3 pigment = spectral(colorPhase, emitSelect, boundaryDist);
+      float sat = uColorSaturation * (1.0 + 0.15 * clamp(NU(10), -1.0, 1.0) * infl);
+      pigment = max(mix(vec3(luma(pigment)), pigment, sat), 0.0);
 
-      color *= 0.55 + 2.2 * smoothstep(0.15, 2.8, orbit);
-      color *= 1.0 + NU(10) * 0.45 + NU(11) * 0.25;
+      // ---- 2. structural contrast -----------------------------------------------------
+      // Diffuse brightness from the features that actually vary across the frame: the
+      // orbit traps (normalised orbit sits in a narrow ~2.7-4 band, so it is windowed to
+      // that), probability and interference. Contrast curve, no floor: weak structure goes
+      // dark. The palette's own dark regions (navy, violet) add the rest of the range.
+      float oN = smoothstep(2.4, 3.9, orbitS);
+      float pN = smoothstep(0.05, 0.55, finalProbability);
+      float iN = 0.5 + 0.5 * interference;
+      float tN = smoothstep(1.0, 2.6, totalProbability);
+      float structural = 0.35 * oN + 0.25 * pN + 0.2 * iN + 0.2 * tN;
+      structural *= 1.0 + 0.1 * clamp(NU(11), -1.0, 1.0) * infl;   // network: structural intensity, bounded
+      float diffuse = pow(smoothstep(0.22, 0.85, structural), uContrast);
+      // Seams: dark hairlines where two palette regions meet, a constant ~1-2 px wide.
+      // The wheel position's screen derivative is taken through cos/sin so the atan branch
+      // cut (a jump of 1 in colorPhase) doesn't read as a steep gradient.
+      vec2 wheel = vec2(cos(TAU * colorPhase), sin(TAU * colorPhase));
+      float dWheel = length(fwidth(wheel)) / TAU + 1e-5;
+      float seam = (1.0 - smoothstep(0.6, 2.2, boundaryDist / dWheel)) * (1.0 - smoothstep(0.03, 0.12, dWheel));
+      vec3 base = pigment * diffuse * (1.0 - uSeams * seam);
 
-      // veins: electric in the abyss, lava cracks in hell, holy light in heaven
-      float veins = smoothstep(0.55, 0.97, abs(interference)) * (1.0 + hell * 0.6 * uRays);
-      float mixer = 0.5 + 0.5 * sin(phase + t + NU(9));
-      vec3 electric = mix(vec3(0.02, 0.75, 1.0), vec3(1.0, 0.05, 0.7), mixer);
-      electric = mix(electric, mix(vec3(1.0, 0.22, 0.02), vec3(1.0, 0.62, 0.12), mixer), hell);
-      electric = mix(electric, mix(vec3(1.0, 0.9, 0.55), vec3(0.6, 0.8, 1.0), mixer), heaven);
-      color += veins * electric * (1.4 + NU(10) * 0.6);
-
+      // ---- 3. selective glow ------------------------------------------------------------
+      // A faint haze of the local pigment (so navy glows navy, i.e. barely) around the
+      // probability shells and the fold centre. Soft-clamped: it can't pile up.
       float shell = exp(-16.0 * abs(finalProbability - 0.48));
-      vec3 shellColor = mix(mix(vec3(0.15, 0.55, 0.95), vec3(0.9, 0.22, 0.04), hell), vec3(0.95, 0.85, 0.6), heaven);
-      color += shell * shellColor * (1.6 + NU(11) * 0.5);
+      float haze = clamp(0.65 * shell + 0.35 * exp(-1.8 * r) * finalProbability, 0.0, 1.0);
+      vec3 glow = mix(pigment, vec3(luma(pigment)), 0.25) * haze * (0.35 + 0.65 * diffuse) * 0.12 * uGlow;
 
-      color += exp(-1.8 * r) * finalProbability * vec3(0.015, 0.08, 0.16);
+      // ---- 4. rare emission ------------------------------------------------------------
+      // Structure that may emit: thin interference veins (the old threshold of 0.55 lit up a
+      // large part of the frame), and peaks where probability and orbit traps coincide. Both
+      // are gated by a coherent phase front that slides through the field, and then by the
+      // spectral region, so only cyan (and a little magenta) structures ever emit.
+      float veinEdge = 0.66 + 0.05 * clamp(NU(11), -1.0, 1.0) * infl;   // network: mask threshold
+      float vein = smoothstep(veinEdge, 0.97, abs(interference));
+      float front = pow(0.5 + 0.5 * cos(phase * 3.0 - t * 0.9 + NU(9) * 2.0), 4.0);
+      float peak = smoothstep(0.42, 0.68, finalProbability) * smoothstep(3.0, 3.9, orbitS);
+      float emissionMask = clamp(vein * (0.4 + 0.6 * front) + peak * front, 0.0, 1.0);
+      emissionMask = smoothstep(0.02, 0.3, emissionMask * emitSelect) * (1.0 - seam);
+      vec3 emissive = pigment / max(max(pigment.r, max(pigment.g, pigment.b)), 1e-3);   // full-strength hue
+      float emissionStrength = 3.2 * uEmission
+          * (1.0 + 0.25 * clamp(NU(10), -1.0, 1.0) * infl)   // network: bounded, and only where the mask is
+          * (1.0 + hell * 0.6 * uRays);                       // lava veins in hell
+      vec3 emit = emissive * emissionMask * emissionStrength;
 
-      float highlights = pow(clamp(orbit * (0.075 + NU(10) * 0.025), 0.0, 1.0), 1.4);
-      vec3 highlightColor = mix(mix(vec3(0.8, 0.95, 1.0), vec3(1.0, 0.55, 0.25), hell), vec3(1.0, 0.97, 0.9), heaven);
-      color += highlights * highlightColor * 2.0;
       float structure = 0.5 + 0.5 * sin(TAU * colorPhase + 1.3 * interference);
-      return vec4(color, mix(structure, clamp(0.3 + bands, 0.0, 1.0), 0.3));
+      return Shade(base, glow, emit, mix(structure, clamp(0.3 + bands, 0.0, 1.0), 0.3));
     }
 
     void main() {
@@ -643,36 +762,65 @@ export default {
       fogColor = mix(fogColor, vec3(0.85, 0.78, 0.66), heaven);
 
       // Depth layers: the same field at staggered zoom depths. A layer is born far away
-      // (phase 0, faint and foggy), grows toward the camera and fades out (phase 1); the
-      // sin² weights of the layers sum to a constant, so the loop has no seam in time.
+      // (phase 0, faint and foggy), grows toward the camera and fades out (phase 1). The
+      // weights are sin² raised to layerSeparation and normalised, so they still sum to 1 and
+      // the loop has no seam in time; above 1 each pixel is dominated by one layer instead of
+      // an even double exposure of two unrelated fields (which averaged their colours).
       int layers = int(uLayers + 0.5);
-      vec3 color = vec3(0.0);
+      float weights[4];
+      float wsum = 0.0;
+      for (int k = 0; k < 4; k++) {
+        weights[k] = 0.0;
+        if (k >= layers) continue;
+        float phase = layers == 1 ? 0.0 : fract(uFlight + float(k) / float(layers));
+        float s = sin(PI * phase);
+        weights[k] = layers == 1 ? 1.0 : pow(s * s, uLayerSeparation) + 1e-6;
+        wsum += weights[k];
+      }
+      vec3 base = vec3(0.0);
+      vec3 glow = vec3(0.0);
+      vec3 emit = vec3(0.0);
       float structure = 0.0;
       float fogStructure = 0.3 - 0.2 * hell + 0.55 * heaven; // what fog does to the grade input
       for (int k = 0; k < 4; k++) {
         if (k >= layers) break;
         float phase = layers == 1 ? 0.0 : fract(uFlight + float(k) / float(layers));
-        float s = sin(PI * phase);
-        float weight = layers == 1 ? 1.0 : 2.0 * s * s / float(layers);
+        float weight = weights[k] / wsum;
         // perspective: a power of the distance from the vanishing point, scaled by the layer's depth
         vec2 p = dir * (pow(max(rs, 1e-4), uTunnel) * exp(-ZOOM_RANGE * phase)) * breath;
-        vec4 layer = fieldColor(rotation(turn) * p, t);
+        Shade layer = fieldColor(rotation(turn) * p, t);
         float young = layers == 1 ? 0.0 : 1.0 - phase;
         float fog = 1.0 - exp(-uFogDensity * (1.0 - 0.35 * heaven) * (1.6 * exp(-2.4 * rs) + 0.8 * young));
-        color += weight * mix(layer.rgb, fogColor, fog);
-        structure += weight * mix(layer.w, fogStructure, fog);
+        base += weight * mix(layer.base, fogColor, fog);
+        glow += weight * layer.glow * (1.0 - fog);
+        emit += weight * layer.emit * (1.0 - 0.85 * fog);
+        structure += weight * mix(layer.structure, fogStructure, fog);
       }
 
       // Hell's pit throbs; the pulse also drives the glow around the vanishing point below.
       float pulse = 1.0 + hell * 0.6 * pow(0.5 + 0.5 * sin(t * 2.2), 6.0);
 
-      color *= 1.0 + sin(t * (0.7 + NU(6) * 0.25) + NU(7) * 5.0) * NU(11) * 0.08;
-      // exposure trim: the additive glows overshoot at some phases
-      color *= 0.55 * (0.85 + 0.2 * sin(t * 0.27));
-
-      // ACES-style tone map, gamma
-      color = (color * (2.51 * color + 0.03)) / (color * (2.43 * color + 0.59) + 0.14);
-      color = pow(max(color, vec3(0.0)), vec3(0.82));
+      // Tone map, in two steps so emission is separated before highlights are compressed.
+      // (The old path multiplied everything by a drifting exposure and a neural pulse, then
+      // ran ACES and pow(0.82), which lifted every shadow into the milky mid-tones.)
+      // 1) base + glow: extended Reinhard on luminance, hue and saturation kept, slope 1 at
+      //    black so darks stay dark; it only rolls off what is already bright.
+      vec3 diffuseHdr = (base + glow) * uExposure;
+      float Ld = luma(diffuseHdr);
+      float white = 1.6;
+      vec3 color = diffuseHdr * ((1.0 + Ld / (white * white)) / (1.0 + Ld));
+      // 2) add the emission, then a soft shoulder on the brightest channel above a knee
+      //    (again preserving hue); only light well past 1 drifts toward white, so pale
+      //    cores stay rare.
+      color += emit * uExposure;
+      float peakC = max(color.r, max(color.g, color.b));
+      float knee = 0.72;
+      if (peakC > knee) {
+        float over = peakC - knee;
+        float mapped = knee + (1.0 - knee) * (1.0 - exp(-over / (1.0 - knee)));
+        color *= mapped / peakC;
+        color = mix(color, vec3(mapped), clamp((peakC - 1.2) * 0.12, 0.0, 0.45));
+      }
 
       // Grade: re-map luminance through the realm's ramp, keeping a little of the original hue.
       float L = dot(color, vec3(0.299, 0.587, 0.114));
@@ -744,6 +892,14 @@ export default {
       uTunnel: value('tunnel'),
       uLayers: value('layers'),
       uFogDensity: value('depthFog'),
+      uHueSpread: value('hueSpread'),
+      uBandHardness: value('bandHardness'),
+      uSeams: value('seams'),
+      uContrast: value('contrast'),
+      uGlow: value('glow'),
+      uEmission: value('emission'),
+      uExposure: value('exposure'),
+      uLayerSeparation: value('layerSeparation'),
     };
   },
 
@@ -871,6 +1027,14 @@ export default {
     u.uTunnel.value = p.tunnel;
     u.uLayers.value = p.layers;
     u.uFogDensity.value = p.depthFog;
+    u.uHueSpread.value = p.hueSpread;
+    u.uBandHardness.value = p.bandHardness;
+    u.uSeams.value = p.seams;
+    u.uContrast.value = p.contrast;
+    u.uGlow.value = p.glow;
+    u.uEmission.value = p.emission;
+    u.uExposure.value = p.exposure;
+    u.uLayerSeparation.value = p.layerSeparation;
 
     stepNetwork(state.net, p, state.clock, u.uNeural.value);
   },

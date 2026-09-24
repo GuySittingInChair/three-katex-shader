@@ -9,6 +9,7 @@ import { createAiPanel } from './ui/aiPanel.js';
 import { createParamsPanel } from './ui/paramsPanel.js';
 import { createMediaPanel } from './ui/mediaPanel.js';
 import { createSoundPanel } from './ui/soundPanel.js';
+import { createExplainPanel } from './ui/explainPanel.js';
 import { createAbyss } from './core/abyss.js';
 import { createToast, createViewMode } from './ui/viewMode.js';
 import { createRecorder } from './core/recorder.js';
@@ -42,6 +43,7 @@ const mathOverlay = document.getElementById('math-overlay');
 // (~15/s): a pending change simply lands on the next frame past the cap.
 let lastLatex = null;
 let lastMathRender = 0;
+let explainApi = null; // created below; syncMath runs once before that
 const MATH_MIN_INTERVAL_MS = 66;
 function syncMath(force = false) {
   const tex = resolveLatex(manager.getCurrent(), manager.getParamValues(), manager.getMotion());
@@ -50,6 +52,7 @@ function syncMath(force = false) {
   if (!force && now - lastMathRender < MATH_MIN_INTERVAL_MS) return;
   lastMathRender = now;
   lastLatex = tex;
+  explainApi?.setLatex(tex);
   if (tex) katex.render(tex, mathOverlay, { throwOnError: false });
   else mathOverlay.innerHTML = '';
 }
@@ -119,6 +122,19 @@ paramsToggle.addEventListener('click', () => {
   paramsPanel.classList.toggle('hidden');
 });
 
+// --- Explain (symbols in the live equation + docs/guide.md) ---
+const explainToggle = document.getElementById('explain-toggle');
+const explainPanel = document.getElementById('explain-panel');
+explainApi = createExplainPanel(explainPanel, manager, {
+  onVisibilityChange: (open) => explainToggle.classList.toggle('active', open),
+});
+explainApi.setLatex(lastLatex);
+function toggleExplain() {
+  hideRightPanels(explainPanel);
+  explainApi.toggle();
+}
+explainToggle.addEventListener('click', toggleExplain);
+
 // --- Sound (the Abyss instrument) ---
 const abyss = createAbyss();
 const soundToggle = document.getElementById('sound-toggle');
@@ -153,10 +169,11 @@ window.addEventListener('drop', (e) => {
 // Hides the other right-docked panels, leaving `except` alone — shared
 // by Comments/AI/Params/Media so only one is ever open at a time.
 function hideRightPanels(except) {
-  for (const panel of [commentsPanel, aiPanel, paramsPanel, mediaPanel, soundPanel]) {
+  for (const panel of [commentsPanel, aiPanel, paramsPanel, mediaPanel, soundPanel, explainPanel]) {
     if (panel === except) continue;
     panel.classList.add('hidden');
     if (panel === commentsPanel) commentPanelApi.hide();
+    if (panel === explainPanel) explainApi.hide();
   }
 }
 
@@ -245,6 +262,7 @@ window.addEventListener('keydown', (e) => {
   else if (key === 'escape') viewMode.showAll();
   else if (key === 'f') viewMode.toggleFullscreen();
   else if (key === 'r') mediaApi.toggleRecord();
+  else if (key === 'e') toggleExplain();
   else if (e.key === ' ' && e.target?.tagName !== 'BUTTON') {
     e.preventDefault();
     mediaApi.togglePlay();

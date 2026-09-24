@@ -1,7 +1,7 @@
-import { streamChat } from '../core/aiClient.js';
+import { streamChat, DEFAULT_MODEL } from '../core/aiClient.js';
 import { getEditableSource } from '../core/sourceStore.js';
 
-const MODEL_LABEL = 'qwen3:8b (local)';
+const MODEL_LABEL = `${DEFAULT_MODEL} (runs on your computer)`;
 const MAX_HISTORY = 12; // trailing messages kept, not counting the system prompt
 
 const SYSTEM_PROMPT = (sketch, source) => `You are a coding assistant embedded in a Three.js/WebGL creative-coding \
@@ -108,10 +108,7 @@ export function createAiPanel(container, manager, { onInsertCode } = {}) {
       renderCodeActions(item, reply);
       setStatus('');
     } catch (err) {
-      setStatus(
-        `✗ ${err.message} — is \`ollama serve\` running with qwen2.5-coder:7b pulled, and \`npm run server\` up?`,
-        'error'
-      );
+      setStatus(`✗ ${err.message}`, 'error');
       if (!body.textContent) item.remove();
     } finally {
       sending = false;

@@ -1,8 +1,16 @@
-import { fetchComments, postComment } from '../core/commentClient.js';
+import { fetchComments, postComment, COMMENTS_AVAILABLE } from '../core/commentClient.js';
 
 const POLL_INTERVAL = 3000;
 
 export function createCommentPanel(container, manager) {
+  if (!COMMENTS_AVAILABLE) {
+    container.innerHTML = `
+      <div class="comments-panel-title">Comments</div>
+      <div class="comments-panel-empty">Comments are coming soon, together with sign-in. For now, run the project locally to try them (see the README).</div>
+    `;
+    return { show() {}, hide() {} };
+  }
+
   container.innerHTML = `
     <div class="comments-panel-title"></div>
     <div class="comments-panel-status"></div>
@@ -104,7 +112,7 @@ export function createCommentPanel(container, manager) {
 
   manager.onChange((sketch) => {
     currentSketchId = sketch.id;
-    refresh();
+    if (pollHandle) refresh(); // only while the panel is open
   });
 
   return {
