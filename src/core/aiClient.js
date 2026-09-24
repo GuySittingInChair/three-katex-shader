@@ -4,7 +4,8 @@
 // site's origin (OLLAMA_ORIGINS — see README).
 export const DEFAULT_MODEL = 'qwen3:8b';
 
-const VIA_SERVER = import.meta.env.DEV;
+export const VIA_SERVER = import.meta.env.DEV;
+const CONNECT_TIMEOUT_MS = 90_000;
 const SERVER_CHAT = 'http://localhost:4000/ai/chat';
 const OLLAMA_CHAT = 'http://localhost:11434/api/chat';
 
@@ -32,15 +33,23 @@ export async function streamChat(messages, onToken, format) {
     ? { messages, ...(format ? { format } : {}) }
     : { model: DEFAULT_MODEL, messages, stream: true, ...(format ? { format } : {}) };
 
+  // A browser can hold a public site's request to localhost behind a "local
+  // network access" prompt; if nobody answers it, the fetch never settles.
+  // Cold-loading a model can also take a while, so the limit is generous.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CONNECT_TIMEOUT_MS);
   let res;
   try {
     res = await fetch(VIA_SERVER ? SERVER_CHAT : OLLAMA_CHAT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
+      signal: controller.signal,
     });
   } catch {
     throw new Error(unreachableMessage());
+  } finally {
+    clearTimeout(timer);
   }
 
   if (!res.ok || !res.body) {

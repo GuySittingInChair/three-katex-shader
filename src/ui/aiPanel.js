@@ -1,4 +1,4 @@
-import { streamChat, DEFAULT_MODEL } from '../core/aiClient.js';
+import { streamChat, DEFAULT_MODEL, VIA_SERVER } from '../core/aiClient.js';
 import { getEditableSource } from '../core/sourceStore.js';
 
 const MODEL_LABEL = `${DEFAULT_MODEL} (runs on your computer)`;
@@ -88,7 +88,12 @@ export function createAiPanel(container, manager, { onInsertCode } = {}) {
     input.value = '';
     sending = true;
     sendBtn.disabled = true;
-    setStatus('thinking...', '');
+    setStatus(
+      VIA_SERVER
+        ? 'thinking...'
+        : 'thinking... If your browser asks to allow access to your local network, allow it: that is how this page reaches Ollama on your computer.',
+      ''
+    );
 
     addMessage('user').body.textContent = text;
     history.push({ role: 'user', content: text });
