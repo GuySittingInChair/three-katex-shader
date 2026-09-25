@@ -33,7 +33,7 @@
           </p>
           <div class="hero-actions">
             <a class="btn btn-primary" data-link data-sketch="hopfFibration" href="/s/hopfFibration">Start with the Hopf fibration</a>
-            <a class="btn btn-ghost" href="#gallery"><span>Browse <span data-role="sketch-count"></span> sketches</span></a>
+            <a class="btn btn-ghost" href="#gallery">Browse sketches</a>
           </div>
         </div>
         <div class="hero-equation" id="hero-equation" aria-label="The equation drawing the background, with live values"></div>
@@ -93,6 +93,9 @@
       </footer>
     </main>
 
+    <!-- Profile (/u/<username>) -->
+    <main id="profile" class="landing profile-page" hidden></main>
+
     <!-- Viewer (/s/<id>) -->
     <header class="topbar" id="topbar">
       <a class="brand" href="/" data-link>aiship</a>
@@ -100,6 +103,7 @@
         <span class="sketch-title-name"></span>
         <span class="sketch-title-meta"></span>
       </button>
+      <a class="topbar-author" id="topbar-author" href="/" data-link></a>
       <div class="topbar-right">
         <button id="review-toggle" class="bar-btn hidden" type="button">Review</button>
         <button id="account-toggle" class="bar-btn account-btn" type="button">Sign in</button>
@@ -108,12 +112,31 @@
 
     <div id="math-overlay"></div>
 
+    <!-- Touch screens: swipe through sketches -->
+    <div id="feed" class="feed" aria-label="Sketches, swipe up for the next one"></div>
+    <div id="feed-caption" class="feed-caption">
+      <a class="feed-author" href="/" data-link></a>
+      <span class="feed-name"></span>
+      <span class="feed-meta"></span>
+    </div>
+    <div id="feed-actions" class="feed-actions" aria-label="Sketch tools">
+      <a class="feed-btn feed-profile" href="/" data-link aria-label="Author's profile"></a>
+      <button type="button" class="feed-btn" data-open="explain"></button>
+      <button type="button" class="feed-btn" data-open="comments"></button>
+      <button type="button" class="feed-btn" data-open="code"></button>
+      <button type="button" class="feed-btn" data-open="params"></button>
+      <button type="button" class="feed-btn" data-action="interact"></button>
+      <button type="button" class="feed-btn" data-action="more" aria-haspopup="true"></button>
+    </div>
+    <button id="show-controls" class="show-controls" type="button">Show controls</button>
+
     <nav class="dock" id="dock" aria-label="Sketch tools">
       <button id="prev-btn" class="dock-btn dock-nav" type="button" aria-label="Previous sketch"></button>
       <button id="explain-toggle" class="dock-btn" type="button" title="What the symbols mean (E)"></button>
       <button id="params-toggle" class="dock-btn" type="button" title="Sliders"></button>
       <button id="comments-toggle" class="dock-btn" type="button" title="Comments"></button>
       <button id="code-toggle" class="dock-btn" type="button" title="Edit the code"></button>
+      <button id="hide-toggle" class="dock-btn" type="button" title="Hide everything but the animation (H)"></button>
       <button id="more-toggle" class="dock-btn" type="button" aria-haspopup="true" aria-expanded="false"></button>
       <button id="next-btn" class="dock-btn dock-nav" type="button" aria-label="Next sketch"></button>
     </nav>

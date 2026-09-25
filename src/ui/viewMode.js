@@ -59,6 +59,8 @@ export function createViewMode({ toast }) {
     get view() { return VIEWS[index]; },
     set,
     cycle() { set(VIEWS[(index + 1) % VIEWS.length]); },
+    // Tap-to-hide on touch screens: straight between everything and nothing.
+    toggleClean() { set(VIEWS[index] === 'full' ? 'clean' : 'full', false); },
     showAll() { set('full'); },
     toggleFullscreen() {
       if (document.fullscreenElement) document.exitFullscreen();

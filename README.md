@@ -12,8 +12,10 @@ Built with [three.js](https://threejs.org/), [KaTeX](https://katex.org/) and
 
 ## Using it
 
-The landing page (`/`) has a gallery of every sketch, and each sketch has its own address,
-`/s/<sketch-id>`. In a sketch, tap its name in the top bar to pick another one. The dock
+The landing page (`/`) has a gallery of every sketch, each sketch has its own address,
+`/s/<sketch-id>`, and each person a profile, `/u/<name>`. On a phone or tablet, swipe up
+and down through sketches; tap the animation to hide or show everything, and use the hand
+button to touch the sketch itself (rotate, drag) instead of swiping. In a sketch, tap its name in the top bar to pick another one. The dock
 at the bottom has previous/next, **Explain**, **Params**, **Comments**, **Code**, and
 **More** (AI helper, sound, recording, microphone, voice, hide controls). It all works on
 phones too; panels open as sheets from the bottom.
@@ -123,7 +125,7 @@ the visitor's own Ollama (see above).
 
 ## Community features (Supabase)
 
-Signing in with GitHub lets visitors:
+Signing in (with GitHub, Google or Discord) gives everyone a profile at `/u/<name>` and lets them:
 
 - **comment** on any sketch (💬 Comments),
 - **add notes** to a sketch's explanation (📖 Explain → Community notes),
@@ -138,12 +140,14 @@ The data lives in [Supabase](https://supabase.com/). The access rules are in
 [`supabase/migrations/0001_community.sql`](supabase/migrations/0001_community.sql).
 To run your own copy with your own database:
 
-1. Create a Supabase project and run that SQL file in its SQL Editor. First change the
-   GitHub user id in `handle_new_user()` to your own (`gh api user --jq .id`), so that you
-   become the admin.
-2. Create a GitHub OAuth app whose callback URL is
-   `https://<your-project>.supabase.co/auth/v1/callback`, and enable the GitHub provider
-   in Supabase with its client id and secret.
+1. Create a Supabase project and run the SQL files in `supabase/migrations/` in order in
+   its SQL Editor. First change the GitHub user id in `handle_new_user()` to your own
+   (`gh api user --jq .id`), so that you become the admin, and `SITE_OWNER` in
+   `src/core/authors.js` to your username.
+2. For each sign-in provider you want (GitHub, Google, Discord), create an OAuth app
+   with the provider whose callback / redirect URL is
+   `https://<your-project>.supabase.co/auth/v1/callback`, and enable that provider in
+   Supabase with its client id and secret. The sign-in menu only lists enabled ones.
 3. In Supabase → Authentication → URL Configuration, set your site's address and add
    `http://localhost:5173/**` as a redirect URL.
 4. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` (in `.env.local`, or in

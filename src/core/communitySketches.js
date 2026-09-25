@@ -19,6 +19,7 @@ export function createCommunitySketches(manager, { onListChange } = {}) {
     const meta = {
       id: row.id,
       author: row.author?.username ?? 'someone',
+      avatar: row.author?.avatar_url ?? null,
       status: row.status,
       mine: row.user_id === me,
     };

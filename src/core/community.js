@@ -32,7 +32,11 @@ async function setUser(next) {
   user = next;
   profile = null;
   if (user) {
-    const { data } = await supabase.from('profiles').select('username, avatar_url, is_admin').eq('id', user.id).maybeSingle();
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, username, display_name, bio, avatar_url, is_admin')
+      .eq('id', user.id)
+      .maybeSingle();
     profile = data;
   }
   listeners.forEach((fn) => fn(user, profile));
@@ -44,9 +48,28 @@ supabase.auth.onAuthStateChange((_event, session) => {
   setTimeout(() => setUser(session?.user ?? null), 0);
 });
 
-export function signIn() {
+export const PROVIDERS = [
+  { id: 'github', label: 'GitHub' },
+  { id: 'google', label: 'Google' },
+  { id: 'discord', label: 'Discord' },
+];
+
+// Which of PROVIDERS are switched on in Supabase (a public settings endpoint),
+// so the sign-in menu never offers one that isn't set up yet.
+let enabledProviders = null;
+export async function getEnabledProviders() {
+  if (!enabledProviders) {
+    enabledProviders = fetch(`${SUPABASE_URL}/auth/v1/settings`, { headers: { apikey: SUPABASE_KEY } })
+      .then((r) => r.json())
+      .then((s) => PROVIDERS.filter((p) => s.external?.[p.id]))
+      .catch(() => PROVIDERS.slice(0, 1));
+  }
+  return enabledProviders;
+}
+
+export function signIn(provider = 'github') {
   return supabase.auth.signInWithOAuth({
-    provider: 'github',
+    provider,
     options: { redirectTo: location.origin + location.pathname },
   });
 }
@@ -55,6 +78,35 @@ export const signOut = () => supabase.auth.signOut();
 
 function check({ data, error }) {
   if (error) throw new Error(error.message);
+  return data;
+}
+
+// ---------- profiles ----------
+
+// Case-insensitive exact match (`_` and `%` escaped: they're LIKE wildcards).
+export async function getProfileByUsername(username) {
+  const pattern = username.replace(/[\\%_]/g, (c) => `\\${c}`);
+  return check(
+    await supabase
+      .from('profiles')
+      .select('id, username, display_name, bio, avatar_url, is_admin')
+      .ilike('username', pattern)
+      .limit(1)
+      .maybeSingle()
+  );
+}
+
+export async function updateProfile({ display_name, bio }) {
+  const data = check(
+    await supabase
+      .from('profiles')
+      .update({ display_name, bio })
+      .eq('id', user.id)
+      .select('id, username, display_name, bio, avatar_url, is_admin')
+      .single()
+  );
+  profile = data;
+  listeners.forEach((fn) => fn(user, profile));
   return data;
 }
 

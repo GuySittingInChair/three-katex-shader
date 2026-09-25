@@ -1,14 +1,17 @@
-import { onAuthChange, signIn, signOut } from '../core/community.js';
+import { onAuthChange } from '../core/community.js';
+import { promptSignIn } from './signIn.js';
 
-export function createAccountButton(button, { toast }) {
-  let signedIn = false;
+// Signed out: opens the sign-in chooser. Signed in: goes to your profile
+// (which is where signing out lives).
+export function createAccountButton(button, { onOpenProfile }) {
+  let username = null;
 
   onAuthChange((user, profile) => {
-    signedIn = Boolean(user);
+    username = user ? profile?.username ?? null : null;
     button.textContent = '';
     if (!user) {
       button.textContent = 'Sign in';
-      button.title = 'Sign in with GitHub to comment, add notes and share sketches';
+      button.title = 'Sign in to comment, add notes and share sketches';
       return;
     }
     if (profile?.avatar_url) {
@@ -22,15 +25,11 @@ export function createAccountButton(button, { toast }) {
     name.className = 'account-name';
     name.textContent = `@${profile?.username ?? 'you'}`;
     button.append(name);
-    button.title = 'Signed in. Click to sign out.';
+    button.title = 'Your profile';
   });
 
-  button.addEventListener('click', async () => {
-    if (!signedIn) {
-      const { error } = await signIn();
-      if (error) toast(`Sign-in failed: ${error.message}`);
-      return;
-    }
-    if (window.confirm('Sign out?')) await signOut();
+  button.addEventListener('click', () => {
+    if (username) onOpenProfile(username);
+    else promptSignIn();
   });
 }

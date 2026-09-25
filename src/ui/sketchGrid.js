@@ -7,7 +7,7 @@ import { TAXONOMY, getGroupForCategory } from '../core/taxonomy.js';
 
 const hue = (id) => [...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
 
-export function createSketchGrid(container, { onPick, getCurrentId = () => null } = {}) {
+export function createSketchGrid(container, { onPick, getCurrentId = () => null, filter = () => true, controls = true } = {}) {
   container.classList.add('sketch-grid-wrap');
   container.innerHTML = `
     <div class="grid-controls">
@@ -28,7 +28,7 @@ export function createSketchGrid(container, { onPick, getCurrentId = () => null 
   }
 
   function renderChips() {
-    const used = new Set(sketches.map(groupOf));
+    const used = new Set(sketches.filter(filter).map(groupOf));
     const groups = ['All', ...TAXONOMY.map((g) => g.group), 'Community'].filter((g) => g === 'All' || used.has(g));
     if (!groups.includes(group)) group = 'All';
     chips.textContent = '';
@@ -80,6 +80,7 @@ export function createSketchGrid(container, { onPick, getCurrentId = () => null 
     renderChips();
     const q = search.value.trim().toLowerCase();
     const shown = sketches.filter((s) => {
+      if (!filter(s)) return false;
       if (group !== 'All' && groupOf(s) !== group) return false;
       if (!q) return true;
       return [s.name, s.category, ...(s.tags || [])].some((t) => String(t || '').toLowerCase().includes(q));
@@ -89,6 +90,7 @@ export function createSketchGrid(container, { onPick, getCurrentId = () => null 
     empty.classList.toggle('hidden', shown.length > 0);
   }
 
+  if (!controls) container.querySelector('.grid-controls').classList.add('hidden');
   search.addEventListener('input', render);
   render();
   return { refresh: render };

@@ -1,7 +1,8 @@
 import katex from 'katex';
 import { marked } from 'marked';
 import guideSource from '../../docs/guide.md?raw';
-import { listNotes, addNote, deleteNote, onAuthChange, getUser, isAdmin, signIn } from '../core/community.js';
+import { listNotes, addNote, deleteNote, onAuthChange, getUser, isAdmin } from '../core/community.js';
+import { promptSignIn } from './signIn.js';
 
 // Right-docked reading panel built entirely from docs/guide.md:
 //   • "This sketch" — the symbols in the live equation, looked up in the guide's
@@ -162,7 +163,7 @@ export function createExplainPanel(container, manager) {
         <button type="button" class="explain-tab">Add note</button>
         <span class="explain-hint" data-role="note-status"></span>
       </div>
-      <button type="button" class="explain-tab hidden" data-role="note-signin">Sign in with GitHub to add a note</button>
+      <button type="button" class="explain-tab hidden" data-role="note-signin">Sign in to add a note</button>
       <div class="explain-doc" data-role="walkthrough"></div>
     </div>
     <div class="explain-body explain-doc hidden" data-view="guide"></div>
@@ -314,7 +315,7 @@ export function createExplainPanel(container, manager) {
       noteButton.disabled = false;
     }
   });
-  $('note-signin').addEventListener('click', () => signIn());
+  $('note-signin').addEventListener('click', () => promptSignIn());
   onAuthChange((user) => {
     noteForm.classList.toggle('hidden', !user);
     $('note-signin').classList.toggle('hidden', Boolean(user));

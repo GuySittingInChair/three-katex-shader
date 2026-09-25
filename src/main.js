@@ -16,7 +16,10 @@ import { createAccountButton } from './ui/accountButton.js';
 import { createSketchGrid } from './ui/sketchGrid.js';
 import { icon } from './ui/icons.js';
 import { createCommunitySketches } from './core/communitySketches.js';
-import { signIn } from './core/community.js';
+import { authorOf, profilePath } from './core/authors.js';
+import { promptSignIn } from './ui/signIn.js';
+import { createFeed } from './ui/feed.js';
+import { createProfilePage } from './ui/profilePage.js';
 import { createAbyss } from './core/abyss.js';
 import { createToast, createViewMode } from './ui/viewMode.js';
 import { createRecorder } from './core/recorder.js';
@@ -26,11 +29,17 @@ import { createVoiceControl, parseVoiceCommand, isVoiceSupported } from './core/
 const FEATURED = 'hopfFibration';
 const $ = (id) => document.getElementById(id);
 const mobile = window.matchMedia('(max-width: 720px)');
+// Touch screens get the swipe feed; mouse users keep drag-to-rotate.
+const feedOn = window.matchMedia('(pointer: coarse)').matches;
+if (feedOn) document.body.classList.add('feed-on');
 
-// --- Routing: "/" is the landing page, "/s/<id>" a sketch ---
+// --- Routing: "/" landing page, "/s/<id>" a sketch, "/u/<name>" a profile ---
 function parseRoute() {
-  const m = /^\/s\/([^/]+)\/?$/.exec(location.pathname);
-  return m ? { page: 'viewer', id: decodeURIComponent(m[1]) } : { page: 'landing' };
+  const s = /^\/s\/([^/]+)\/?$/.exec(location.pathname);
+  if (s) return { page: 'viewer', id: decodeURIComponent(s[1]) };
+  const u = /^\/u\/([^/]+)\/?$/.exec(location.pathname);
+  if (u) return { page: 'profile', name: decodeURIComponent(u[1]) };
+  return { page: 'landing' };
 }
 const initialRoute = parseRoute();
 const indexOf = (id) => sketches.findIndex((s) => s.id === id);
@@ -77,6 +86,18 @@ function syncMath(force = false) {
   explainApi?.setLatex(tex);
   if (tex) katex.render(tex, mathTarget, { throwOnError: false, displayMode: false });
   else mathTarget.innerHTML = '';
+  if (tex && mathTarget === mathOverlay && mobile.matches) fitMath();
+}
+// On a phone, shrink a wide equation to the screen's width instead of making
+// it scroll. Measured once per sketch so the live numbers don't make it jitter.
+let fittedFor = null;
+function fitMath() {
+  const id = manager.getCurrent().id;
+  if (fittedFor === id) return;
+  fittedFor = id;
+  mathOverlay.style.fontSize = '';
+  const ratio = mathOverlay.clientWidth / mathOverlay.scrollWidth;
+  if (ratio < 1) mathOverlay.style.fontSize = `${Math.max(0.45, 0.74 * ratio * 0.97).toFixed(3)}rem`;
 }
 function setMathTarget(el) {
   if (el === mathTarget) return;
@@ -86,15 +107,33 @@ function setMathTarget(el) {
   syncMath(true);
 }
 
-// --- Top bar: current sketch ---
+// --- Top bar and feed caption: current sketch and who made it ---
 const titleName = document.querySelector('.sketch-title-name');
 const titleMeta = document.querySelector('.sketch-title-meta');
+const topbarAuthor = $('topbar-author');
+const feedAuthor = document.querySelector('.feed-author');
+const feedProfile = document.querySelector('.feed-profile');
 function renderTitle(sketch) {
+  const author = authorOf(sketch);
+  const pending = sketch.community?.status === 'pending' ? ' · waiting for review' : '';
   titleName.textContent = sketch.name;
-  titleMeta.textContent = sketch.community
-    ? `by @${sketch.community.author}${sketch.community.status === 'pending' ? ' · waiting for review' : ''}`
-    : sketch.category || '';
-  document.title = page === 'viewer' ? `${sketch.name} · aiship` : 'aiship · learn math visually';
+  titleMeta.textContent = `${sketch.category || ''}${pending}`;
+  for (const a of [topbarAuthor, feedAuthor, feedProfile]) a.href = profilePath(author);
+  topbarAuthor.textContent = `@${author}`;
+  feedAuthor.textContent = `@${author}`;
+  feedProfile.textContent = '';
+  if (sketch.community?.avatar) {
+    const img = document.createElement('img');
+    img.src = sketch.community.avatar;
+    img.alt = '';
+    feedProfile.append(img);
+  } else {
+    feedProfile.textContent = author.slice(0, 1).toUpperCase();
+  }
+  document.querySelector('.feed-name').textContent = sketch.name;
+  document.querySelector('.feed-meta').textContent = `${sketch.category || ''}${pending}`;
+  if (page === 'viewer') document.title = `${sketch.name} · aiship`;
+  else if (page === 'landing') document.title = 'aiship · learn math visually';
 }
 
 // --- Panels ---
@@ -171,7 +210,8 @@ const community = createCommunitySketches(manager, {
     codePanelApi.refresh();
     pickerGrid.refresh();
     landingGrid.refresh();
-    updateSketchCount();
+    profilePage.refresh();
+    feed?.refresh();
     renderTitle(manager.getCurrent());
     if (pendingId && indexOf(pendingId) !== -1) {
       manager.goToId(pendingId);
@@ -179,8 +219,19 @@ const community = createCommunitySketches(manager, {
     }
   },
 });
-createAccountButton($('account-toggle'), { toast });
-document.querySelector('[data-role="landing-signin"]').addEventListener('click', () => signIn());
+createAccountButton($('account-toggle'), { onOpenProfile: (name) => navigate(profilePath(name)) });
+document.querySelector('[data-role="landing-signin"]').addEventListener('click', () => promptSignIn());
+
+// --- Profiles ---
+const profilePage = createProfilePage($('profile'), {
+  onPick: (id) => navigate(`/s/${encodeURIComponent(id)}`),
+  onWriteSketch: () => {
+    navigate(`/s/${encodeURIComponent(manager.getCurrent().id)}`);
+    openPanel('code');
+    codePanelApi.startNew();
+  },
+  onSignedOut: () => navigate('/'),
+});
 
 // --- Comments ---
 const commentPanelApi = createCommentPanel($('comments-panel'), manager);
@@ -236,6 +287,7 @@ const DOCK = {
   'params-toggle': ['params', 'Params'],
   'comments-toggle': ['comments', 'Comments'],
   'code-toggle': ['code', 'Code'],
+  'hide-toggle': ['eyeOff', 'Hide'],
   'more-toggle': ['more', 'More'],
   'next-btn': ['next', ''],
 };
@@ -263,7 +315,48 @@ document.addEventListener('click', (e) => {
   if (!moreMenu.contains(e.target) && e.target !== moreToggle) closeMenu();
 });
 
+// --- Touch feed ---
+let toldTap = false;
+const feed = feedOn
+  ? createFeed($('feed'), manager, {
+      onTap: () => {
+        closeMenu();
+        if (document.body.classList.contains('sheet-open')) closeAllPanels();
+        else {
+          viewMode.toggleClean();
+          if (viewMode.view === 'clean' && !toldTap) {
+            toldTap = true;
+            toast('Tap again to bring the controls back');
+          }
+        }
+      },
+    })
+  : null;
+const FEED_BUTTONS = { explain: 'Explain', comments: 'Comments', code: 'Code', params: 'Params' };
+for (const b of document.querySelectorAll('#feed-actions [data-open]')) {
+  b.innerHTML = `${icon(b.dataset.open)}<span>${FEED_BUTTONS[b.dataset.open]}</span>`;
+  b.addEventListener('click', () => togglePanel(b.dataset.open));
+}
+const interactBtn = document.querySelector('#feed-actions [data-action="interact"]');
+interactBtn.innerHTML = `${icon('hand')}<span>Touch</span>`;
+interactBtn.addEventListener('click', () => {
+  const on = document.body.classList.toggle('feed-interact');
+  interactBtn.classList.toggle('active', on);
+  toast(on ? 'Touch mode: drag the sketch. Tap the hand again to swipe.' : 'Swipe up and down for more sketches');
+});
+const feedMore = document.querySelector('#feed-actions [data-action="more"]');
+feedMore.innerHTML = `${icon('more')}<span>More</span>`;
+feedMore.addEventListener('click', (e) => {
+  e.stopPropagation();
+  moreMenu.classList.toggle('hidden');
+});
+
 $('view-toggle').addEventListener('click', () => viewMode.cycle());
+$('hide-toggle').addEventListener('click', () => {
+  viewMode.set('clean', false);
+  if (!feedOn) toast('Press H or Esc, or click "Show controls", to bring them back');
+});
+$('show-controls').addEventListener('click', () => viewMode.showAll());
 $('fullscreen-toggle').addEventListener('click', () => viewMode.toggleFullscreen());
 
 const audioToggle = $('audio-toggle');
@@ -341,6 +434,7 @@ if (!isVoiceSupported() || !voice) {
 
 // --- Pages ---
 const landing = $('landing');
+const profileEl = $('profile');
 let page = 'viewer';
 let heroVisible = true;
 
@@ -348,14 +442,19 @@ function showPage(next) {
   page = next;
   document.body.dataset.page = next;
   landing.hidden = next !== 'landing';
-  if (next === 'landing') {
+  profileEl.hidden = next !== 'profile';
+  if (next !== 'viewer') {
     closeAllPanels();
     closeMenu();
+  }
+  if (next === 'landing') {
     landing.scrollTop = 0;
     setMathTarget(heroEquation);
   } else {
     setMathTarget(mathOverlay);
   }
+  if (next === 'profile') profileEl.scrollTop = 0;
+  if (next === 'viewer') requestAnimationFrame(() => feed?.sync());
   renderTitle(manager.getCurrent());
 }
 
@@ -364,6 +463,9 @@ function applyRoute() {
   if (route.page === 'viewer') {
     if (manager.getCurrent().id !== route.id && !manager.goToId(route.id)) pendingId = route.id;
     showPage('viewer');
+  } else if (route.page === 'profile') {
+    showPage('profile');
+    profilePage.show(route.name);
   } else {
     if (manager.getCurrent().id !== FEATURED) manager.goToId(FEATURED);
     showPage('landing');
@@ -396,17 +498,13 @@ manager.onChange((sketch) => {
   }
 });
 
-function updateSketchCount() {
-  document.querySelector('[data-role="sketch-count"]').textContent = String(sketches.length);
-}
-updateSketchCount();
 
 // Stop drawing the background once the hero has scrolled out of view.
 new IntersectionObserver(([entry]) => (heroVisible = entry.isIntersecting), { root: landing }).observe(
   document.querySelector('.hero')
 );
 
-showPage(initialRoute.page);
+applyRoute();
 
 // --- Keyboard (viewer only) ---
 window.addEventListener('keyup', (e) => {
@@ -418,8 +516,8 @@ function isTypingTarget(el) {
 }
 window.addEventListener('keydown', (e) => {
   if (page !== 'viewer' || isTypingTarget(e.target)) return;
-  if (e.key === 'ArrowRight' || e.key === 'n') manager.next();
-  if (e.key === 'ArrowLeft' || e.key === 'p') manager.prev();
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'n') manager.next();
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'p') manager.prev();
 
   if (e.metaKey || e.ctrlKey || e.altKey) return; // leave browser shortcuts alone
   const key = e.key.toLowerCase();
@@ -448,7 +546,7 @@ const clock = new THREE.Clock();
 function animate() {
   const delta = clock.getDelta();
   const time = clock.getElapsedTime();
-  if (page === 'viewer' || heroVisible) {
+  if (page === 'viewer' || (page === 'landing' && heroVisible)) {
     updateAudio();
     manager.update(time, delta);
     recorder.captureFrame(); // straight after the draw: the canvas is only readable now

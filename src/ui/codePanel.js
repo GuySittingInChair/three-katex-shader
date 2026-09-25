@@ -713,7 +713,7 @@ export function createCodePanel(container, manager, { onShared } = {}) {
   // goes back for review), anything else becomes a new shared sketch.
   shareBtn.addEventListener('click', async () => {
     if (!getUser()) {
-      setStatus('Sign in with GitHub to share (button at the top right)', 'error');
+      setStatus('Sign in to share (top right)', 'error');
       return;
     }
     let def;
@@ -750,6 +750,11 @@ export function createCodePanel(container, manager, { onShared } = {}) {
 
   return {
     refresh,
+    // Opens the "+ New Sketch" form (used by "Write a new sketch" on a profile).
+    startNew() {
+      newForm.classList.remove('hidden');
+      newName.focus();
+    },
     // Drops code (e.g. from the AI panel) into the editor for the
     // currently-open sketch. Left un-applied until the user hits Run, so
     // an AI suggestion never overwrites a sketch without a review step.

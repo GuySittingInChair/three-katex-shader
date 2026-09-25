@@ -1,4 +1,5 @@
-import { listComments, addComment, deleteComment, onAuthChange, getUser, isAdmin, signIn } from '../core/community.js';
+import { listComments, addComment, deleteComment, onAuthChange, getUser, isAdmin } from '../core/community.js';
+import { promptSignIn } from './signIn.js';
 
 const POLL_INTERVAL = 8000;
 
@@ -11,7 +12,7 @@ export function createCommentPanel(container, manager) {
       <textarea class="comments-text" rows="3" maxlength="2000" placeholder="Say something about this sketch..."></textarea>
       <button class="comments-post" type="button">Post</button>
     </div>
-    <button class="comments-signin" type="button">Sign in with GitHub to comment</button>
+    <button class="comments-signin" type="button">Sign in to comment</button>
   `;
 
   const title = container.querySelector('.comments-panel-title');
@@ -122,7 +123,7 @@ export function createCommentPanel(container, manager) {
     if (pollHandle) refresh();
   });
 
-  signInBtn.addEventListener('click', () => signIn());
+  signInBtn.addEventListener('click', () => promptSignIn());
 
   postBtn.addEventListener('click', async () => {
     const text = textInput.value.trim();
