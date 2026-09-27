@@ -146,7 +146,7 @@ function renderTitle(sketch) {
   document.querySelector('.feed-name').textContent = sketch.name;
   document.querySelector('.feed-meta').textContent = `${sketch.category || ''}${pending}`;
   if (page === 'viewer') document.title = `${sketch.name} · aiship`;
-  else if (page === 'landing') document.title = 'aiship.lol · math doing tricks';
+  else if (page === 'landing') document.title = 'aiship · learn math visually';
 }
 
 // --- Panels ---

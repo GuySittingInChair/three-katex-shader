@@ -2218,13 +2218,3 @@ body.feed-on #toast {
   font-size: 0.72rem;
   color: var(--muted);
 }
-.hero h1 {
-  margin-bottom: 6px;
-}
-.hero-sub {
-  font-size: clamp(1.25rem, 3.4vw, 2rem);
-  font-weight: 650;
-  letter-spacing: -0.02em;
-  color: var(--accent);
-  margin-bottom: 18px;
-}
