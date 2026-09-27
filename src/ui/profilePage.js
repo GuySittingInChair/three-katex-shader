@@ -42,6 +42,8 @@ export function createProfilePage(container, { onPick, onWriteSketch, onSignedOu
   const grid = createSketchGrid(q('.profile-grid'), {
     onPick,
     controls: false,
+    showDrafts: () => true, // drafts show only to their owner (and the admin)
+    mixDrafts: true,
     filter: (s) => username && authorOf(s).toLowerCase() === username.toLowerCase(),
   });
 

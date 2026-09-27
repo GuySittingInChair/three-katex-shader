@@ -1,13 +1,23 @@
 import { sketches } from '../core/registry.js';
 import { TAXONOMY, getGroupForCategory } from '../core/taxonomy.js';
+import { isAdmin } from '../core/community.js';
+import { isPublished, setPublished } from '../core/sketchSettings.js';
 
-// Filterable grid of sketch cards, used by the landing page's gallery and the
-// viewer's sketch picker. Thumbnails come from public/thumbs/<id>.jpg
-// (tools/thumbnails.mjs); a sketch without one gets a generated gradient.
+// Filterable grid of sketch cards: the landing page's gallery, the viewer's
+// picker and profiles. Shows published sketches; drafts appear under their
+// own "Drafts" chip for the admin (and for the author of a pending shared
+// sketch), and the admin gets a publish toggle on each card.
+// Thumbnails come from public/thumbs/<id>.jpg (tools/thumbnails.mjs); a
+// sketch without one gets a generated gradient.
 
 const hue = (id) => [...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
 
-export function createSketchGrid(container, { onPick, getCurrentId = () => null, filter = () => true, controls = true } = {}) {
+const canSeeDraft = (s) => isAdmin() || Boolean(s.community?.mine);
+
+export function createSketchGrid(
+  container,
+  { onPick, getCurrentId = () => null, filter = () => true, controls = true, showDrafts = () => false, mixDrafts = false } = {}
+) {
   container.classList.add('sketch-grid-wrap');
   container.innerHTML = `
     <div class="grid-controls">
@@ -24,18 +34,26 @@ export function createSketchGrid(container, { onPick, getCurrentId = () => null,
   let group = 'All';
 
   function groupOf(s) {
+    if (!isPublished(s)) return 'Drafts';
     return s.community ? 'Community' : getGroupForCategory(s.category || 'Uncategorized');
   }
 
-  function renderChips() {
-    const used = new Set(sketches.filter(filter).map(groupOf));
-    const groups = ['All', ...TAXONOMY.map((g) => g.group), 'Community'].filter((g) => g === 'All' || used.has(g));
+  // Everything this grid could show, before chips and search.
+  function candidates() {
+    return sketches.filter((s) => filter(s) && (isPublished(s) || (showDrafts() && canSeeDraft(s))));
+  }
+
+  function renderChips(pool) {
+    const used = new Set(pool.map(groupOf));
+    const groups = ['All', ...TAXONOMY.map((g) => g.group), 'Community', 'Drafts'].filter(
+      (g) => g === 'All' || used.has(g)
+    );
     if (!groups.includes(group)) group = 'All';
     chips.textContent = '';
     for (const g of groups) {
       const b = document.createElement('button');
       b.type = 'button';
-      b.className = `chip${g === group ? ' active' : ''}`;
+      b.className = `chip${g === group ? ' active' : ''}${g === 'Drafts' ? ' chip-drafts' : ''}`;
       b.textContent = g;
       b.addEventListener('click', () => {
         group = g;
@@ -46,10 +64,12 @@ export function createSketchGrid(container, { onPick, getCurrentId = () => null,
   }
 
   function card(s) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = `sketch-card${s.id === getCurrentId() ? ' current' : ''}`;
+    const published = isPublished(s);
+    const b = document.createElement('div');
+    b.className = `sketch-card${s.id === getCurrentId() ? ' current' : ''}${published ? '' : ' draft'}`;
     b.style.setProperty('--h', hue(s.id));
+    b.tabIndex = 0;
+    b.setAttribute('role', 'button');
 
     const thumb = document.createElement('div');
     thumb.className = 'sketch-thumb';
@@ -67,21 +87,49 @@ export function createSketchGrid(container, { onPick, getCurrentId = () => null,
     name.textContent = s.name;
     const meta = document.createElement('span');
     meta.className = 'sketch-card-meta';
-    meta.textContent = s.community
-      ? `by @${s.community.author}${s.community.status === 'pending' ? ' · pending review' : ''}`
-      : s.category || 'Uncategorized';
+    const pending = s.community?.status === 'pending' ? ' · waiting for review' : '';
+    meta.textContent = s.community ? `by @${s.community.author}${pending}` : s.category || 'Uncategorized';
+    if (!published) meta.textContent = `Draft · ${meta.textContent}`;
 
     b.append(thumb, name, meta);
-    b.addEventListener('click', () => onPick?.(s.id));
+
+    // Publishing a built-in sketch; shared ones are approved in Review.
+    if (isAdmin() && !s.community) {
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'card-publish';
+      toggle.textContent = published ? 'Unpublish' : 'Publish';
+      toggle.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        toggle.disabled = true;
+        try {
+          await setPublished(s.id, !published);
+        } catch (err) {
+          toggle.textContent = 'Failed';
+          toggle.title = err.message;
+        }
+      });
+      thumb.append(toggle);
+    }
+
+    const open = () => onPick?.(s.id);
+    b.addEventListener('click', open);
+    b.addEventListener('keydown', (e) => {
+      if (e.target === b && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        open();
+      }
+    });
     return b;
   }
 
   function render() {
-    renderChips();
+    const pool = candidates();
+    renderChips(pool);
     const q = search.value.trim().toLowerCase();
-    const shown = sketches.filter((s) => {
-      if (!filter(s)) return false;
-      if (group !== 'All' && groupOf(s) !== group) return false;
+    const shown = pool.filter((s) => {
+      const g = groupOf(s);
+      if (group === 'All' ? g === 'Drafts' && !mixDrafts : g !== group) return false;
       if (!q) return true;
       return [s.name, s.category, ...(s.tags || [])].some((t) => String(t || '').toLowerCase().includes(q));
     });

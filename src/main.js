@@ -17,6 +17,17 @@ import { createSketchGrid } from './ui/sketchGrid.js';
 import { icon } from './ui/icons.js';
 import { createCommunitySketches } from './core/communitySketches.js';
 import { authorOf, profilePath } from './core/authors.js';
+import { isAdmin, onAuthChange } from './core/community.js';
+import {
+  loadSettings,
+  onSettingsChange,
+  isPublished,
+  savedParams,
+  setPublished,
+  saveParams,
+  clearParams,
+  hasSavedParams,
+} from './core/sketchSettings.js';
 import { promptSignIn } from './ui/signIn.js';
 import { createFeed } from './ui/feed.js';
 import { createProfilePage } from './ui/profilePage.js';
@@ -60,6 +71,7 @@ container.appendChild(renderer.domElement);
 
 const size = { width: window.innerWidth, height: window.innerHeight };
 const manager = new SketchManager(renderer, size, renderer.domElement, Math.max(initialIndex, 0));
+manager.isListed = (s) => isPublished(s);
 
 const toast = createToast();
 const viewMode = createViewMode({ toast });
@@ -117,7 +129,8 @@ function renderTitle(sketch) {
   const author = authorOf(sketch);
   const pending = sketch.community?.status === 'pending' ? ' · waiting for review' : '';
   titleName.textContent = sketch.name;
-  titleMeta.textContent = `${sketch.category || ''}${pending}`;
+  const draft = !isPublished(sketch) && !pending ? ' · draft' : '';
+  titleMeta.textContent = `${sketch.category || ''}${pending}${draft}`;
   for (const a of [topbarAuthor, feedAuthor, feedProfile]) a.href = profilePath(author);
   topbarAuthor.textContent = `@${author}`;
   feedAuthor.textContent = `@${author}`;
@@ -133,7 +146,7 @@ function renderTitle(sketch) {
   document.querySelector('.feed-name').textContent = sketch.name;
   document.querySelector('.feed-meta').textContent = `${sketch.category || ''}${pending}`;
   if (page === 'viewer') document.title = `${sketch.name} · aiship`;
-  else if (page === 'landing') document.title = 'aiship · learn math visually';
+  else if (page === 'landing') document.title = 'aiship.lol · math doing tricks';
 }
 
 // --- Panels ---
@@ -196,6 +209,7 @@ const pickerGrid = createSketchGrid($('picker-grid'), {
     navigate(`/s/${encodeURIComponent(id)}`);
   },
   getCurrentId: () => manager.getCurrent().id,
+  showDrafts: () => true,
 });
 registerPanel('picker', $('picker-panel'), { onShow: () => pickerGrid.refresh() });
 $('sketch-title').addEventListener('click', () => togglePanel('picker'));
@@ -319,6 +333,7 @@ document.addEventListener('click', (e) => {
 let toldTap = false;
 const feed = feedOn
   ? createFeed($('feed'), manager, {
+      isListed: (s) => isPublished(s),
       onTap: () => {
         closeMenu();
         if (document.body.classList.contains('sheet-open')) closeAllPanels();
@@ -491,6 +506,7 @@ window.addEventListener('popstate', applyRoute);
 
 manager.onChange((sketch) => {
   renderTitle(sketch);
+  updateAdminControls();
   lastLatex = null;
   syncMath(true);
   if (page === 'viewer' && parseRoute().id !== sketch.id) {
@@ -505,6 +521,79 @@ new IntersectionObserver(([entry]) => (heroVisible = entry.isIntersecting), { ro
 );
 
 applyRoute();
+
+// --- Admin: publish or unpublish, and save slider defaults for everyone ---
+const publishToggle = $('publish-toggle');
+publishToggle.addEventListener('click', async () => {
+  const sketch = manager.getCurrent();
+  const next = !isPublished(sketch);
+  try {
+    await setPublished(sketch.id, next);
+    toast(next ? `Published: ${sketch.name} is in the feed` : `Unpublished: ${sketch.name} is now a draft`);
+  } catch (err) {
+    toast(`Couldn't change it: ${err.message}`);
+  }
+});
+
+const paramsAdmin = document.createElement('div');
+paramsAdmin.className = 'params-admin hidden';
+paramsAdmin.innerHTML = `
+  <button type="button" class="btn btn-primary" data-role="save">Save as default for everyone</button>
+  <button type="button" class="btn btn-ghost" data-role="forget">Forget saved defaults</button>
+  <p class="params-admin-note">Visitors start from the saved values instead of the ones in the code.</p>
+`;
+$('params-panel').append(paramsAdmin);
+paramsAdmin.querySelector('[data-role="save"]').addEventListener('click', async () => {
+  const sketch = manager.getCurrent();
+  const values = {};
+  for (const [key, value] of Object.entries(manager.getParamValues())) {
+    if (typeof value === 'number' && Number.isFinite(value)) values[key] = value;
+  }
+  try {
+    await saveParams(sketch.id, values);
+    toast(`Saved: everyone now starts ${sketch.name} with these settings`);
+  } catch (err) {
+    toast(`Couldn't save: ${err.message}`);
+  }
+});
+paramsAdmin.querySelector('[data-role="forget"]').addEventListener('click', async () => {
+  const sketch = manager.getCurrent();
+  try {
+    await clearParams(sketch.id);
+    manager.resetParams();
+    paramsPanelApi.refresh();
+    toast(`${sketch.name} is back to the defaults in its code`);
+  } catch (err) {
+    toast(`Couldn't change it: ${err.message}`);
+  }
+});
+
+function updateAdminControls() {
+  const sketch = manager.getCurrent();
+  const admin = isAdmin();
+  publishToggle.classList.toggle('hidden', !admin || Boolean(sketch.community));
+  publishToggle.textContent = isPublished(sketch) ? 'Unpublish this sketch' : 'Publish this sketch';
+  const hasParams = Object.keys(sketch.params || {}).length > 0;
+  paramsAdmin.classList.toggle('hidden', !admin || !hasParams);
+  paramsAdmin.querySelector('[data-role="forget"]').classList.toggle('hidden', !hasSavedParams(sketch.id));
+}
+
+onSettingsChange(() => {
+  manager.setDefaultOverrides(savedParams());
+  paramsPanelApi.refresh();
+  pickerGrid.refresh();
+  landingGrid.refresh();
+  profilePage.refresh();
+  feed?.refresh();
+  renderTitle(manager.getCurrent());
+  updateAdminControls();
+});
+onAuthChange(() => {
+  pickerGrid.refresh();
+  landingGrid.refresh();
+  updateAdminControls();
+});
+loadSettings();
 
 // --- Keyboard (viewer only) ---
 window.addEventListener('keyup', (e) => {

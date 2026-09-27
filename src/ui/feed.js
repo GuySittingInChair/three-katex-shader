@@ -4,7 +4,7 @@ import { sketches } from '../core/registry.js';
 // sketch; this is a stack of transparent, full-screen snap points over it, one
 // per sketch. When a snap point settles in view, that sketch becomes current.
 // A tap (not a swipe) calls onTap, which toggles the controls.
-export function createFeed(el, manager, { onTap }) {
+export function createFeed(el, manager, { onTap, isListed = () => true }) {
   let ids = [];
   let desired = manager.getCurrent().id;
   let syncing = false; // scrolling ourselves to match the manager
@@ -37,7 +37,8 @@ export function createFeed(el, manager, { onTap }) {
   function build() {
     observer.disconnect();
     el.textContent = '';
-    ids = sketches.map((s) => s.id);
+    const current = manager.getCurrent().id;
+    ids = sketches.filter((s) => isListed(s) || s.id === current).map((s) => s.id);
     for (const id of ids) {
       const item = document.createElement('section');
       item.className = 'feed-item';
@@ -57,6 +58,7 @@ export function createFeed(el, manager, { onTap }) {
     }
     swipePending = false;
     desired = sketch.id;
+    if (!ids.includes(sketch.id)) build(); // a draft opened from the picker
     if (ids[Math.round(el.scrollTop / el.clientHeight)] !== sketch.id) scrollTo(sketch.id);
   });
 
@@ -69,9 +71,9 @@ export function createFeed(el, manager, { onTap }) {
   return {
     refresh() {
       const current = manager.getCurrent().id;
-      if (ids.length === sketches.length && ids.every((id, i) => id === sketches[i].id)) return;
+      const next = sketches.filter((s) => isListed(s) || s.id === current).map((s) => s.id);
+      if (next.length === ids.length && next.every((id, i) => id === ids[i])) return;
       build();
-      scrollTo(current);
     },
     // After the feed becomes visible again (it can't scroll while hidden).
     sync: () => scrollTo(manager.getCurrent().id),

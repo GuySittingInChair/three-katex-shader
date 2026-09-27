@@ -17,6 +17,11 @@ export class SketchManager {
     // definition — so a slider drag or voice command never has to mutate
     // the shared registry object, and survives switching away and back.
     this.liveParams = new Map();
+    // Published slider defaults (sketch id -> { key: value }) that replace
+    // the values written in the sketch's code; see core/sketchSettings.js.
+    this.defaultOverrides = {};
+    // Which sketches previous/next step through (drafts are skipped).
+    this.isListed = () => true;
 
     this.currentIndex = Math.min(Math.max(initialIndex, 0), sketches.length - 1);
     this.current = this._makeRunner(sketches[this.currentIndex]);
@@ -29,8 +34,21 @@ export class SketchManager {
 
   _defaultParams(sketch) {
     const out = {};
-    for (const [key, def] of Object.entries(sketch.params || {})) out[key] = def.value;
+    const saved = this.defaultOverrides[sketch.id] || {};
+    for (const [key, def] of Object.entries(sketch.params || {})) {
+      const v = saved[key];
+      out[key] = typeof v === 'number' && Number.isFinite(v) ? Math.min(def.max, Math.max(def.min, v)) : def.value;
+    }
     return out;
+  }
+
+  // New published defaults: sketches not yet opened pick them up when they
+  // are; the one on screen is reset to them straight away if it has any.
+  setDefaultOverrides(map) {
+    this.defaultOverrides = map;
+    const currentId = sketches[this.currentIndex].id;
+    for (const id of [...this.liveParams.keys()]) if (id !== currentId) this.liveParams.delete(id);
+    if (map[currentId]) this.resetParams();
   }
 
   // Returns the live values object for a sketch, creating it from the
@@ -138,8 +156,17 @@ export class SketchManager {
     return index !== -1;
   }
 
-  next() { this.goTo((this.currentIndex + 1) % sketches.length); }
-  prev() { this.goTo((this.currentIndex - 1 + sketches.length) % sketches.length); }
+  _step(dir) {
+    const n = sketches.length;
+    let i = this.currentIndex;
+    for (let k = 0; k < n; k++) {
+      i = (i + dir + n) % n;
+      if (this.isListed(sketches[i])) return this.goTo(i);
+    }
+  }
+
+  next() { this._step(1); }
+  prev() { this._step(-1); }
 
   // Rebuilds the active sketch from its (possibly just-edited) definition
   // without changing currentIndex, so live code edits render immediately.
