@@ -2163,3 +2163,6 @@ body.feed-on #toast {
     font-size: 1.8rem;
   }
 }
+.footer a {
+  color: inherit;
+}
