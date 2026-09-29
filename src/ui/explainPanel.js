@@ -163,7 +163,7 @@ export function createExplainPanel(container, manager) {
         <button type="button" class="explain-tab">Add note</button>
         <span class="explain-hint" data-role="note-status"></span>
       </div>
-      <button type="button" class="explain-tab hidden" data-role="note-signin">Sign in to add a note</button>
+      <button type="button" class="explain-tab hidden" data-role="note-signin">Log in to add a note</button>
       <div class="explain-doc" data-role="walkthrough"></div>
     </div>
     <div class="explain-body explain-doc hidden" data-view="guide"></div>

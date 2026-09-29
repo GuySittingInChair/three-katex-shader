@@ -10,8 +10,8 @@ export function createAccountButton(button, { onOpenProfile }) {
     username = user ? profile?.username ?? null : null;
     button.textContent = '';
     if (!user) {
-      button.textContent = 'Sign in';
-      button.title = 'Sign in to comment, add notes and share sketches';
+      button.textContent = 'Log in';
+      button.title = 'Log in to comment, add notes and share sketches';
       return;
     }
     if (profile?.avatar_url) {

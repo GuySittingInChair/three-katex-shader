@@ -713,7 +713,7 @@ export function createCodePanel(container, manager, { onShared } = {}) {
   // goes back for review), anything else becomes a new shared sketch.
   shareBtn.addEventListener('click', async () => {
     if (!getUser()) {
-      setStatus('Sign in to share (top right)', 'error');
+      setStatus('Log in to share (top right)', 'error');
       return;
     }
     let def;

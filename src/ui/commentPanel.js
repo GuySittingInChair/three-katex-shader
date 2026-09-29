@@ -12,7 +12,7 @@ export function createCommentPanel(container, manager) {
       <textarea class="comments-text" rows="3" maxlength="2000" placeholder="Say something about this sketch..."></textarea>
       <button class="comments-post" type="button">Post</button>
     </div>
-    <button class="comments-signin" type="button">Sign in to comment</button>
+    <button class="comments-signin" type="button">Log in to comment</button>
   `;
 
   const title = container.querySelector('.comments-panel-title');

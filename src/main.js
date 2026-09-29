@@ -51,6 +51,7 @@ function parseRoute() {
   if (s) return { page: 'viewer', id: decodeURIComponent(s[1]) };
   const u = /^\/u\/([^/]+)\/?$/.exec(location.pathname);
   if (u) return { page: 'profile', name: decodeURIComponent(u[1]) };
+  if (/^\/sketches\/?$/.test(location.pathname)) return { page: 'sketches' };
   return { page: 'landing' };
 }
 const initialRoute = parseRoute();
@@ -83,8 +84,7 @@ const recorder = createRecorder({ renderer, manager, size, getName: () => manage
 // the string changes, at most ~15 times a second. It draws into the viewer's
 // overlay, or into the landing page's hero while that is showing.
 const mathOverlay = $('math-overlay');
-const heroEquation = $('hero-equation');
-let mathTarget = mathOverlay;
+let mathTarget = mathOverlay; // null on pages that don't show the equation
 let lastLatex = null;
 let lastMathRender = 0;
 let explainApi = null; // created below; syncMath runs once before that
@@ -97,6 +97,7 @@ function syncMath(force = false) {
   lastMathRender = now;
   lastLatex = tex;
   explainApi?.setLatex(tex);
+  if (!mathTarget) return;
   if (tex) katex.render(tex, mathTarget, { throwOnError: false, displayMode: false });
   else mathTarget.innerHTML = '';
   if (tex && mathTarget === mathOverlay && mobile.matches) fitMath();
@@ -114,7 +115,7 @@ function fitMath() {
 }
 function setMathTarget(el) {
   if (el === mathTarget) return;
-  mathTarget.innerHTML = '';
+  if (mathTarget) mathTarget.innerHTML = '';
   mathTarget = el;
   lastLatex = null;
   syncMath(true);
@@ -234,8 +235,23 @@ const community = createCommunitySketches(manager, {
     }
   },
 });
-createAccountButton($('account-toggle'), { onOpenProfile: (name) => navigate(profilePath(name)) });
-document.querySelector('[data-role="landing-signin"]').addEventListener('click', () => promptSignIn());
+const openProfile = (name) => navigate(profilePath(name));
+createAccountButton($('account-toggle'), { onOpenProfile: openProfile });
+createAccountButton(document.querySelector('[data-role="page-account"]'), { onOpenProfile: openProfile });
+
+// Landing buttons: Log in / Create account, or Your profile once signed in.
+const landingLogIn = document.querySelector('[data-role="log-in"]');
+const landingCreate = document.querySelector('[data-role="create-account"]');
+const landingProfile = document.querySelector('[data-role="my-profile"]');
+landingLogIn.addEventListener('click', () => promptSignIn('login'));
+landingCreate.addEventListener('click', () => promptSignIn('create'));
+onAuthChange((user, profile) => {
+  const signedIn = Boolean(user && profile);
+  landingLogIn.classList.toggle('hidden', signedIn);
+  landingCreate.classList.toggle('hidden', signedIn);
+  landingProfile.classList.toggle('hidden', !signedIn);
+  if (signedIn) landingProfile.href = profilePath(profile.username);
+});
 
 // --- Profiles ---
 const profilePage = createProfilePage($('profile'), {
@@ -451,6 +467,7 @@ if (!isVoiceSupported() || !voice) {
 // --- Pages ---
 const landing = $('landing');
 const profileEl = $('profile');
+const sketchesEl = $('sketches-page');
 let page = 'viewer';
 let heroVisible = true;
 
@@ -459,17 +476,19 @@ function showPage(next) {
   document.body.dataset.page = next;
   landing.hidden = next !== 'landing';
   profileEl.hidden = next !== 'profile';
+  sketchesEl.hidden = next !== 'sketches';
   if (next !== 'viewer') {
     closeAllPanels();
     closeMenu();
   }
-  if (next === 'landing') {
-    landing.scrollTop = 0;
-    setMathTarget(heroEquation);
-  } else {
-    setMathTarget(mathOverlay);
-  }
+  if (next === 'landing') landing.scrollTop = 0;
+  setMathTarget(next === 'viewer' ? mathOverlay : null);
   if (next === 'profile') profileEl.scrollTop = 0;
+  if (next === 'sketches') {
+    sketchesEl.scrollTop = 0;
+    landingGrid.refresh();
+    document.title = 'Sketches · aiship';
+  }
   if (next === 'viewer') requestAnimationFrame(() => feed?.sync());
   renderTitle(manager.getCurrent());
 }
@@ -482,6 +501,8 @@ function applyRoute() {
   } else if (route.page === 'profile') {
     showPage('profile');
     profilePage.show(route.name);
+  } else if (route.page === 'sketches') {
+    showPage('sketches');
   } else {
     if (manager.getCurrent().id !== FEATURED) manager.goToId(FEATURED);
     showPage('landing');

@@ -11,8 +11,8 @@ function build() {
   dialog.innerHTML = `
     <div class="signin-dialog" role="dialog" aria-modal="true" aria-labelledby="signin-title">
       <button type="button" class="panel-close" aria-label="Close">${icon('close')}</button>
-      <h2 id="signin-title">Sign in to aiship</h2>
-      <p>Comment, add notes to explanations, and share your own sketches.</p>
+      <h2 id="signin-title"></h2>
+      <p class="signin-lede"></p>
       <div class="signin-options"></div>
       <p class="signin-status"></p>
     </div>
@@ -33,11 +33,24 @@ async function go(provider, status) {
   if (error && status) status.textContent = `Couldn't start sign-in: ${error.message}`;
 }
 
-export async function promptSignIn() {
+const COPY = {
+  login: ['Log in to aiship', 'Welcome back.'],
+  create: [
+    'Create your aiship account',
+    "Pick one. Your account is made the first time you continue, and you'll get a profile for your sketches.",
+  ],
+};
+
+// `mode` only changes the wording: with GitHub, Google or Discord, logging in
+// and creating an account are the same step.
+export async function promptSignIn(mode = 'login') {
   const providers = await getEnabledProviders();
   if (providers.length <= 1) return go(providers[0]?.id ?? 'github');
 
   if (!dialog) build();
+  const [title, lede] = COPY[mode] ?? COPY.login;
+  dialog.querySelector('#signin-title').textContent = title;
+  dialog.querySelector('.signin-lede').textContent = lede;
   const options = dialog.querySelector('.signin-options');
   const status = dialog.querySelector('.signin-status');
   status.textContent = '';
