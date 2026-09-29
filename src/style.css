@@ -2224,3 +2224,7 @@ body.feed-on #toast {
     transform: translateY(-24vh);
   }
 }
+/* The hero equation changes between 3 and 4 lines; keep the headline still. */
+.hero-equation {
+  min-height: calc(7.3em + 22px); /* 4 rows plus padding and border */
+}
