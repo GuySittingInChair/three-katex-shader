@@ -2294,3 +2294,32 @@ body.feed-on #toast {
     flex: 1 1 100%;
   }
 }
+
+/* ---- Sound button: a gentle pulse while a sketch has sound you haven't turned on ---- */
+.sound-waiting .icon {
+  animation: sound-pulse 1.6s ease-in-out infinite;
+}
+@keyframes sound-pulse {
+  50% {
+    transform: scale(1.18);
+    color: var(--accent);
+  }
+}
+.note-audio-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.note-audio-preview {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+.note-audio-preview audio,
+.explain-note audio,
+.review-card audio {
+  width: 100%;
+  height: 36px;
+  margin-top: 6px;
+}

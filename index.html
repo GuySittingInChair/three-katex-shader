@@ -84,6 +84,7 @@
       <button type="button" class="feed-btn" data-open="comments"></button>
       <button type="button" class="feed-btn" data-open="code"></button>
       <button type="button" class="feed-btn" data-open="params"></button>
+      <button type="button" class="feed-btn hidden" data-action="sound"></button>
       <button type="button" class="feed-btn" data-action="interact"></button>
       <button type="button" class="feed-btn" data-action="more" aria-haspopup="true"></button>
     </div>
@@ -95,16 +96,20 @@
       <button id="params-toggle" class="dock-btn" type="button" title="Sliders"></button>
       <button id="comments-toggle" class="dock-btn" type="button" title="Comments"></button>
       <button id="code-toggle" class="dock-btn" type="button" title="Edit the code"></button>
+      <button id="sound-toggle" class="dock-btn hidden" type="button" title="Sound on / off (Space)"></button>
       <button id="hide-toggle" class="dock-btn" type="button" title="Hide everything but the animation (H)"></button>
       <button id="more-toggle" class="dock-btn" type="button" aria-haspopup="true" aria-expanded="false"></button>
       <button id="next-btn" class="dock-btn dock-nav" type="button" aria-label="Next sketch"></button>
     </nav>
 
     <div id="more-menu" class="menu hidden" role="menu">
-      <button id="media-toggle" type="button" role="menuitem">Music &amp; recording</button>
+      <button id="media-toggle" type="button" role="menuitem">Record a clip <kbd>R</kbd></button>
       <button id="audio-toggle" type="button" role="menuitem">Use microphone</button>
       <button id="view-toggle" type="button" role="menuitem">Hide controls <kbd>H</kbd></button>
       <button id="fullscreen-toggle" type="button" role="menuitem">Fullscreen <kbd>F</kbd></button>
+      <button id="sound-upload" class="hidden" type="button" role="menuitem">Add a sound to this sketch</button>
+      <button id="sound-remove" class="hidden" type="button" role="menuitem">Remove this sketch's sound</button>
+      <input id="sound-file" type="file" accept="audio/*" hidden />
       <button id="publish-toggle" class="menu-admin hidden" type="button" role="menuitem">Unpublish this sketch</button>
     </div>
 

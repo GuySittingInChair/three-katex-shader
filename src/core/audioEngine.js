@@ -3,7 +3,6 @@ import * as Tone from 'tone';
 let mic = null;
 let fft = null;
 let waveformAnalyser = null;
-let music = null;      // the loaded track: { name, el, url, source, gain }
 let recDest = null;    // MediaStreamAudioDestinationNode tapping the master output, for recording
 
 // Shared, mutated in place every frame — sketches read ctx.audio (same
@@ -24,7 +23,7 @@ function dbToUnit(db) {
   return Math.max(0, Math.min(1, (db + 100) / 100));
 }
 
-// The analysers are shared: the mic and a loaded music track both feed them,
+// The analysers are shared: the mic and the sketch's sound both feed them,
 // so every audio-reactive sketch responds to whichever is playing.
 function ensureAnalysers() {
   if (!fft) fft = new Tone.Analyser({ type: 'fft', size: 64 });
@@ -59,51 +58,82 @@ export function feedAnalysers(node) {
   audioEngine.enabled = true;
 }
 
-// ---- Music track ---------------------------------------------------------
-// A user-supplied audio file, played through the speakers *and* routed into
-// the analysers (so bass/mid/treble drive audio-reactive sketches). Needs a
-// user gesture like everything else that starts audio.
+// ---- The current sketch's sound ------------------------------------------
+// One looping audio element whose file changes as you move between sketches.
+// It plays through the speakers *and* into the analysers (so bass/mid/treble
+// drive audio-reactive sketches) and the recorder. Browsers only allow sound
+// after a user gesture, so it starts off and `setSoundOn(true)` must be
+// called from a click. The on/off choice is remembered.
 
-export function getMusic() {
-  return music;
+const SOUND_KEY = 'aiship:sound-on';
+let sound = null; // { el, source, gain }, built on first use
+let soundUrl = null;
+let soundOn = false;
+try {
+  soundOn = localStorage.getItem(SOUND_KEY) === '1';
+} catch {
+  /* storage blocked: start muted */
 }
 
-export function unloadMusic() {
-  if (!music) return;
-  music.el.pause();
-  try { music.source.disconnect(); } catch { /* already disconnected */ }
-  music.gain.dispose();
-  URL.revokeObjectURL(music.url);
-  music = null;
-}
-
-export async function loadMusic(file) {
-  await Tone.start();
-  ensureAnalysers();
-  unloadMusic();
-
-  const url = URL.createObjectURL(file);
+function ensureSound() {
+  if (sound) return sound;
   const el = new Audio();
+  el.crossOrigin = 'anonymous'; // files come from Supabase storage; needed to analyse them
+  el.loop = true;
   el.preload = 'auto';
-  el.src = url;
-  await new Promise((resolve, reject) => {
-    el.addEventListener('loadedmetadata', resolve, { once: true });
-    el.addEventListener('error', () => reject(new Error(`Could not read "${file.name}" as audio`)), { once: true });
-  });
-
   const source = Tone.getContext().createMediaElementSource(el);
   const gain = new Tone.Gain(1);
   Tone.connect(source, gain);
+  ensureAnalysers();
   gain.connect(fft);
   gain.connect(waveformAnalyser);
   gain.toDestination();
-
-  music = { name: file.name, el, url, source, gain };
-  audioEngine.enabled = true;
-  return music;
+  sound = { el, source, gain };
+  return sound;
 }
 
-// Everything audible — the music track plus any sound a sketch synthesises
+function syncSound() {
+  if (!soundOn || !soundUrl) {
+    sound?.el.pause();
+    return;
+  }
+  const { el } = ensureSound();
+  if (el.src !== soundUrl) el.src = soundUrl;
+  audioEngine.enabled = true;
+  el.play().catch(() => {
+    // Autoplay blocked (no gesture yet this visit): wait for the next tap.
+    const retry = () => {
+      Tone.start().then(() => el.play().catch(() => {}));
+    };
+    window.addEventListener('pointerdown', retry, { once: true });
+  });
+}
+
+// The sound for the sketch on screen (null if it has none).
+export function setSketchSound(url) {
+  soundUrl = url || null;
+  syncSound();
+}
+
+export const isSoundOn = () => soundOn;
+
+export async function setSoundOn(on) {
+  soundOn = on;
+  try {
+    localStorage.setItem(SOUND_KEY, on ? '1' : '0');
+  } catch {
+    /* not remembered, that's all */
+  }
+  if (on) await Tone.start();
+  syncSound();
+}
+
+// For the recorder: the playing sound, so a recording can restart it.
+export function getMusic() {
+  return soundUrl && sound ? sound : null;
+}
+
+// Everything audible — the sketch's sound plus anything a sketch synthesises
 // through Tone — as a MediaStream for the recorder. Null if the audio
 // context was never started (nothing could be playing), so the recording is
 // simply video-only instead of stalling on a dead track.

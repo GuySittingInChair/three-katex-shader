@@ -13,7 +13,7 @@ export function onSettingsChange(fn) {
 const emit = () => listeners.forEach((fn) => fn());
 
 export async function loadSettings() {
-  const { data, error } = await supabase.from('sketch_settings').select('sketch_id, published, params');
+  const { data, error } = await supabase.from('sketch_settings').select('sketch_id, published, params, sound_path');
   if (error) {
     console.warn(`[settings] couldn't load: ${error.message}`);
     return;
@@ -36,7 +36,7 @@ export function savedParams() {
 }
 
 async function upsert(sketchId, patch) {
-  const current = rows.get(sketchId) ?? { sketch_id: sketchId, published: true, params: null };
+  const current = rows.get(sketchId) ?? { sketch_id: sketchId, published: true, params: null, sound_path: null };
   const next = { ...current, ...patch, sketch_id: sketchId, updated_at: new Date().toISOString() };
   const { data, error } = await supabase.from('sketch_settings').upsert(next).select().single();
   if (error) throw new Error(error.message);
@@ -49,3 +49,7 @@ export const setPublished = (sketchId, published) => upsert(sketchId, { publishe
 export const saveParams = (sketchId, params) => upsert(sketchId, { params });
 export const clearParams = (sketchId) => upsert(sketchId, { params: null });
 export const hasSavedParams = (sketchId) => Boolean(rows.get(sketchId)?.params);
+
+// A built-in sketch's sound (set by the admin).
+export const soundPathOf = (sketchId) => rows.get(sketchId)?.sound_path ?? null;
+export const setSoundPath = (sketchId, path) => upsert(sketchId, { sound_path: path });

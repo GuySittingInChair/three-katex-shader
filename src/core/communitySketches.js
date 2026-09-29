@@ -21,6 +21,8 @@ export function createCommunitySketches(manager, { onListChange } = {}) {
       author: row.author?.username ?? 'someone',
       avatar: row.author?.avatar_url ?? null,
       status: row.status,
+      soundPath: row.sound_path ?? null,
+      soundStatus: row.sound_status ?? 'none',
       mine: row.user_id === me,
     };
     const existing = getSketchById(id);

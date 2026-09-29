@@ -3,6 +3,7 @@ import { marked } from 'marked';
 import guideSource from '../../docs/guide.md?raw';
 import { listNotes, addNote, deleteNote, onAuthChange, getUser, isAdmin } from '../core/community.js';
 import { promptSignIn } from './signIn.js';
+import { soundUrl, uploadSound, MAX_SOUND_BYTES } from '../core/sounds.js';
 
 // Right-docked reading panel built entirely from docs/guide.md:
 //   • "This sketch" — the symbols in the live equation, looked up in the guide's
@@ -156,11 +157,20 @@ export function createExplainPanel(container, manager) {
         <pre><code data-role="source"></code></pre>
       </details>
       <h3>Community notes</h3>
-      <p class="explain-hint">Explanations, questions answered, things that helped. New notes appear for everyone once reviewed.</p>
+      <p class="explain-hint">Explanations, questions answered, things that helped, typed or spoken. New notes appear for everyone once reviewed.</p>
       <div class="explain-notes" data-role="notes"></div>
       <div class="explain-note-form" data-role="note-form">
         <textarea rows="3" maxlength="5000" placeholder="Add a note about this sketch’s math or code…"></textarea>
-        <button type="button" class="explain-tab">Add note</button>
+        <div class="note-audio-row">
+          <button type="button" class="explain-tab" data-role="note-record">Record a voice note</button>
+          <button type="button" class="explain-tab" data-role="note-attach">Attach audio</button>
+          <input type="file" accept="audio/*" hidden data-role="note-file" />
+        </div>
+        <div class="note-audio-preview hidden" data-role="note-preview">
+          <audio controls></audio>
+          <button type="button" class="comment-delete" title="Remove the audio" data-role="note-audio-clear">×</button>
+        </div>
+        <button type="button" class="explain-tab" data-role="note-add">Add note</button>
         <span class="explain-hint" data-role="note-status"></span>
       </div>
       <button type="button" class="explain-tab hidden" data-role="note-signin">Log in to add a note</button>
@@ -293,20 +303,99 @@ export function createExplainPanel(container, manager) {
       body.className = 'explain-note-body';
       body.textContent = note.body;
       card.append(meta, body);
+      if (note.audio_path) {
+        const audio = document.createElement('audio');
+        audio.controls = true;
+        audio.preload = 'none';
+        audio.src = soundUrl(note.audio_path);
+        card.append(audio);
+      }
       holder.append(card);
     }
   }
 
   const noteForm = $('note-form');
   const noteInput = noteForm.querySelector('textarea');
-  const noteButton = noteForm.querySelector('button');
+  const noteButton = $('note-add');
+
+  // Audio for the note: a file, or a recording from the microphone.
+  let noteAudio = null; // Blob
+  const preview = $('note-preview');
+  const previewAudio = preview.querySelector('audio');
+  function setNoteAudio(blob) {
+    noteAudio = blob;
+    if (previewAudio.src) URL.revokeObjectURL(previewAudio.src);
+    previewAudio.src = blob ? URL.createObjectURL(blob) : '';
+    preview.classList.toggle('hidden', !blob);
+  }
+  $('note-audio-clear').addEventListener('click', () => setNoteAudio(null));
+  $('note-attach').addEventListener('click', () => $('note-file').click());
+  $('note-file').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    if (file.size > MAX_SOUND_BYTES) {
+      $('note-status').textContent = 'That file is over 10 MB.';
+      return;
+    }
+    setNoteAudio(file);
+  });
+
+  const MAX_RECORD_S = 120;
+  let recording = null; // { recorder, stream, timer, started }
+  const recordBtn = $('note-record');
+  function stopRecording() {
+    if (!recording) return;
+    clearInterval(recording.timer);
+    recording.recorder.stop();
+  }
+  recordBtn.addEventListener('click', async () => {
+    if (recording) return stopRecording();
+    if (!window.MediaRecorder || !navigator.mediaDevices?.getUserMedia) {
+      $('note-status').textContent = "This browser can't record audio. Attach a file instead.";
+      return;
+    }
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      $('note-status').textContent = 'Microphone access was blocked.';
+      return;
+    }
+    const type = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm'].find((t) => MediaRecorder.isTypeSupported(t));
+    const recorder = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
+    const chunks = [];
+    recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+    recorder.onstop = () => {
+      stream.getTracks().forEach((t) => t.stop());
+      recording = null;
+      recordBtn.textContent = 'Record a voice note';
+      recordBtn.classList.remove('active');
+      setNoteAudio(new Blob(chunks, { type: (recorder.mimeType || type || 'audio/webm').split(';')[0] }));
+    };
+    recorder.start();
+    const started = Date.now();
+    recording = {
+      recorder,
+      timer: setInterval(() => {
+        const s = Math.round((Date.now() - started) / 1000);
+        recordBtn.textContent = `Stop recording · ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+        if (s >= MAX_RECORD_S) stopRecording();
+      }, 250),
+    };
+    recordBtn.classList.add('active');
+    recordBtn.textContent = 'Stop recording · 0:00';
+  });
+
   noteButton.addEventListener('click', async () => {
-    const text = noteInput.value.trim();
+    const text = noteInput.value.trim() || (noteAudio ? '(voice note)' : '');
     if (!text) return;
     noteButton.disabled = true;
     try {
-      await addNote(manager.getCurrent().id, text);
+      const audioPath = noteAudio ? await uploadSound(noteAudio) : null;
+      await addNote(manager.getCurrent().id, text, audioPath);
       noteInput.value = '';
+      setNoteAudio(null);
       $('note-status').textContent = isAdmin() ? 'Published.' : 'Thanks! It will appear for everyone once reviewed.';
       renderNotes();
     } catch (err) {

@@ -139,16 +139,22 @@ export async function listNotes(sketchId) {
   return check(
     await supabase
       .from('guide_notes')
-      .select(`id, body, status, created_at, user_id, ${AUTHOR}`)
+      .select(`id, body, status, created_at, user_id, audio_path, ${AUTHOR}`)
       .eq('sketch_id', sketchId)
       .neq('status', 'rejected')
       .order('created_at', { ascending: true })
   );
 }
 
-export async function addNote(sketchId, body) {
+export async function addNote(sketchId, body, audioPath = null) {
   const status = isAdmin() ? 'approved' : 'pending';
-  return check(await supabase.from('guide_notes').insert({ sketch_id: sketchId, body, status }).select('id').single());
+  return check(
+    await supabase
+      .from('guide_notes')
+      .insert({ sketch_id: sketchId, body, status, audio_path: audioPath })
+      .select('id')
+      .single()
+  );
 }
 
 export async function deleteNote(id) {
@@ -161,7 +167,7 @@ export async function listSharedSketches() {
   return check(
     await supabase
       .from('shared_sketches')
-      .select(`id, name, category, code, status, user_id, updated_at, ${AUTHOR}`)
+      .select(`id, name, category, code, status, user_id, updated_at, sound_path, sound_status, ${AUTHOR}`)
       .neq('status', 'rejected')
       .order('created_at', { ascending: true })
   );
@@ -180,13 +186,21 @@ export async function updateSharedSketch(id, { name, category, code }) {
   );
 }
 
+// The sound on your shared sketch (null removes it). Waits for review unless
+// you're the admin (the database enforces that).
+export async function setSharedSketchSound(id, path) {
+  return check(
+    await supabase.from('shared_sketches').update({ sound_path: path }).eq('id', id).select('id, sound_status').single()
+  );
+}
+
 // ---------- admin review ----------
 
 export async function listPending() {
-  const [notes, sketches] = await Promise.all([
+  const [notes, sketches, sounds] = await Promise.all([
     supabase
       .from('guide_notes')
-      .select(`id, sketch_id, body, created_at, ${AUTHOR}`)
+      .select(`id, sketch_id, body, audio_path, created_at, ${AUTHOR}`)
       .eq('status', 'pending')
       .order('created_at'),
     supabase
@@ -194,8 +208,17 @@ export async function listPending() {
       .select(`id, name, category, code, created_at, ${AUTHOR}`)
       .eq('status', 'pending')
       .order('created_at'),
+    supabase
+      .from('shared_sketches')
+      .select(`id, name, sound_path, ${AUTHOR}`)
+      .eq('sound_status', 'pending')
+      .order('updated_at'),
   ]);
-  return { notes: check(notes), sketches: check(sketches) };
+  return { notes: check(notes), sketches: check(sketches), sounds: check(sounds) };
+}
+
+export async function reviewSound(id, status) {
+  return check(await supabase.from('shared_sketches').update({ sound_status: status }).eq('id', id).select('id').single());
 }
 
 export async function review(table, id, status) {

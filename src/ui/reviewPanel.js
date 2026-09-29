@@ -1,4 +1,5 @@
-import { listPending, review, onAuthChange, isAdmin } from '../core/community.js';
+import { listPending, review, reviewSound, onAuthChange, isAdmin } from '../core/community.js';
+import { soundUrl } from '../core/sounds.js';
 import { compileSketch } from '../core/sketchCompiler.js';
 import { addSketch, getSketchById, updateSketch, sketches } from '../core/registry.js';
 import { communityId } from '../core/communitySketches.js';
@@ -11,7 +12,7 @@ export function createReviewPanel(container, manager, { toggleButton, onReviewed
       <div class="params-panel-title">Review</div>
       <button type="button" class="params-panel-reset" data-role="refresh">Refresh</button>
     </div>
-    <div class="explain-hint">Guide notes and shared sketches wait here until you approve them. Read a sketch's code before previewing it: previewing runs it in your signed-in browser.</div>
+    <div class="explain-hint">Guide notes, shared sketches and sketch sounds wait here until you approve them. Read a sketch's code before previewing it: previewing runs it in your logged-in browser.</div>
     <div class="review-list" data-role="list"></div>
   `;
   container.classList.add('review-panel');
@@ -31,9 +32,18 @@ export function createReviewPanel(container, manager, { toggleButton, onReviewed
     return b;
   }
 
+  const audio = (path) => {
+    const a = document.createElement('audio');
+    a.controls = true;
+    a.preload = 'none';
+    a.src = soundUrl(path);
+    return a;
+  };
+
   async function decide(table, id, status) {
     try {
-      await review(table, id, status);
+      if (table === 'sounds') await reviewSound(id, status);
+      else await review(table, id, status);
       toast?.(status === 'approved' ? 'Approved' : 'Rejected');
       onReviewed?.();
       await render();
@@ -68,7 +78,7 @@ export function createReviewPanel(container, manager, { toggleButton, onReviewed
       list.textContent = `Couldn't load: ${err.message}`;
       return;
     }
-    const count = pending.notes.length + pending.sketches.length;
+    const count = pending.notes.length + pending.sketches.length + pending.sounds.length;
     toggleButton.textContent = count ? `🛡 Review (${count})` : '🛡 Review';
     list.textContent = '';
     if (!count) list.append(el('p', 'explain-hint', 'Nothing waiting.'));
@@ -79,10 +89,23 @@ export function createReviewPanel(container, manager, { toggleButton, onReviewed
         el('div', 'review-meta', `Guide note · ${note.sketch_id || 'general'} · @${note.author?.username ?? '?'}`),
         el('div', 'review-body', note.body)
       );
+      if (note.audio_path) card.append(audio(note.audio_path));
       const row = el('div', 'review-actions');
       row.append(
         button('Approve', 'approve', () => decide('guide_notes', note.id, 'approved')),
         button('Reject', 'reject', () => decide('guide_notes', note.id, 'rejected'))
+      );
+      card.append(row);
+      list.append(card);
+    }
+
+    for (const snd of pending.sounds) {
+      const card = el('div', 'review-card');
+      card.append(el('div', 'review-meta', `Sound for “${snd.name}” · @${snd.author?.username ?? '?'}`), audio(snd.sound_path));
+      const row = el('div', 'review-actions');
+      row.append(
+        button('Approve', 'approve', () => decide('sounds', snd.id, 'approved')),
+        button('Reject', 'reject', () => decide('sounds', snd.id, 'rejected'))
       );
       card.append(row);
       list.append(card);

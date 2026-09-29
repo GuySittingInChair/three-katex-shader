@@ -15,7 +15,7 @@ import { createSketchGrid } from './ui/sketchGrid.js';
 import { icon } from './ui/icons.js';
 import { createCommunitySketches } from './core/communitySketches.js';
 import { authorOf, profilePath } from './core/authors.js';
-import { isAdmin, onAuthChange } from './core/community.js';
+import { isAdmin, onAuthChange, getUser, setSharedSketchSound } from './core/community.js';
 import {
   loadSettings,
   onSettingsChange,
@@ -25,13 +25,16 @@ import {
   saveParams,
   clearParams,
   hasSavedParams,
+  soundPathOf,
+  setSoundPath,
 } from './core/sketchSettings.js';
 import { promptSignIn } from './ui/signIn.js';
 import { createFeed } from './ui/feed.js';
 import { createProfilePage } from './ui/profilePage.js';
 import { createToast, createViewMode } from './ui/viewMode.js';
 import { createRecorder } from './core/recorder.js';
-import { enableAudio, updateAudio } from './core/audioEngine.js';
+import { enableAudio, updateAudio, setSketchSound, setSoundOn, isSoundOn } from './core/audioEngine.js';
+import { soundUrl, uploadSound, deleteSound } from './core/sounds.js';
 
 // The sketch playing behind the landing page's headline.
 const FEATURED = 'poopRocket';
@@ -387,22 +390,13 @@ audioToggle.addEventListener('click', async () => {
   }
 });
 
-// Drop an audio file anywhere on the window to load it as the music track.
-window.addEventListener('dragover', (e) => {
-  if ([...(e.dataTransfer?.items || [])].some((i) => i.kind === 'file')) e.preventDefault();
-});
-window.addEventListener('drop', (e) => {
-  const file = [...(e.dataTransfer?.files || [])].find((f) => f.type.startsWith('audio/'));
-  if (!file) return;
-  e.preventDefault();
-  mediaApi.loadFile(file);
-});
 
 // --- Pages ---
 const landing = $('landing');
 const profileEl = $('profile');
 const sketchesEl = $('sketches-page');
 let page = 'viewer';
+let soundReady = false; // the sound controls are set up further down
 let heroVisible = true;
 
 function showPage(next) {
@@ -424,6 +418,7 @@ function showPage(next) {
     document.title = 'Sketches · aiship';
   }
   if (next === 'viewer') requestAnimationFrame(() => feed?.sync());
+  if (soundReady) updateSound(); // only the viewer plays sound
   renderTitle(manager.getCurrent());
 }
 
@@ -572,7 +567,7 @@ window.addEventListener('keydown', (e) => {
   else if (key === 'e') togglePanel('explain');
   else if (e.key === ' ' && e.target?.tagName !== 'BUTTON') {
     e.preventDefault();
-    mediaApi.togglePlay();
+    toggleSound();
   }
 });
 
@@ -618,6 +613,85 @@ if (!feedOn) {
     { passive: false }
   );
 }
+
+// --- The sketch's sound ---
+// Built-in sketches: the admin's sound (sketch settings). Shared sketches:
+// the author's, heard by others once approved.
+function soundPathFor(sketch) {
+  const c = sketch.community;
+  if (!c) return soundPathOf(sketch.id);
+  if (!c.soundPath) return null;
+  return c.soundStatus === 'approved' || c.mine || isAdmin() ? c.soundPath : null;
+}
+const canEditSound = (sketch) => (sketch.community ? sketch.community.mine || isAdmin() : isAdmin());
+
+const soundButtons = [$('sound-toggle'), document.querySelector('#feed-actions [data-action="sound"]')];
+function updateSound() {
+  const sketch = manager.getCurrent();
+  const path = soundPathFor(sketch);
+  setSketchSound(page === 'viewer' ? soundUrl(path) : null);
+  const on = isSoundOn();
+  for (const b of soundButtons) {
+    b.classList.toggle('hidden', !path);
+    b.classList.toggle('active', on);
+    b.classList.toggle('sound-waiting', Boolean(path) && !on);
+    b.innerHTML = `${icon(on ? 'volume' : 'volumeOff')}<span>${on ? 'Sound on' : 'Sound'}</span>`;
+  }
+  const editable = canEditSound(sketch) && Boolean(getUser());
+  $('sound-upload').classList.toggle('hidden', !editable);
+  $('sound-upload').textContent = path || sketch.community?.soundPath ? "Replace this sketch's sound" : 'Add a sound to this sketch';
+  $('sound-remove').classList.toggle('hidden', !editable || !(sketch.community ? sketch.community.soundPath : path));
+}
+async function toggleSound() {
+  await setSoundOn(!isSoundOn());
+  updateSound();
+}
+for (const b of soundButtons) b.addEventListener('click', toggleSound);
+
+// Adding, replacing or removing the current sketch's sound.
+async function applySound(path) {
+  const sketch = manager.getCurrent();
+  const old = sketch.community ? sketch.community.soundPath : soundPathOf(sketch.id);
+  if (sketch.community) {
+    const row = await setSharedSketchSound(sketch.community.id, path);
+    await community.reload();
+    return row.sound_status;
+  }
+  await setSoundPath(sketch.id, path);
+  if (old && old !== path) deleteSound(old);
+  return 'approved';
+}
+const soundFile = $('sound-file');
+$('sound-upload').addEventListener('click', () => soundFile.click());
+soundFile.addEventListener('change', async () => {
+  const file = soundFile.files[0];
+  soundFile.value = '';
+  if (!file) return;
+  toast('Uploading sound…');
+  try {
+    const status = await applySound(await uploadSound(file));
+    if (!isSoundOn()) await setSoundOn(true);
+    updateSound();
+    toast(status === 'pending' ? 'Sound added. Others will hear it once it has been reviewed.' : 'Sound added');
+  } catch (err) {
+    toast(`Couldn't add the sound: ${err.message}`);
+  }
+});
+$('sound-remove').addEventListener('click', async () => {
+  if (!window.confirm("Remove this sketch's sound?")) return;
+  try {
+    await applySound(null);
+    updateSound();
+    toast('Sound removed');
+  } catch (err) {
+    toast(`Couldn't remove it: ${err.message}`);
+  }
+});
+manager.onChange(updateSound);
+onSettingsChange(updateSound);
+onAuthChange(() => updateSound());
+soundReady = true;
+updateSound();
 
 // --- Loop ---
 const clock = new THREE.Clock();
