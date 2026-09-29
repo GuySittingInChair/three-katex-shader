@@ -2218,3 +2218,9 @@ body.feed-on #toast {
   font-size: 0.72rem;
   color: var(--muted);
 }
+@media (max-width: 720px) {
+  /* Keep the hero sketch above the headline instead of behind it. */
+  body[data-page='landing'] #canvas-container {
+    transform: translateY(-24vh);
+  }
+}
