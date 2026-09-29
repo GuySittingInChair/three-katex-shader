@@ -2,30 +2,38 @@ import * as THREE from 'three';
 import { TAU, phaseOf, smooth, clamp01 } from '../lib/motion.js';
 
 // A cloud of floating poop emojis assembles into a rocket with a robot face,
-// which blinks at you, then bursts back into poop.
+// which blinks at you, rumbles, and blasts off, launching the poops back out
+// of its exhaust, which is where the loop starts again.
 //
-// Every poop i has a place in the cloud a_i (bobbing gently: a_i(t)), a place
-// on the rocket b_i, and an outward direction v_i. One equation moves them all:
+// Every poop i has a place in the cloud a_i (bobbing gently: a_i(t)) and a
+// place on the rocket b_i.
 //
-//     p_i = R_y(σ) ((1 − s) a_i(t) + s b_i) + β sin(πs) v_i
+// Assembling:  p_i = R_y(σ) ((1 − s) a_i(t) + s b_i),  σ = 2 sin(πs)
+//   s blends cloud → rocket and σ swirls them in; near s = 1 each sprite turns
+//   from a poop into a coloured bead of the rocket.
 //
-// s blends cloud → rocket. While assembling, σ = 2 sin(πs) swirls the poops
-// in about the vertical axis; while bursting apart, β lifts the sin(πs) term
-// so they overshoot outward on the way back to the cloud. Both extra terms
-// are zero at s = 0 and s = 1, so the loop joins up. Near s = 1 each sprite
-// turns from a poop into a coloured bead of the rocket.
+// Blast-off (progress b: 0 → 1): the rocket rises h = 11 b². Bead i leaves
+// at b = 0.7 r_i (r_i: 0 at the bottom, 1 at the top, so the rocket empties
+// upward), from the nozzle n_i = (0, −1.9 + h(0.7 r_i), 0), and flies a
+// quadratic Bézier to its cloud spot:
+//     p_i = (1 − u)² n_i + 2u(1 − u) c_i + u² a_i(t),  u_i = clamp((b − 0.7 r_i) / 0.3)
+// with c_i below and to the side of the nozzle, so the poops shoot out
+// downward and fan out. Every u_i reaches 1 at b = 1: all poop is back in the
+// cloud, exactly where the loop begins.
 //
-// Loop (period 16 s): 0 – .25 floating · .25 – .5 assembling (s: 0 → 1)
-//   .5 – .8 beep boop (blinks twice) · .8 – 1 blowing up (s: 1 → 0)
+// Loop (period 18 s): 0 – .2 just vibing · .2 – .45 assembling
+//   .45 – .62 beep boop (blinks twice, then rumbles) · .62 – 1 blast off!
 //
 // Both shapes are sorted by height before pairing, so the bottom of the cloud
-// becomes the flame and the top becomes the antenna.
+// becomes the flame (the first poops out) and the top becomes the antenna.
 
-const PERIOD = 16;
-const ASSEMBLE = 0.25;
-const ROBOT = 0.5;
-const BURST = 0.8;
-const STAGES = ['just vibing', 'assembling', 'beep boop', 'blowing up'];
+const PERIOD = 18;
+const ASSEMBLE = 0.2;
+const ROBOT = 0.45;
+const BLAST = 0.62;
+const LIFT = 11; // h = LIFT · b²
+const NOZZLE_Y = -1.9;
+const STAGES = ['just vibing', 'assembling', 'beep boop', 'blast off!'];
 
 function mulberry32(seed) {
   return () => {
@@ -220,14 +228,16 @@ function samplePoints(parts, n, r) {
 const VERT = `
   uniform float uS;
   uniform float uSigma;
-  uniform float uBeta;
+  uniform float uBlast;    // blast-off progress b (0 before it starts)
+  uniform float uShake;
   uniform float uTime;
   uniform float uScreen;   // pixels per world unit at distance 1
   uniform float uPoopSize;
   uniform float uBeadSize;
   attribute vec3 aA;
   attribute vec3 aB;
-  attribute vec3 aV;
+  attribute vec3 aSpray;   // c_i − n_i: where the exhaust flings this poop
+  attribute float aRelease; // r_i
   attribute vec3 aColor;
   attribute vec4 aWobble;  // bob frequency, bob phase, sprite spin rate, size jitter
   attribute float aPart;
@@ -243,10 +253,23 @@ const VERT = `
 
   void main() {
     vec3 a = aA + vec3(0.0, 0.15 * sin(aWobble.x * uTime + aWobble.y), 0.0);  // a_i(t)
-    vec3 P = rotY(mix(a, aB, uS), uSigma) + uBeta * sin(3.14159265 * uS) * aV;
-    if (aPart > 0.5 && aPart < 1.5) P.y -= uS * 0.07 * (0.5 + 0.5 * sin(uTime * 29.0 + aWobble.y * 9.0));
-
-    vMorph = smoothstep(0.72, 1.0, uS);  // poop → bead as it lands
+    vec3 P;
+    float age = clamp((uBlast - 0.7 * aRelease) / 0.3, 0.0, 1.0);             // u_i
+    bool released = uBlast > 0.0 && uBlast > 0.7 * aRelease;
+    if (released) {
+      // Out the exhaust: a quadratic Bézier from the nozzle to the cloud.
+      float br = 0.7 * aRelease;
+      vec3 n = vec3(0.0, ${NOZZLE_Y.toFixed(2)} + ${LIFT.toFixed(1)} * br * br, 0.0);
+      vec3 c = n + aSpray;
+      P = (1.0 - age) * (1.0 - age) * n + 2.0 * age * (1.0 - age) * c + age * age * a;
+      vMorph = 1.0 - smoothstep(0.0, 0.12, age);   // bead → poop as it leaves
+    } else {
+      // Assembling, then riding the rocket up.
+      P = rotY(mix(a, aB, uS), uSigma) + vec3(0.0, ${LIFT.toFixed(1)} * uBlast * uBlast, 0.0);
+      if (aPart > 0.5 && aPart < 1.5) P.y -= uS * 0.07 * (0.5 + 0.5 * sin(uTime * 29.0 + aWobble.y * 9.0));
+      P.x += uShake * sin(uTime * 71.0 + aB.y * 3.0);
+      vMorph = smoothstep(0.72, 1.0, uS);  // poop → bead as it lands
+    }
     vColor = aColor;
     vPart = aPart;
     vAngle = aWobble.z * uTime * (1.0 - vMorph);
@@ -287,9 +310,9 @@ const FRAG = `
 export default {
   name: 'Poop → Robot Rocket',
   description:
-    'A cloud of floating poop emojis swirls together into a rocket with a robot face, which blinks at you twice ' +
-    'and then blows back into poop. Each poop i has a place in the cloud a_i and on the rocket b_i; one equation ' +
-    'with a blend s, a swirl σ and a burst β moves all of them, and all three are shown live.',
+    'A cloud of floating poop emojis swirls together into a rocket with a robot face, which blinks at you, ' +
+    'rumbles and blasts off, launching the poop back out of its exhaust to start the loop again. The equation ' +
+    'on screen is whichever one is moving the poops right now, with its numbers live.',
   tags: ['particles', 'morph', 'emoji', 'silly'],
   category: 'Particles',
   mode: '3d',
@@ -298,31 +321,39 @@ export default {
 
   motion(t) {
     const p = phaseOf(t, PERIOD);
-    let s = 0;
-    let sigma = 0;
-    let beta = 0;
-    if (p >= ASSEMBLE && p < ROBOT) {
-      s = smooth((p - ASSEMBLE) / (ROBOT - ASSEMBLE));
-      sigma = 2 * Math.sin(Math.PI * s);
-    } else if (p >= ROBOT && p < BURST) {
-      s = 1;
-    } else if (p >= BURST) {
-      s = 1 - smooth((p - BURST) / (1 - BURST));
-      beta = 1.6;
-    }
-    const x = clamp01((p - ROBOT) / (BURST - ROBOT));
-    const blink =
-      p >= ROBOT && p < BURST ? Math.max(Math.exp(-(((x - 0.35) / 0.03) ** 2)), Math.exp(-(((x - 0.7) / 0.03) ** 2))) : 0;
-    const stage = p < ASSEMBLE ? 0 : p < ROBOT ? 1 : p < BURST ? 2 : 3;
-    return { s, sigma, beta, blink, tilt: 0.12 * Math.sin(TAU * p), stage };
+    const s = p < ASSEMBLE ? 0 : p < ROBOT ? smooth((p - ASSEMBLE) / (ROBOT - ASSEMBLE)) : 1;
+    const sigma = p >= ASSEMBLE && p < ROBOT ? 2 * Math.sin(Math.PI * s) : 0;
+    const b = p < BLAST ? 0 : (p - BLAST) / (1 - BLAST);
+    const x = clamp01((p - ROBOT) / (BLAST - ROBOT));
+    const beeping = p >= ROBOT && p < BLAST;
+    const blink = beeping ? Math.max(Math.exp(-(((x - 0.25) / 0.035) ** 2)), Math.exp(-(((x - 0.55) / 0.035) ** 2))) : 0;
+    // Rumble for the last moments before lift-off, easing off as it climbs.
+    const shake = beeping ? 0.035 * smooth((x - 0.75) / 0.25) : p >= BLAST ? 0.035 * (1 - smooth(b / 0.15)) : 0;
+    const stage = p < ASSEMBLE ? 0 : p < ROBOT ? 1 : p < BLAST ? 2 : 3;
+    return { s, sigma, b, h: LIFT * b * b, blink, shake, tilt: 0.12 * Math.sin(TAU * p), stage };
   },
 
-  latex: (p, hl, m) =>
-    '\\begin{aligned}' +
-    '\\mathbf p_i &= R_y(\\sigma)\\big((1-s)\\,\\mathbf a_i(t) + s\\,\\mathbf b_i\\big) + \\beta\\sin(\\pi s)\\,\\mathbf v_i \\\\' +
-    `s &= ${hl(m.s, 2)},\\quad \\sigma = ${hl(m.sigma, 2)},\\quad \\beta = ${hl(m.beta, 2)} \\\\` +
-    `&\\text{${STAGES[m.stage] ?? ''}}` +
-    '\\end{aligned}',
+  // Shows whichever formula is moving the poops right now.
+  latex: (p, hl, m) => {
+    const label = `&\\text{${STAGES[m.stage] ?? ''}}`;
+    if (m.stage < 3) {
+      return (
+        '\\begin{aligned}' +
+        '\\mathbf p_i &= R_y(\\sigma)\\big((1-s)\\,\\mathbf a_i(t) + s\\,\\mathbf b_i\\big),\\quad \\sigma = 2\\sin(\\pi s) \\\\' +
+        `s &= ${hl(m.s, 2)},\\quad \\sigma = ${hl(m.sigma, 2)} \\\\` +
+        label +
+        '\\end{aligned}'
+      );
+    }
+    return (
+      '\\begin{aligned}' +
+      '\\mathbf p_i &= (1-u_i)^2\\,\\mathbf n_i + 2u_i(1-u_i)\\,\\mathbf c_i + u_i^2\\,\\mathbf a_i(t) \\\\' +
+      'u_i &= \\operatorname{clamp}\\big((b - 0.7\\,r_i)/0.3\\big),\\quad h = 11\\,b^2 \\\\' +
+      `b &= ${hl(m.b, 2)},\\quad h = ${hl(m.h, 2)} \\\\` +
+      label +
+      '\\end{aligned}'
+    );
+  },
 
   params: {
     speed: { value: 1, min: 0, max: 3 },
@@ -348,7 +379,8 @@ export default {
 
     const aA = new Float32Array(n * 3);
     const aB = new Float32Array(n * 3);
-    const aV = new Float32Array(n * 3);
+    const aSpray = new Float32Array(n * 3);
+    const aRelease = new Float32Array(n);
     const aColor = new Float32Array(n * 3);
     const aWobble = new Float32Array(n * 4);
     const aPart = new Float32Array(n);
@@ -356,8 +388,11 @@ export default {
       const b = rocket[i].p;
       aA.set(cloud[i].p, i * 3);
       aB.set(b, i * 3);
-      const len = Math.hypot(b[0], b[1] - 0.3, b[2]) || 1;
-      aV.set([b[0] / len, (b[1] - 0.3) / len, b[2] / len], i * 3);
+      // Bottom beads leave first; a little jitter so it streams rather than steps.
+      aRelease[i] = clamp01(i / n + (r() - 0.5) * 0.06);
+      const ang = TAU * r();
+      const fan = 1.2 + 2.2 * r();
+      aSpray.set([Math.cos(ang) * fan, -(2 + 2.5 * r()), Math.sin(ang) * fan * 0.6], i * 3);
       aColor.set(rocket[i].c, i * 3);
       aWobble.set([0.8 + 1.4 * r(), TAU * r(), (r() - 0.5) * 2.4, 0.7 + 0.6 * r()], i * 4);
       aPart[i] = rocket[i].part;
@@ -367,7 +402,8 @@ export default {
     geometry.setAttribute('position', new THREE.BufferAttribute(aB.slice(), 3)); // for bounds only
     geometry.setAttribute('aA', new THREE.BufferAttribute(aA, 3));
     geometry.setAttribute('aB', new THREE.BufferAttribute(aB, 3));
-    geometry.setAttribute('aV', new THREE.BufferAttribute(aV, 3));
+    geometry.setAttribute('aSpray', new THREE.BufferAttribute(aSpray, 3));
+    geometry.setAttribute('aRelease', new THREE.BufferAttribute(aRelease, 1));
     geometry.setAttribute('aColor', new THREE.BufferAttribute(aColor, 3));
     geometry.setAttribute('aWobble', new THREE.BufferAttribute(aWobble, 4));
     geometry.setAttribute('aPart', new THREE.BufferAttribute(aPart, 1));
@@ -376,7 +412,8 @@ export default {
     const uniforms = {
       uS: { value: 0 },
       uSigma: { value: 0 },
-      uBeta: { value: 0 },
+      uBlast: { value: 0 },
+      uShake: { value: 0 },
       uTime: { value: 0 },
       uScreen: { value: 1 },
       uPoopSize: { value: ctx.params.poopSize },
@@ -410,7 +447,8 @@ export default {
     const u = state.uniforms;
     u.uS.value = m.s;
     u.uSigma.value = m.sigma;
-    u.uBeta.value = m.beta;
+    u.uBlast.value = m.b;
+    u.uShake.value = m.shake;
     u.uBlink.value = m.blink;
     u.uTime.value = ctx.time;
     u.uPoopSize.value = ctx.params.poopSize;
