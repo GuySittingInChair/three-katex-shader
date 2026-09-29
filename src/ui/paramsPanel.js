@@ -25,15 +25,12 @@ export function createParamsPanel(container, manager) {
     </div>
     <div class="params-panel-actions"></div>
     <div class="params-panel-list"></div>
-    <div class="params-panel-voice-status"></div>
-    <div class="params-panel-hint">Say a param's name to nudge it up, "less &lt;param&gt;" to bring it down, "chaos" / "calm down", or "reset".</div>
   `;
 
   const titleEl = container.querySelector('.params-panel-title');
   const actionsEl = container.querySelector('.params-panel-actions');
   const listEl = container.querySelector('.params-panel-list');
   const resetBtn = container.querySelector('.params-panel-reset');
-  const voiceStatusEl = container.querySelector('.params-panel-voice-status');
 
   const rows = new Map(); // key -> { input, readoutEl, def }
 
@@ -127,8 +124,5 @@ export function createParamsPanel(container, manager) {
 
   return {
     refresh,
-    setVoiceStatus(text) {
-      voiceStatusEl.textContent = text;
-    },
   };
 }

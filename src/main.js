@@ -6,10 +6,8 @@ import { SketchManager } from './core/SketchManager.js';
 import { sketches } from './core/registry.js';
 import { createCodePanel } from './ui/codePanel.js';
 import { createCommentPanel } from './ui/commentPanel.js';
-import { createAiPanel } from './ui/aiPanel.js';
 import { createParamsPanel } from './ui/paramsPanel.js';
 import { createMediaPanel } from './ui/mediaPanel.js';
-import { createSoundPanel } from './ui/soundPanel.js';
 import { createExplainPanel } from './ui/explainPanel.js';
 import { createReviewPanel } from './ui/reviewPanel.js';
 import { createAccountButton } from './ui/accountButton.js';
@@ -31,11 +29,9 @@ import {
 import { promptSignIn } from './ui/signIn.js';
 import { createFeed } from './ui/feed.js';
 import { createProfilePage } from './ui/profilePage.js';
-import { createAbyss } from './core/abyss.js';
 import { createToast, createViewMode } from './ui/viewMode.js';
 import { createRecorder } from './core/recorder.js';
 import { enableAudio, updateAudio } from './core/audioEngine.js';
-import { createVoiceControl, parseVoiceCommand, isVoiceSupported } from './core/voiceControl.js';
 
 // The sketch playing behind the landing page's headline.
 const FEATURED = 'poopRocket';
@@ -293,20 +289,6 @@ const reviewApi = createReviewPanel($('review-panel'), manager, {
 });
 registerPanel('review', $('review-panel'), { button: $('review-toggle'), onShow: () => reviewApi.show() });
 
-// --- AI ---
-createAiPanel($('ai-panel'), manager, {
-  onInsertCode(code) {
-    codePanelApi.setEditorContent(code);
-    openPanel('code');
-  },
-});
-registerPanel('ai', $('ai-panel'), { button: $('ai-toggle') });
-
-// --- Sound (the Abyss instrument) ---
-const abyss = createAbyss();
-createSoundPanel($('sound-panel'), { abyss, toast });
-registerPanel('sound', $('sound-panel'), { button: $('sound-toggle') });
-
 // --- Media (music track + video recording) ---
 const mediaApi = createMediaPanel($('media-panel'), { recorder, toast });
 registerPanel('media', $('media-panel'), { button: $('media-toggle') });
@@ -415,54 +397,6 @@ window.addEventListener('drop', (e) => {
   e.preventDefault();
   mediaApi.loadFile(file);
 });
-
-// --- Voice commands ---
-// Drives the same manager.setParam/resetParams/bumpAllParams the sliders use.
-const voiceToggle = $('voice-toggle');
-let voiceActive = false;
-const voice = createVoiceControl({
-  onResult(transcript) {
-    const action = parseVoiceCommand(
-      transcript,
-      manager.getParamsSchema(),
-      manager.getParamValues(),
-      manager.getActions()
-    );
-    if (!action) return;
-    if (action.type === 'set') manager.setParam(action.key, action.value);
-    else if (action.type === 'reset') manager.resetParams();
-    else if (action.type === 'bulk') manager.bumpAllParams(action.direction);
-    else if (action.type === 'action') manager.runAction(action.key);
-    paramsPanelApi.refresh();
-    paramsPanelApi.setVoiceStatus(
-      action.type === 'unrecognized' ? `Heard "${transcript}", no match` : `✓ "${transcript}"`
-    );
-  },
-  onInterim(transcript) {
-    paramsPanelApi.setVoiceStatus(`Hearing: "${transcript}"`);
-  },
-  onStateChange(state, detail) {
-    if (state === 'error') paramsPanelApi.setVoiceStatus(`Microphone error: ${detail}`);
-    else if (state === 'listening') paramsPanelApi.setVoiceStatus('Listening…');
-  },
-});
-if (!isVoiceSupported() || !voice) {
-  voiceToggle.disabled = true;
-  voiceToggle.title = 'Voice commands need a Chromium-based browser';
-} else {
-  voiceToggle.addEventListener('click', () => {
-    voiceActive = !voiceActive;
-    if (voiceActive) {
-      voice.start();
-      voiceToggle.textContent = 'Voice commands: listening';
-      openPanel('params'); // show the sliders so commands visibly do something
-      paramsPanelApi.setVoiceStatus('Listening. Try "more gravity" or "chaos"');
-    } else {
-      voice.stop();
-      voiceToggle.textContent = 'Voice commands';
-    }
-  });
-}
 
 // --- Pages ---
 const landing = $('landing');
@@ -618,10 +552,6 @@ onAuthChange(() => {
 loadSettings();
 
 // --- Keyboard (viewer only) ---
-window.addEventListener('keyup', (e) => {
-  if (/^Digit[1-8]$/.test(e.code)) abyss.noteOff(e.code); // release a held pad note
-});
-
 function isTypingTarget(el) {
   return el?.tagName === 'INPUT' || el?.tagName === 'TEXTAREA' || el?.tagName === 'SELECT' || el?.isContentEditable;
 }
@@ -632,13 +562,7 @@ window.addEventListener('keydown', (e) => {
 
   if (e.metaKey || e.ctrlKey || e.altKey) return; // leave browser shortcuts alone
   const key = e.key.toLowerCase();
-  const digit = /^Digit([1-8])$/.exec(e.code);
-  if (digit) {
-    if (!e.repeat) abyss.noteOn(Number(digit[1]) - 1, e.shiftKey, e.code);
-    return;
-  }
-  if (key === 'b') abyss.bloomNow();
-  else if (key === 'h') viewMode.cycle();
+  if (key === 'h') viewMode.cycle();
   else if (key === 'escape') {
     if (!moreMenu.classList.contains('hidden')) closeMenu();
     else if (document.body.classList.contains('sheet-open')) closeAllPanels();
@@ -651,6 +575,49 @@ window.addEventListener('keydown', (e) => {
     mediaApi.togglePlay();
   }
 });
+
+// --- Desktop: the wheel flips through sketches, like a feed ---
+// One flick = one sketch. A trackpad keeps sending wheel events as it coasts,
+// so after a flip the wheel is ignored until it has been still for a moment.
+// Ctrl + wheel (and trackpad pinch, which arrives as Ctrl + wheel) zooms.
+if (!feedOn) {
+  let wheelSum = 0;
+  let lastWheel = 0;
+  let flippedAt = 0;
+  let armed = true;
+  renderer.domElement.addEventListener(
+    'wheel',
+    (e) => {
+      if (page !== 'viewer') return;
+      e.preventDefault();
+      const now = performance.now();
+      const quiet = now - lastWheel > 220; // a new gesture, not a coast
+      lastWheel = now;
+      if (e.ctrlKey || e.metaKey) {
+        const { controls, camera } = manager.current.ctx;
+        if (!controls) return;
+        const offset = camera.position.clone().sub(controls.target);
+        offset.multiplyScalar(Math.exp(e.deltaY * 0.002));
+        camera.position.copy(controls.target).add(offset);
+        controls.update();
+        return;
+      }
+      if (quiet) wheelSum = 0;
+      if (!armed) {
+        if (!quiet && now - flippedAt < 1200) return;
+        armed = true;
+      }
+      wheelSum += e.deltaMode === 1 ? e.deltaY * 30 : e.deltaY;
+      if (Math.abs(wheelSum) < 60) return;
+      if (wheelSum > 0) manager.next();
+      else manager.prev();
+      wheelSum = 0;
+      armed = false;
+      flippedAt = now;
+    },
+    { passive: false }
+  );
+}
 
 // --- Loop ---
 const clock = new THREE.Clock();

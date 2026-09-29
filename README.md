@@ -17,20 +17,19 @@ The landing page (`/`) has a gallery of every sketch, each sketch has its own ad
 and down through sketches; tap the animation to hide or show everything, and use the hand
 button to touch the sketch itself (rotate, drag) instead of swiping. In a sketch, tap its name in the top bar to pick another one. The dock
 at the bottom has previous/next, **Explain**, **Params**, **Comments**, **Code**, and
-**More** (AI helper, sound, recording, microphone, voice, hide controls). It all works on
-phones too; panels open as sheets from the bottom.
+**More** (music and recording, microphone, hide controls, fullscreen). On a computer, scroll
+(or swipe a trackpad) to flip to the next sketch, and hold Ctrl while scrolling to zoom. It
+all works on phones too; panels open as sheets from the bottom.
 
 | Key | Does |
 |---|---|
-| ← / → (or P / N) | previous / next sketch |
+| ← / →, ↑ / ↓, or the scroll wheel | previous / next sketch |
 | E | **Explain** panel: every symbol in the current equation, what it means and how to type it, plus a walkthrough of the sketch |
 | H | cycle view: everything → equation only → clean |
 | Esc | close panels |
 | F | fullscreen |
 | R | record video |
-| B, 1–8 | play the built-in sound instrument (open Sound from More first) |
 
-The AI helper runs on your own computer (see [AI panel](#ai-panel-ollama)).
 
 New to the math or the code? Start with **[docs/guide.md](docs/guide.md)**. It's a
 field guide to the symbols, LaTeX, JavaScript loops, shaders and the math behind the
@@ -45,46 +44,10 @@ git clone <this repository's URL>
 cd three-katex-shader
 npm install
 npm run dev          # the app, at http://localhost:5173
-npm run dev:all      # the app plus the local server the AI panel uses
 ```
 
 When running locally, sketches you create or edit in the code panel are saved as real
 files in `src/sketches/`, so you can commit them.
-
-## AI panel (Ollama)
-
-The AI panel uses [Ollama](https://ollama.com/), which runs a language model on **your
-own computer**. Nothing is sent to a cloud service.
-
-1. Install Ollama and download the model:
-
-   ```sh
-   ollama pull qwen3:8b
-   ```
-
-2. **Running locally** (`npm run dev:all`): that's all you need.
-
-3. **On the hosted site**, your browser talks to Ollama directly, so Ollama has to be told
-   to accept requests from that site. Set `OLLAMA_ORIGINS` to the site's address (for
-   example `https://aiship.lol`) and restart Ollama:
-
-   - **Linux** (installed as a service):
-
-     ```sh
-     sudo systemctl edit ollama.service
-     # add these two lines, save, then:
-     #   [Service]
-     #   Environment="OLLAMA_ORIGINS=https://aiship.lol"
-     sudo systemctl daemon-reload && sudo systemctl restart ollama
-     ```
-
-   - **macOS**: `launchctl setenv OLLAMA_ORIGINS "https://aiship.lol"`, then quit
-     and reopen the Ollama app.
-   - **Windows**: add a user environment variable `OLLAMA_ORIGINS` with the site's address,
-     then quit Ollama from the system tray and start it again.
-
-   If your browser asks whether the site may access devices on your local network, allow
-   it. That's how the page reaches Ollama on your computer.
 
 ## Project layout
 
@@ -94,7 +57,7 @@ src/lib/        shared math and geometry helpers (motion.js: lerp, smooth, phase
 src/core/       app engine: sketch runner, LaTeX, audio, recording
 src/ui/         the panels
 docs/guide.md   the learning guide, also shown in the Explain panel
-server/         local-only Ollama proxy (and an old local comments API used by server/example-bot.mjs)
+server/         an old local-only comments API (used by server/example-bot.mjs); not needed by the site
 supabase/       database schema and access rules for sign-in, comments, notes, shared sketches
 ```
 
@@ -120,8 +83,7 @@ npm run build        # output in dist/
 ```
 
 On Vercel, import the repository as a new project and keep the detected **Vite**
-settings. Every push to the main branch redeploys. On the hosted site, the AI panel talks to
-the visitor's own Ollama (see above).
+settings. Every push to the main branch redeploys. 
 
 ## Community features (Supabase)
 

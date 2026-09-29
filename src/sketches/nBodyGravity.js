@@ -74,8 +74,7 @@ export default {
     shapeTypes: { value: 3, min: 1, max: MAX_SHAPES, step: 1 },
   },
 
-  // Voice commands and the Params panel both call these by key — see
-  // core/voiceControl.js (phrase matching) and ui/paramsPanel.js (buttons).
+  // The Params panel shows these as buttons (see ui/paramsPanel.js).
   actions: {
     transform: {
       label: `Transform ${Math.round(TRANSFORM_FRACTION * 100)}%`,
