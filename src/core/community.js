@@ -194,6 +194,31 @@ export async function setSharedSketchSound(id, path) {
   );
 }
 
+// ---------- games (supabase/migrations/0005_games.sql) ----------
+
+export async function recordGameResult({ game, level, outcome, moves }) {
+  if (!user) return;
+  return check(await supabase.from('game_results').insert({ game, level, outcome, moves }));
+}
+
+export async function getLeaderboard(game, level, limit = 10) {
+  return check(
+    await supabase
+      .from('game_leaderboard')
+      .select('username, avatar_url, wins, losses, draws')
+      .eq('game', game)
+      .eq('level', level)
+      .gt('wins', 0)
+      .order('wins', { ascending: false })
+      .limit(limit)
+  );
+}
+
+export async function getMyGameRecord(game) {
+  if (!user) return [];
+  return check(await supabase.from('game_results').select('level, outcome').eq('game', game).eq('user_id', user.id));
+}
+
 // ---------- admin review ----------
 
 export async function listPending() {

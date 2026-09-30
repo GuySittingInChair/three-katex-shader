@@ -41,7 +41,10 @@
       <div class="page-inner">
         <header class="page-head">
           <a class="brand" href="/" data-link>aiship</a>
-          <button class="bar-btn account-btn" type="button" data-role="page-account">Log in</button>
+          <nav class="page-nav">
+            <a href="/games" data-link>Games</a>
+            <button class="bar-btn account-btn" type="button" data-role="page-account">Log in</button>
+          </nav>
         </header>
         <h1 class="page-title">Sketches</h1>
         <div id="landing-grid"></div>
@@ -51,6 +54,9 @@
         </footer>
       </div>
     </main>
+
+    <!-- Games (/games, /games/<id>) -->
+    <main id="games-page" class="landing sketches-page" hidden></main>
 
     <!-- Profile (/u/<username>) -->
     <main id="profile" class="landing profile-page" hidden></main>
@@ -103,6 +109,7 @@
     </nav>
 
     <div id="more-menu" class="menu hidden" role="menu">
+      <a class="menu-link" href="/games" data-link role="menuitem">Games</a>
       <button id="media-toggle" type="button" role="menuitem">Record a clip <kbd>R</kbd></button>
       <button id="audio-toggle" type="button" role="menuitem">Use microphone</button>
       <button id="view-toggle" type="button" role="menuitem">Hide controls <kbd>H</kbd></button>

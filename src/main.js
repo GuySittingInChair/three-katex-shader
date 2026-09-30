@@ -31,6 +31,7 @@ import {
 import { promptSignIn } from './ui/signIn.js';
 import { createFeed } from './ui/feed.js';
 import { createProfilePage } from './ui/profilePage.js';
+import { createGamesPage } from './ui/gamesPage.js';
 import { createToast, createViewMode } from './ui/viewMode.js';
 import { createRecorder } from './core/recorder.js';
 import { enableAudio, updateAudio, setSketchSound, setSoundOn, isSoundOn } from './core/audioEngine.js';
@@ -51,6 +52,8 @@ function parseRoute() {
   const u = /^\/u\/([^/]+)\/?$/.exec(location.pathname);
   if (u) return { page: 'profile', name: decodeURIComponent(u[1]) };
   if (/^\/sketches\/?$/.test(location.pathname)) return { page: 'sketches' };
+  const g = /^\/games(?:\/([^/]+))?\/?$/.exec(location.pathname);
+  if (g) return { page: 'games', game: g[1] ? decodeURIComponent(g[1]) : null };
   return { page: 'landing' };
 }
 const initialRoute = parseRoute();
@@ -325,7 +328,7 @@ moreToggle.addEventListener('click', (e) => {
   moreToggle.setAttribute('aria-expanded', String(open));
 });
 moreMenu.addEventListener('click', (e) => {
-  if (e.target.closest('button')) closeMenu();
+  if (e.target.closest('button, a')) closeMenu();
 });
 document.addEventListener('click', (e) => {
   if (!moreMenu.contains(e.target) && e.target !== moreToggle) closeMenu();
@@ -395,6 +398,8 @@ audioToggle.addEventListener('click', async () => {
 const landing = $('landing');
 const profileEl = $('profile');
 const sketchesEl = $('sketches-page');
+const gamesEl = $('games-page');
+const gamesPage = createGamesPage(gamesEl);
 let page = 'viewer';
 let soundReady = false; // the sound controls are set up further down
 let heroVisible = true;
@@ -405,6 +410,7 @@ function showPage(next) {
   landing.hidden = next !== 'landing';
   profileEl.hidden = next !== 'profile';
   sketchesEl.hidden = next !== 'sketches';
+  gamesEl.hidden = next !== 'games';
   if (next !== 'viewer') {
     closeAllPanels();
     closeMenu();
@@ -432,6 +438,10 @@ function applyRoute() {
     profilePage.show(route.name);
   } else if (route.page === 'sketches') {
     showPage('sketches');
+  } else if (route.page === 'games') {
+    showPage('games');
+    gamesEl.scrollTop = 0;
+    gamesPage.show(route.game);
   } else {
     if (manager.getCurrent().id !== FEATURED) manager.goToId(FEATURED);
     showPage('landing');

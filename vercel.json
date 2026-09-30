@@ -1,7 +1,24 @@
 {
   "rewrites": [
-    { "source": "/s/:id", "destination": "/index.html" },
-    { "source": "/u/:name", "destination": "/index.html" },
-    { "source": "/sketches", "destination": "/index.html" }
+    {
+      "source": "/s/:id",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/u/:name",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/sketches",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/games",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/games/:id",
+      "destination": "/index.html"
+    }
   ]
 }

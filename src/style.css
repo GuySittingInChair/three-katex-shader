@@ -2323,3 +2323,212 @@ body.feed-on #toast {
   height: 36px;
   margin-top: 6px;
 }
+
+/* ---- Games ---- */
+.page-nav {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.page-nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.92rem;
+}
+.page-nav a:hover {
+  color: var(--text);
+}
+.menu .menu-link {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.88rem;
+  text-decoration: none;
+}
+.menu .menu-link:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+.page-lede {
+  color: var(--muted);
+  line-height: 1.55;
+  max-width: 44em;
+  margin-bottom: 22px;
+}
+.game-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.game-card {
+  display: block;
+  padding: 0 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--surface-2);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.game-card:hover {
+  border-color: rgba(124, 196, 255, 0.55);
+  transform: translateY(-2px);
+}
+.game-card h2 {
+  font-size: 1.1rem;
+  margin: 14px 16px 4px;
+}
+.game-card p {
+  margin: 0 16px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+.game-card-art {
+  aspect-ratio: 16 / 9;
+}
+.game-art-connect-four {
+  background:
+    radial-gradient(circle at 30% 70%, #ffd166 0 6%, transparent 6.5%),
+    radial-gradient(circle at 42% 70%, #ef476f 0 6%, transparent 6.5%),
+    radial-gradient(circle at 42% 45%, #ffd166 0 6%, transparent 6.5%),
+    radial-gradient(circle at 54% 70%, #ffd166 0 6%, transparent 6.5%),
+    radial-gradient(circle at 54% 45%, #ef476f 0 6%, transparent 6.5%),
+    radial-gradient(circle at 66% 70%, #ef476f 0 6%, transparent 6.5%),
+    #2848b8;
+}
+.game-art-reversi {
+  background:
+    radial-gradient(circle at 38% 38%, #15171c 0 8%, transparent 8.5%),
+    radial-gradient(circle at 62% 38%, #eef1f6 0 8%, transparent 8.5%),
+    radial-gradient(circle at 38% 62%, #eef1f6 0 8%, transparent 8.5%),
+    radial-gradient(circle at 62% 62%, #15171c 0 8%, transparent 8.5%),
+    #1f6b4a;
+}
+.game-head .page-lede {
+  margin-bottom: 14px;
+}
+.game-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.level-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.game-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.game-buttons select {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 9px 12px;
+  font-size: 0.85rem;
+}
+.game-buttons .btn {
+  padding: 9px 16px;
+  font-size: 0.88rem;
+}
+.game-status {
+  min-height: 1.5em;
+  margin-bottom: 12px;
+  color: var(--text);
+  font-weight: 600;
+}
+.game-board-wrap {
+  width: min(100%, 620px, calc(100svh - 180px) * 1.1);
+  margin: 0 auto 28px;
+}
+.game-board {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+.c4-tile {
+  stroke: rgba(0, 0, 0, 0.25);
+  stroke-width: 3;
+}
+.c4-win {
+  stroke: #fff;
+  stroke-width: 7;
+  animation: c4-pulse 0.9s ease-in-out infinite alternate;
+}
+@keyframes c4-pulse {
+  to {
+    stroke-opacity: 0.35;
+  }
+}
+.game-side {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+}
+.game-side h2 {
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+.game-side > section {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.game-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.86rem;
+}
+.game-table th,
+.game-table td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.game-table th {
+  color: var(--muted);
+  font-weight: 500;
+}
+.game-table td {
+  color: var(--text);
+}
+.leaderboard {
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.leaderboard li {
+  color: var(--text);
+}
+.leaderboard a {
+  color: var(--accent);
+  text-decoration: none;
+  margin-right: 10px;
+}
+.leaderboard span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+@media (max-width: 720px) {
+  .game-controls {
+    flex-direction: column;
+  }
+  .game-buttons select {
+    flex: 1 1 100%;
+  }
+  .game-buttons .btn {
+    flex: 1;
+  }
+}
