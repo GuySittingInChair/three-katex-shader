@@ -20,8 +20,9 @@ const HIGHLIGHT = '#ffd166';
 
 export function formatNumber(value, digits = 3) {
   if (!Number.isFinite(value)) return '?';
-  const s = Number(value).toFixed(digits).replace(/0+$/, '').replace(/\.$/, '');
-  return s === '-0' ? '0' : s;
+  let s = Number(value).toFixed(digits);
+  if (s.includes('.')) s = s.replace(/0+$/, '').replace(/\.$/, '');
+  return s === '-0' || s === '' ? '0' : s;
 }
 
 export function highlight(value, digits = 3) {
