@@ -1,4 +1,4 @@
-import { listPending, review, reviewSound, onAuthChange, isAdmin } from '../core/community.js';
+import { listPending, listPendingBots, review, reviewSound, onAuthChange, isAdmin } from '../core/community.js';
 import { soundUrl } from '../core/sounds.js';
 import { compileSketch } from '../core/sketchCompiler.js';
 import { addSketch, getSketchById, updateSketch, sketches } from '../core/registry.js';
@@ -12,7 +12,7 @@ export function createReviewPanel(container, manager, { toggleButton, onReviewed
       <div class="params-panel-title">Review</div>
       <button type="button" class="params-panel-reset" data-role="refresh">Refresh</button>
     </div>
-    <div class="explain-hint">Guide notes, shared sketches and sketch sounds wait here until you approve them. Read a sketch's code before previewing it: previewing runs it in your logged-in browser.</div>
+    <div class="explain-hint">Guide notes, shared sketches, sketch sounds and game bots wait here until you approve them. Bots run sealed off, but still read their code first. Read a sketch's code before previewing it: previewing runs it in your logged-in browser.</div>
     <div class="review-list" data-role="list"></div>
   `;
   container.classList.add('review-panel');
@@ -72,13 +72,14 @@ export function createReviewPanel(container, manager, { toggleButton, onReviewed
   async function render() {
     list.textContent = 'Loading…';
     let pending;
+    let bots = [];
     try {
-      pending = await listPending();
+      [pending, bots] = await Promise.all([listPending(), listPendingBots().catch(() => [])]);
     } catch (err) {
       list.textContent = `Couldn't load: ${err.message}`;
       return;
     }
-    const count = pending.notes.length + pending.sketches.length + pending.sounds.length;
+    const count = pending.notes.length + pending.sketches.length + pending.sounds.length + bots.length;
     toggleButton.textContent = count ? `🛡 Review (${count})` : '🛡 Review';
     list.textContent = '';
     if (!count) list.append(el('p', 'explain-hint', 'Nothing waiting.'));
@@ -94,6 +95,20 @@ export function createReviewPanel(container, manager, { toggleButton, onReviewed
       row.append(
         button('Approve', 'approve', () => decide('guide_notes', note.id, 'approved')),
         button('Reject', 'reject', () => decide('guide_notes', note.id, 'rejected'))
+      );
+      card.append(row);
+      list.append(card);
+    }
+
+    for (const bot of bots) {
+      const card = el('div', 'review-card');
+      const code = el('pre', 'review-code');
+      code.append(el('code', '', bot.code));
+      card.append(el('div', 'review-meta', `Bot · ${bot.name} (${bot.game}) · @${bot.author?.username ?? '?'}`), code);
+      const row = el('div', 'review-actions');
+      row.append(
+        button('Approve', 'approve', () => decide('bots', bot.id, 'approved')),
+        button('Reject', 'reject', () => decide('bots', bot.id, 'rejected'))
       );
       card.append(row);
       list.append(card);

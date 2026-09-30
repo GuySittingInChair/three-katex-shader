@@ -219,6 +219,52 @@ export async function getMyGameRecord(game) {
   return check(await supabase.from('game_results').select('level, outcome').eq('game', game).eq('user_id', user.id));
 }
 
+// ---------- bots (supabase/migrations/0006_bots.sql) ----------
+
+// Approved bots for a game, plus your own (and, for the admin, pending ones).
+export async function listBots(game) {
+  return check(
+    await supabase
+      .from('bots')
+      .select(`id, name, code, status, user_id, updated_at, ${AUTHOR}`)
+      .eq('game', game)
+      .neq('status', 'rejected')
+      .order('created_at')
+  );
+}
+
+export async function saveBot({ id, game, name, code }) {
+  if (id) {
+    return check(await supabase.from('bots').update({ name, code }).eq('id', id).select('id, status').single());
+  }
+  const status = isAdmin() ? 'approved' : 'pending';
+  return check(await supabase.from('bots').insert({ game, name, code, status }).select('id, status').single());
+}
+
+export async function deleteBot(id) {
+  return check(await supabase.from('bots').delete().eq('id', id));
+}
+
+export async function getStandings(game) {
+  return check(await supabase.from('bot_standings').select('results, published_at').eq('game', game).maybeSingle());
+}
+
+export async function publishStandings(game, results) {
+  return check(
+    await supabase
+      .from('bot_standings')
+      .upsert({ game, results, published_at: new Date().toISOString() })
+      .select('game')
+      .single()
+  );
+}
+
+export async function listPendingBots() {
+  return check(
+    await supabase.from('bots').select(`id, game, name, code, created_at, ${AUTHOR}`).eq('status', 'pending').order('updated_at')
+  );
+}
+
 // ---------- admin review ----------
 
 export async function listPending() {

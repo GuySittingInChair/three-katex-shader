@@ -7,7 +7,8 @@ import { game as reversi } from './reversi.js';
 const GAMES = { [connectFour.id]: connectFour, [reversi.id]: reversi };
 
 self.onmessage = ({ data }) => {
-  const { id, game, state, level } = data;
-  const result = chooseMove(GAMES[game], state, LEVELS[level]);
+  const { id, game, state, level, options } = data;
+  // `options` (depth, timeMs, randomness) for the arena's fixed-depth reference players.
+  const result = chooseMove(GAMES[game], state, options ?? LEVELS[level]);
   self.postMessage({ id, move: result.move, depth: result.depth, score: result.score });
 };

@@ -20,5 +20,16 @@
       "source": "/games/:id",
       "destination": "/index.html"
     }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-eval' blob:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://jsxsswdmqtcvzkxeagft.supabase.co https://avatars.githubusercontent.com https://*.googleusercontent.com https://cdn.discordapp.com; media-src 'self' blob: https://jsxsswdmqtcvzkxeagft.supabase.co; connect-src 'self' https://jsxsswdmqtcvzkxeagft.supabase.co wss://jsxsswdmqtcvzkxeagft.supabase.co; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+        }
+      ]
+    }
   ]
 }

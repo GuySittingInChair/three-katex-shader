@@ -5,6 +5,7 @@ import { createReversiView } from '../games/reversiView.js';
 import { LEVELS } from '../games/search.js';
 import { recordGameResult, getLeaderboard, getMyGameRecord, onAuthChange, getUser } from '../core/community.js';
 import { promptSignIn } from './signIn.js';
+import { createBotArena } from './botArena.js';
 
 // /games: the list. /games/<id>: play one against the built-in AI (five
 // levels, running in a worker), with your record and a leaderboard.
@@ -65,7 +66,12 @@ export function createGamesPage(container) {
         <div class="game-head">
           <h1 class="page-title" data-role="title"></h1>
           <p class="page-lede" data-role="blurb"></p>
+          <div class="game-tabs" role="tablist">
+            <button type="button" class="chip active" data-tab="play" role="tab">Play</button>
+            <button type="button" class="chip" data-tab="bots" role="tab">Bots</button>
+          </div>
         </div>
+        <div data-role="play-pane">
         <div class="game-controls">
           <div class="level-picker" role="radiogroup" aria-label="AI level"></div>
           <div class="game-buttons">
@@ -86,6 +92,8 @@ export function createGamesPage(container) {
             <div data-role="leaderboard"></div>
           </section>
         </div>
+        </div>
+        <div data-role="bots-pane" class="hidden"></div>
       </section>
     </div>
   `;
@@ -344,6 +352,19 @@ export function createGamesPage(container) {
   }
   onAuthChange(() => refreshBoards());
 
+  // ---- tabs: play against the AI, or the bot arena ----
+  let arena = null;
+  function showTab(tab) {
+    for (const b of container.querySelectorAll('[data-tab]')) b.classList.toggle('active', b.dataset.tab === tab);
+    $('play-pane').classList.toggle('hidden', tab !== 'play');
+    $('bots-pane').classList.toggle('hidden', tab !== 'bots');
+    if (tab === 'bots' && !arena) {
+      arena = createBotArena($('bots-pane'), { game: gameId, title: def.title, makeView: def.view, sides: def.sides });
+    }
+    if (tab !== 'bots') arena?.stop();
+  }
+  for (const b of container.querySelectorAll('[data-tab]')) b.addEventListener('click', () => showTab(b.dataset.tab));
+
   function show(id) {
     const known = id && GAMES[id];
     $('list').classList.toggle('hidden', Boolean(known));
@@ -356,6 +377,9 @@ export function createGamesPage(container) {
     }
     if (gameId === id) return;
     gameId = id;
+    arena?.stop();
+    arena = null;
+    $('bots-pane').textContent = '';
     def = GAMES[id];
     document.title = `${def.title} · aiship`;
     $('title').textContent = def.title;
@@ -371,6 +395,7 @@ export function createGamesPage(container) {
     holder.textContent = '';
     view = def.view(holder, { onMove });
     renderLevel();
+    showTab('play');
     newGame();
   }
 
