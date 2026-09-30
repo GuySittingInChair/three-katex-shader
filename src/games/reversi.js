@@ -121,3 +121,15 @@ export const game = {
     return score + 5 * mobility + (filled > 52 ? 10 * discs : 0);
   },
 };
+
+export function describeMove(after, index, sides) {
+  const who = sides[3 - after.turn];
+  const where = index === -1 ? 'passed' : `played ${'abcdefgh'[index % 8]}${Math.floor(index / 8) + 1}`;
+  const { black, white } = count(after.cells);
+  return `${who} ${where} · Black ${black}, White ${white}`;
+}
+
+export function summary(s) {
+  const { black, white } = count(s.cells);
+  return `Black ${black}, White ${white}`;
+}

@@ -2,6 +2,12 @@ import * as connectFour from '../games/connectFour.js';
 import * as reversi from '../games/reversi.js';
 import { createConnectFourView } from '../games/connectFourView.js';
 import { createReversiView } from '../games/reversiView.js';
+import * as mancala from '../games/mancala.js';
+import * as ultimateTtt from '../games/ultimateTtt.js';
+import * as gomoku from '../games/gomoku.js';
+import { createMancalaView } from '../games/mancalaView.js';
+import { createUltimateTttView } from '../games/ultimateTttView.js';
+import { createGomokuView } from '../games/gomokuView.js';
 import { LEVELS } from '../games/search.js';
 import { recordGameResult, getLeaderboard, getMyGameRecord, onAuthChange, getUser } from '../core/community.js';
 import { promptSignIn } from './signIn.js';
@@ -26,6 +32,30 @@ const GAMES = {
     view: createReversiView,
     sides: { 1: 'black', 2: 'white' },
     howTo: 'Tap a marked square. Black moves first.',
+  },
+  mancala: {
+    title: 'Mancala',
+    blurb: 'Sow seeds around the board. End in your store to go again, land in an empty pit of yours to capture.',
+    rules: mancala,
+    view: createMancalaView,
+    sides: { 1: 'player 1', 2: 'player 2' },
+    howTo: 'Tap one of your glowing pits (the bottom row).',
+  },
+  'ultimate-ttt': {
+    title: 'Ultimate Tic-Tac-Toe',
+    blurb: 'Nine boards in one. Win three small boards in a row. Where you play decides which board your opponent must play in next.',
+    rules: ultimateTtt,
+    view: createUltimateTttView,
+    sides: { 1: 'X', 2: 'O' },
+    howTo: 'Tap a cell in a glowing board.',
+  },
+  gomoku: {
+    title: 'Gomoku',
+    blurb: 'Five in a row wins, on a 13 × 13 board. Simple rules, sharp tactics.',
+    rules: gomoku,
+    view: createGomokuView,
+    sides: { 1: 'black', 2: 'white' },
+    howTo: 'Tap an intersection. Black moves first.',
   },
 };
 
@@ -192,9 +222,8 @@ export function createGamesPage(container) {
   }
 
   function extra() {
-    if (gameId !== 'reversi') return '';
-    const { black, white } = reversi.count(state.cells);
-    return `  ·  Black ${black}, White ${white}`;
+    const text = def.rules.summary?.(state, def.sides, human);
+    return text ? `  ·  ${text}` : '';
   }
 
   async function finishIfOver() {
@@ -249,7 +278,7 @@ export function createGamesPage(container) {
       return aiTurn();
     }
     setStatus(describeTurn() + extra());
-    view.setInteractive(true, gameId === 'reversi' ? human : view.colors?.[human]);
+    view.setInteractive(true, human);
   }
 
   async function onMove(move) {
@@ -269,6 +298,7 @@ export function createGamesPage(container) {
     recorded = false;
     state = def.rules.newGame();
     history = [state];
+    view.setSide?.(human);
     view.render(state);
     if (state.turn === human) humanTurn();
     else aiTurn();

@@ -129,9 +129,9 @@ export function createConnectFourView(container, { onMove }) {
 
   return {
     render,
-    setInteractive(on, color) {
+    setInteractive(on, side) {
       interactive = on;
-      if (color) humanColor = color;
+      if (side) humanColor = COLORS[side];
       if (!on) {
         preview.setAttribute('opacity', 0);
         hover.setAttribute('opacity', 0);

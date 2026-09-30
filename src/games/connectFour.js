@@ -89,3 +89,7 @@ export const game = {
     return score;
   },
 };
+
+export function describeMove(after, column, sides) {
+  return `${sides[3 - after.turn]} dropped a tile in column ${column + 1}`;
+}

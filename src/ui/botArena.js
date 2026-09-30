@@ -331,14 +331,8 @@ export function createBotArena(container, { game, title, makeView, sides }) {
     paused = !paused;
     pauseBtn.textContent = paused ? 'Resume' : 'Pause';
   });
-  // "Move 12 · yellow played column 4" / "· black played d3 · Black 10, White 14"
-  function describe(state, move, n) {
-    const who = sides[3 - state.turn];
-    if (game === 'connect-four') return `Move ${n} · ${who} dropped a tile in column ${move + 1}`;
-    const counts = state.cells.reduce((a, v) => (v ? (a[v - 1]++, a) : a), [0, 0]);
-    const where = move === -1 ? 'passed' : `played ${'abcdefgh'[move % 8]}${Math.floor(move / 8) + 1}`;
-    return `Move ${n} · ${who} ${where} · Black ${counts[0]}, White ${counts[1]}`;
-  }
+  // e.g. "Move 12 · black played d3 · Black 10, White 14"
+  const describe = (state, move, n) => `Move ${n} · ${RULES[game].describeMove(state, move, sides)}`;
   $('watch').addEventListener('click', async () => {
     const a = find($('watch-a').value);
     const b = find($('watch-b').value);

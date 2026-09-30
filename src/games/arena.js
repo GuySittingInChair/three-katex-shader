@@ -7,10 +7,19 @@
 // tournament gives the same results on any computer (unless a bot times out).
 import * as connectFour from './connectFour.js';
 import * as reversi from './reversi.js';
+import * as mancala from './mancala.js';
+import * as ultimateTtt from './ultimateTtt.js';
+import * as gomoku from './gomoku.js';
 
-export const RULES = { 'connect-four': connectFour, reversi };
+export const RULES = { 'connect-four': connectFour, reversi, mancala, 'ultimate-ttt': ultimateTtt, gomoku };
 export const MOVE_LIMIT_MS = 2000;
-export const REFERENCE_DEPTHS = { 'connect-four': [2, 4, 7], reversi: [2, 3, 5] };
+export const REFERENCE_DEPTHS = {
+  'connect-four': [2, 4, 7],
+  reversi: [2, 3, 5],
+  mancala: [2, 5, 10],
+  'ultimate-ttt': [2, 3, 5],
+  gomoku: [1, 2, 4],
+};
 
 export const STARTERS = {
   'connect-four': `// Return the column (0–6) to drop your tile in.
@@ -60,6 +69,77 @@ function chooseMove(state, api) {
 }
 `,
 };
+
+STARTERS.mancala = `// Return the pit to sow. Your pits are 0–5 if you're player 1 (store 6),
+// 7–12 if you're player 2 (store 13): api.STORE[api.me] is yours.
+// state.pits[i] is the number of seeds in pit i. api.moves(state) lists your
+// non-empty pits; api.play(state, move) gives the next state, whose .turn is
+// still you if you earned another turn.
+function chooseMove(state, api) {
+  const moves = api.moves(state);
+
+  // 1. Take another turn whenever a move ends in our store.
+  for (const m of moves) {
+    if (api.play(state, m).turn === api.me) return m;
+  }
+  // 2. Otherwise, the move that leaves our store fullest.
+  let best = moves[0];
+  let most = -1;
+  for (const m of moves) {
+    const store = api.play(state, m).pits[api.STORE[api.me]];
+    if (store > most) {
+      most = store;
+      best = m;
+    }
+  }
+  return best;
+}
+`;
+
+STARTERS['ultimate-ttt'] = `// Return a cell: board * 9 + cell, both numbered 0–8 left to right, top to
+// bottom. state.cells[i] is 0, 1 (X) or 2 (O); state.boards[b] is 0 (open),
+// 1 or 2 (won) or 3 (drawn). api.moves(state) lists legal cells (you may only
+// play in the board your opponent sent you to, unless it's decided).
+function chooseMove(state, api) {
+  const moves = api.moves(state);
+  const boardOf = (m) => Math.floor(m / 9);
+
+  // 1. Win the game, or else a small board, if we can.
+  for (const m of moves) {
+    if (api.outcome(api.play(state, m))?.winner === api.me) return m;
+  }
+  for (const m of moves) {
+    if (api.play(state, m).boards[boardOf(m)] === api.me) return m;
+  }
+  // 2. Don't send them somewhere they can win a board straight away.
+  const them = 3 - api.me;
+  const safe = moves.filter((m) => {
+    const next = api.play(state, m);
+    return !api.moves(next).some((r) => api.play(next, r).boards[boardOf(r)] === them);
+  });
+  return (safe.length ? safe : moves)[0]; // moves come centre and corners first
+}
+`;
+
+STARTERS.gomoku = `// Return the point to play: row * 13 + column. state.cells[i] is 0, 1 (black)
+// or 2 (white). api.moves(state) lists up to 12 promising points near the
+// stones, best-looking first; api.play and api.outcome work as usual.
+function chooseMove(state, api) {
+  const moves = api.moves(state);
+
+  // 1. Make five in a row if we can.
+  for (const m of moves) {
+    if (api.outcome(api.play(state, m))?.winner === api.me) return m;
+  }
+  // 2. Stop them making five.
+  const them = 3 - api.me;
+  for (const m of moves) {
+    if (api.outcome(api.play({ ...state, turn: them }, m))?.winner === them) return m;
+  }
+  // 3. Otherwise the most promising point.
+  return moves[0];
+}
+`;
 
 export class Forfeit extends Error {}
 

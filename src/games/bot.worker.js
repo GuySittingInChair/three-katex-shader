@@ -10,8 +10,18 @@
 // In:  { type: 'move', state }                 →  out: { type: 'move', move } | { type: 'error', message }
 import { game as connectFour, COLS, ROWS } from './connectFour.js';
 import { game as reversi, SIZE } from './reversi.js';
+import { game as mancala, PITS, STORE } from './mancala.js';
+import { game as ultimateTtt } from './ultimateTtt.js';
+import { game as gomoku, SIZE as GOMOKU_SIZE } from './gomoku.js';
 
-const RULES = { [connectFour.id]: connectFour, [reversi.id]: reversi };
+const RULES = Object.fromEntries([connectFour, reversi, mancala, ultimateTtt, gomoku].map((g) => [g.id, g]));
+const CONSTANTS = {
+  [connectFour.id]: { COLS, ROWS },
+  [reversi.id]: { SIZE },
+  [mancala.id]: { PITS, STORE },
+  [ultimateTtt.id]: {},
+  [gomoku.id]: { SIZE: GOMOKU_SIZE },
+};
 const reply = self.postMessage.bind(self);
 
 for (const name of [
@@ -71,7 +81,7 @@ function handle({ data }) {
         play: (s, m) => rules.play(s, m),
         outcome: (s) => rules.outcome(s),
         random,
-        ...(data.game === connectFour.id ? { COLS, ROWS } : { SIZE }),
+        ...CONSTANTS[data.game],
       });
       // The bot's code defines chooseMove(state, api).
       chooseMove = new Function(`"use strict";\n${data.code}\n;return typeof chooseMove === 'function' ? chooseMove : null;`)();

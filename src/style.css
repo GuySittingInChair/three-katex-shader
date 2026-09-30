@@ -2619,3 +2619,49 @@ body.feed-on #toast {
   padding: 1px 5px;
   border-radius: 4px;
 }
+.game-art-mancala {
+  background:
+    radial-gradient(ellipse 7% 16% at 22% 34%, #4a2a12 0 95%, transparent 100%),
+    radial-gradient(ellipse 7% 16% at 40% 34%, #4a2a12 0 95%, transparent 100%),
+    radial-gradient(ellipse 7% 16% at 58% 34%, #4a2a12 0 95%, transparent 100%),
+    radial-gradient(ellipse 7% 16% at 76% 34%, #4a2a12 0 95%, transparent 100%),
+    radial-gradient(ellipse 7% 16% at 22% 68%, #4a2a12 0 95%, transparent 100%),
+    radial-gradient(ellipse 7% 16% at 40% 68%, #4a2a12 0 95%, transparent 100%),
+    radial-gradient(ellipse 7% 16% at 58% 68%, #4a2a12 0 95%, transparent 100%),
+    radial-gradient(ellipse 7% 16% at 76% 68%, #4a2a12 0 95%, transparent 100%),
+    #6b3f1f;
+}
+.game-art-ultimate-ttt {
+  background:
+    linear-gradient(90deg, transparent 32.8%, #8d96a8 32.8% 34.2%, transparent 34.2% 65.8%, #8d96a8 65.8% 67.2%, transparent 67.2%),
+    linear-gradient(0deg, transparent 32%, #8d96a8 32% 34.5%, transparent 34.5% 65.5%, #8d96a8 65.5% 68%, transparent 68%),
+    radial-gradient(circle at 50% 50%, transparent 0 8%, #ff9f5a 8% 10.5%, transparent 10.5%),
+    radial-gradient(circle at 17% 17%, transparent 0 7%, #7cc4ff 7% 9.5%, transparent 9.5%),
+    #141821;
+}
+.game-art-gomoku {
+  background:
+    radial-gradient(circle at 30% 50%, #15171c 0 6%, transparent 6.5%),
+    radial-gradient(circle at 40% 50%, #15171c 0 6%, transparent 6.5%),
+    radial-gradient(circle at 50% 50%, #15171c 0 6%, transparent 6.5%),
+    radial-gradient(circle at 60% 50%, #15171c 0 6%, transparent 6.5%),
+    radial-gradient(circle at 45% 32%, #f2f4f8 0 6%, transparent 6.5%),
+    radial-gradient(circle at 55% 68%, #f2f4f8 0 6%, transparent 6.5%),
+    repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), #6b4a1c calc(10% - 1px) 10%),
+    repeating-linear-gradient(0deg, transparent 0 calc(18% - 1px), #6b4a1c calc(18% - 1px) 18%),
+    #d6a560;
+}
+.mc-playable {
+  stroke: #ffd166;
+  stroke-width: 4;
+  cursor: pointer;
+  animation: mc-glow 1.2s ease-in-out infinite alternate;
+}
+@keyframes mc-glow {
+  to {
+    stroke-opacity: 0.35;
+  }
+}
+.mc-board .mc-playable:hover {
+  fill: #5a3418;
+}

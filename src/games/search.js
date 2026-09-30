@@ -9,7 +9,9 @@
 //
 // Negamax with alpha-beta pruning: a position is worth the best of what each
 // move leads to, seen from the other side (hence the minus signs); a branch is
-// abandoned as soon as it can't change the answer. Iterative deepening searches
+// abandoned as soon as it can't change the answer. Games with extra turns
+// (Mancala) are handled too: when the same player moves again, the child's
+// value counts for them directly, without the sign flip. Iterative deepening searches
 // 1, 2, 3, … moves ahead until the depth limit or the time runs out, keeping
 // the best move from the deepest search that finished.
 
@@ -39,8 +41,13 @@ export function chooseMove(game, state, { depth = 4, timeMs = 1000, randomness =
     }
     if (d === 0) return game.evaluate(s, game.toMove(s));
     let best = -Infinity;
+    const me = game.toMove(s);
     for (const m of game.moves(s)) {
-      const v = -negamax(game.play(s, m), d - 1, -beta, -alpha, ply + 1);
+      const child = game.play(s, m);
+      const v =
+        game.toMove(child) === me
+          ? negamax(child, d - 1, alpha, beta, ply + 1)
+          : -negamax(child, d - 1, -beta, -alpha, ply + 1);
       if (v > best) best = v;
       if (v > alpha) alpha = v;
       if (alpha >= beta) break;
@@ -56,8 +63,13 @@ export function chooseMove(game, state, { depth = 4, timeMs = 1000, randomness =
       let bestScore = -Infinity;
       let alpha = -Infinity;
       const scored = [];
+      const me = game.toMove(state);
       for (const m of order) {
-        const v = -negamax(game.play(state, m), d - 1, -Infinity, -alpha, 1);
+        const child = game.play(state, m);
+        const v =
+          game.toMove(child) === me
+            ? negamax(child, d - 1, alpha, Infinity, 1)
+            : -negamax(child, d - 1, -Infinity, -alpha, 1);
         scored.push([m, v]);
         if (v > bestScore) {
           bestScore = v;
