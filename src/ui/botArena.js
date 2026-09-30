@@ -6,6 +6,7 @@ import {
   createReferencePlayer,
   playGame,
   runTournament,
+  RULES,
 } from '../games/arena.js';
 import {
   listBots,
@@ -77,6 +78,15 @@ export function createBotArena(container, { game, title, makeView, sides }) {
         <select data-role="watch-b" aria-label="Moves second"></select>
         <button type="button" class="btn btn-ghost" data-role="watch">Watch</button>
       </div>
+      <div class="arena-row">
+        <select data-role="watch-speed" aria-label="Speed">
+          <option value="1600">Slow · 1.6 s a move</option>
+          <option value="900" selected>Normal · 0.9 s a move</option>
+          <option value="350">Fast · 0.35 s a move</option>
+        </select>
+        <button type="button" class="btn btn-ghost" data-role="watch-pause" disabled>Pause</button>
+      </div>
+      <p class="arena-muted" data-role="watch-move"></p>
       <p class="arena-status" data-role="watch-status" aria-live="polite"></p>
       <div class="game-board-wrap" data-role="watch-board"></div>
     </section>
@@ -315,22 +325,52 @@ export function createBotArena(container, { game, title, makeView, sides }) {
   // ---- watch ----
   const watchView = makeView($('watch-board'), { onMove: () => {} });
   let watching = 0;
+  let paused = false;
+  const pauseBtn = $('watch-pause');
+  pauseBtn.addEventListener('click', () => {
+    paused = !paused;
+    pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+  });
+  // "Move 12 · yellow played column 4" / "· black played d3 · Black 10, White 14"
+  function describe(state, move, n) {
+    const who = sides[3 - state.turn];
+    if (game === 'connect-four') return `Move ${n} · ${who} dropped a tile in column ${move + 1}`;
+    const counts = state.cells.reduce((a, v) => (v ? (a[v - 1]++, a) : a), [0, 0]);
+    const where = move === -1 ? 'passed' : `played ${'abcdefgh'[move % 8]}${Math.floor(move / 8) + 1}`;
+    return `Move ${n} · ${who} ${where} · Black ${counts[0]}, White ${counts[1]}`;
+  }
   $('watch').addEventListener('click', async () => {
     const a = find($('watch-a').value);
     const b = find($('watch-b').value);
     if (!a || !b) return;
     const mine = ++watching;
+    paused = false;
+    pauseBtn.textContent = 'Pause';
+    pauseBtn.disabled = false;
     const status = $('watch-status');
     status.textContent = `${label(a)} (${sides[1]}) vs ${label(b)} (${sides[2]})`;
     try {
+      let n = 0;
+      watchView.render(RULES[game].newGame());
       const r = await playGame(game, a.fresh(), b.fresh(), {
         seed: 42,
-        onMove: async (state) => {
+        onMove: async (state, move) => {
+          // Hold a move that arrives while paused until Resume.
+          while (paused) {
+            if (mine !== watching) throw new Cancelled();
+            await sleep(50);
+          }
           if (mine !== watching) throw new Cancelled();
           await watchView.render(state, { drop: true, animate: true });
-          await sleep(250);
+          $('watch-move').textContent = describe(state, move, ++n);
+          const until = performance.now() + Number($('watch-speed').value);
+          while (performance.now() < until || paused) {
+            if (mine !== watching) throw new Cancelled();
+            await sleep(50);
+          }
         },
       });
+      pauseBtn.disabled = true;
       if (mine !== watching) return;
       if (r.state) await watchView.render(r.state);
       const winner = r.winner === 0 ? 'Draw' : `${r.winner === 1 ? a.name : b.name} wins`;

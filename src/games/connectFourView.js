@@ -19,14 +19,17 @@ function el(name, attrs = {}) {
   return node;
 }
 
+let boards = 0;
+
 export function createConnectFourView(container, { onMove }) {
+  const uid = `c4-holes-${++boards}`; // unique per board, or a second board's mask would point at the first
   const W = CELL * COLS;
   const H = TOP + CELL * ROWS;
   const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'game-board c4-board', role: 'img' });
   svg.setAttribute('aria-label', 'Connect Four board');
 
   const defs = el('defs');
-  const mask = el('mask', { id: 'c4-holes' });
+  const mask = el('mask', { id: uid });
   mask.append(el('rect', { x: 0, y: TOP, width: W, height: H - TOP, fill: 'white' }));
   for (let c = 0; c < COLS; c++) {
     for (let r = 0; r < ROWS; r++) mask.append(el('circle', { cx: cx(c), cy: cy(r), r: 40, fill: 'black' }));
@@ -35,7 +38,7 @@ export function createConnectFourView(container, { onMove }) {
 
   const tiles = el('g');
   const preview = el('circle', { r: 40, cy: TOP / 2 + 4, opacity: 0, class: 'c4-preview' });
-  const board = el('rect', { x: 0, y: TOP, width: W, height: H - TOP, rx: 18, fill: '#2848b8', mask: 'url(#c4-holes)' });
+  const board = el('rect', { x: 0, y: TOP, width: W, height: H - TOP, rx: 18, fill: '#2848b8', mask: `url(#${uid})` });
   const hover = el('rect', { y: TOP, width: CELL, height: H - TOP, fill: 'white', opacity: 0, 'pointer-events': 'none' });
   svg.append(defs, tiles, board, hover, preview);
   container.append(svg);

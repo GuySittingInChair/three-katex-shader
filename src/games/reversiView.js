@@ -6,7 +6,6 @@ import { SIZE, legalMoves } from './reversi.js';
 const NS = 'http://www.w3.org/2000/svg';
 const CELL = 100;
 const R = 40;
-const FILL = { 1: 'url(#rv-black)', 2: 'url(#rv-white)' };
 
 function el(name, attrs = {}) {
   const node = document.createElementNS(NS, name);
@@ -15,14 +14,21 @@ function el(name, attrs = {}) {
 }
 const center = (i) => [CELL * (i % SIZE) + CELL / 2, CELL * Math.floor(i / SIZE) + CELL / 2];
 
+let boards = 0;
+
 export function createReversiView(container, { onMove }) {
+  // Gradient ids must be unique per board: with two boards on a page (play
+  // and watch), a duplicate id would resolve to the other, possibly hidden,
+  // board's gradient and the discs would vanish.
+  const uid = `rv${++boards}`;
+  const FILL = { 1: `url(#${uid}-black)`, 2: `url(#${uid}-white)` };
   const W = CELL * SIZE;
   const svg = el('svg', { viewBox: `0 0 ${W} ${W}`, class: 'game-board rv-board', role: 'img' });
   svg.setAttribute('aria-label', 'Reversi board');
   const defs = el('defs');
   for (const [id, a, b] of [
-    ['rv-black', '#4a4f5c', '#15171c'],
-    ['rv-white', '#ffffff', '#c9ced8'],
+    [`${uid}-black`, '#4a4f5c', '#15171c'],
+    [`${uid}-white`, '#ffffff', '#c9ced8'],
   ]) {
     const g = el('radialGradient', { id, cx: '35%', cy: '30%', r: '75%' });
     g.append(el('stop', { offset: '0%', 'stop-color': a }), el('stop', { offset: '100%', 'stop-color': b }));
