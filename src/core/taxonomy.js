@@ -6,7 +6,7 @@
 export const TAXONOMY = [
   {
     group: 'Mathematics',
-    categories: ['Fractals', 'Dynamical Systems', 'Chaos', 'Number Theory', 'Algebraic Art', 'Geometry', 'Topology'],
+    categories: ['Fractals', 'Dynamical Systems', 'Chaos', 'Number Theory', 'Algebraic Art', 'Geometry', 'Topology', 'Functional Analysis'],
   },
   {
     group: 'Systems',
