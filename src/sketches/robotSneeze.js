@@ -1,51 +1,59 @@
 import * as THREE from 'three';
 import { phaseOf } from '../lib/motion.js';
 
-// A robot sneezes, and the incompressible Navier–Stokes equations take it
-// from there:
+// A robot sneezes on another robot, and the incompressible Navier–Stokes
+// equations take it from there:
 //
 //     ∂u/∂t + (u·∇)u = −∇p + ν∇²u,   ∇·u = 0
 //
-// solved on a 128 × 64 grid with Stam's "stable fluids" scheme: diffuse
+// solved on a 96 × 64 grid with Stam's "stable fluids" scheme: diffuse
 // (implicit), project (make it divergence-free by solving for the
 // pressure), advect (trace back along the flow), project again. The green
-// stuff is a dye carried by the flow; the faint pink and blue edges are
-// the vorticity ω = ∇ × u, spinning one way or the other.
+// stuff is a dye carried by the flow; the faint pink and blue edges are the
+// vorticity ω = ∇ × u, spinning one way or the other. The victim's head is a
+// solid obstacle (the flow inside it is held at zero, a simple
+// approximation), so the cloud splats on his face rather than passing
+// through.
 //
-// Honest numbers. A real sneeze, with a jet speed of about U = 10 m/s from
-// a mouth D = 2 cm wide, in air (ν = 1.5 × 10⁻⁵ m²/s), has Reynolds number
-// Re = UD/ν ≈ 13,000. A grid this size can't resolve that; this one runs at
-// Re = 300 (plus some numerical viscosity), so it's a gentler, more viscous
-// sneeze with the same overall look: a jet that rolls up into a vortex
-// pair and slows down. The readouts convert the simulation to metres and
-// milliseconds using U and D (that conversion is only as good as the
-// simulation's Re), and track the front of the cloud and how long it
-// would take to reach the camera at the right edge, 0.43 m away.
+// The grid is fixed to the real world: a cell is 4 mm (the 2 cm mouth is 5
+// cells) and a step is 0.48 ms, so the sliders are in real units. Sneeze
+// speed U in m/s; viscosity ν as a multiple of air's (1.5 × 10⁻⁵ m²/s). The
+// Reynolds number Re = UD/ν is then the true one for the fluid you've
+// picked. Real air at 10 m/s would be Re ≈ 13,000, too fine for a grid this
+// coarse, so the slider starts at 10× air (still thinner-feeling than it
+// sounds: olive oil is about 5× air) and goes up to about 300× air, which is
+// in honey territory. The simulation adds some numerical viscosity of its
+// own on top, so treat the low end as "at least this viscous".
 //
-// Loop (9 s): ah… ah… (the robot leans back, eyes squeezed) CHOO, then the
-// cloud drifts. Simulated, not a closed-form loop; it resets each loop.
+// Loop (10 s): ah… ah… (the sneezer leans back) CHOO, then the cloud
+// drifts toward the other robot, who gets nervous, and then gets hit, or
+// doesn't. Simulated, not a closed-form loop; it resets each loop.
 
-const PERIOD = 9;
-const NX = 128;
+const PERIOD = 10;
+const NX = 96;
 const NY = 64;
 const W = NX + 2;
 const SIZE = W * (NY + 2);
 const MOUTH_X = 20; // the jet starts here (cells)
 const MOUTH_Y = 32;
-const JET_U = 1.2; // cells per step
-const JET_D = 5; // cells
-const VISC = 0.02; // cells² per step → Re = 1.2 × 5 / 0.02 = 300
-const STEPS_PER_SECOND = 60;
+const JET_D = 5; // cells: the 2 cm mouth
+const METRES_PER_CELL = 0.004;
+const SECONDS_PER_STEP = 0.00048;
+const NU_AIR = 1.5e-5;
+const STEPS_PER_SECOND = 60; // of animation time
 const CHOO_START = 2.3; // seconds into the loop
 const CHOO_END = 2.9;
-// Converting to the real world: one cell is D/JET_D, one step is (D/JET_D)/(U/JET_U).
-const U_REAL = 10;
-const D_REAL = 0.02;
-const METRES_PER_CELL = D_REAL / JET_D;
-const SECONDS_PER_STEP = METRES_PER_CELL / (U_REAL / JET_U);
-const CAMERA_M = (NX - MOUTH_X) * METRES_PER_CELL;
+// The victim: head centre and half-size in cells (drawn at 7 cells per unit, head 0.9 × 0.8).
+const VX = 76;
+const VY = MOUTH_Y;
+const VHX = 6;
+const VHY = 5;
+const FACE_M = (VX - VHX - 1 - MOUTH_X) * METRES_PER_CELL; // mouth to his face
 
 const IX = (i, j) => i + W * j;
+const inHead = (i, j) => Math.abs(i - VX) <= VHX && Math.abs(j - VY) <= VHY;
+const HEAD = [];
+for (let j = 1; j <= NY; j++) for (let i = 1; i <= NX; i++) if (inHead(i, j)) HEAD.push(IX(i, j));
 
 // Walls on all four sides: b = 1 flips u at the left/right walls, b = 2 flips v at the top/bottom.
 function setBoundary(b, x) {
@@ -63,6 +71,14 @@ function setBoundary(b, x) {
   x[IX(NX + 1, NY + 1)] = 0.5 * (x[IX(NX, NY + 1)] + x[IX(NX + 1, NY)]);
 }
 
+// The victim's head: no flow inside it.
+function solidHead(u, v) {
+  for (const n of HEAD) {
+    u[n] = 0;
+    v[n] = 0;
+  }
+}
+
 // Gauss–Seidel for (1 + 4a) x − a Σ neighbours = x0 (implicit diffusion, and the pressure solve).
 function relax(b, x, x0, a, c, iters) {
   for (let k = 0; k < iters; k++) {
@@ -77,7 +93,7 @@ function relax(b, x, x0, a, c, iters) {
 }
 
 function diffuse(b, x, x0, rate) {
-  relax(b, x, x0, rate, 1 + 4 * rate, 6); // a small rate: converges in a few sweeps
+  relax(b, x, x0, rate, 1 + 4 * rate, Math.min(20, 4 + Math.ceil(rate * 40)));
 }
 
 // Semi-Lagrangian advection: each cell takes the value from where the flow came from.
@@ -120,25 +136,27 @@ function project(u, v, p, div) {
   }
   setBoundary(1, u);
   setBoundary(2, v);
+  solidHead(u, v);
 }
 
-function step(f, jet, wobble) {
+// One step. jetU: the sneeze's speed in cells per step (0 when not sneezing); nu: cells² per step.
+function step(f, jetU, nu, wobble) {
   const { u, v, u0, v0, dye, dye0 } = f;
-  if (jet > 0) {
+  if (jetU > 0) {
     // The sneeze: a jet out of the mouth, with a little wobble so it isn't perfectly straight.
     for (let j = MOUTH_Y - 2; j <= MOUTH_Y + 2; j++) {
       for (let i = MOUTH_X; i < MOUTH_X + 3; i++) {
         const n = IX(i, j);
-        u[n] = JET_U * jet;
-        v[n] = JET_U * jet * wobble;
-        dye[n] = Math.min(1.5, dye[n] + 0.6 * jet);
+        u[n] = jetU;
+        v[n] = jetU * wobble;
+        dye[n] = Math.min(1.5, dye[n] + 0.5);
       }
     }
   }
   u0.set(u);
   v0.set(v);
-  diffuse(1, u, u0, VISC);
-  diffuse(2, v, v0, VISC);
+  diffuse(1, u, u0, nu);
+  diffuse(2, v, v0, nu);
   project(u, v, f.p, f.div);
   u0.set(u);
   v0.set(v);
@@ -151,15 +169,15 @@ function step(f, jet, wobble) {
 
 function fresh() {
   const a = () => new Float32Array(SIZE);
-  return { u: a(), v: a(), u0: a(), v0: a(), dye: a(), dye0: a(), p: a(), div: a(), steps: 0, front: 0, frontSpeed: 0 };
+  return { u: a(), v: a(), u0: a(), v0: a(), dye: a(), dye0: a(), p: a(), div: a(), steps: 0, chooStep: -1, front: 0, frontSpeed: 0, hitStep: -1, hitAt: 0 };
 }
 
 export default {
   name: 'Navier–Stokes of a Sneeze',
   description:
-    'A robot sneezes and the incompressible Navier–Stokes equations take over: the jet rolls up into a vortex ' +
-    'pair and slows. Solved on a grid with the stable-fluids method. The readouts give the real sneeze’s ' +
-    'Reynolds number, the simulation’s, the peak vorticity, and how long until the cloud reaches the camera.',
+    'A robot sneezes on another robot and the incompressible Navier–Stokes equations take over: the jet rolls ' +
+    'into a vortex pair and splats on his face (he is not pleased). Sliders set the sneeze speed and the ' +
+    'viscosity, from 10× air to honey; the true Reynolds number and the time to impact are live.',
   tags: ['navier-stokes', 'fluid dynamics', 'vorticity', 'reynolds number', 'robots', 'sneeze'],
   category: 'Fluid Flow',
   mode: 'shader',
@@ -171,27 +189,35 @@ export default {
     const choo = s >= CHOO_START && s < CHOO_END ? Math.sin((Math.PI * (s - CHOO_START)) / (CHOO_END - CHOO_START)) : 0;
     const after = s >= CHOO_START ? Math.max(0, 1 - (s - CHOO_START) / 0.8) : 0;
     // Simulation readouts are filled in by update(); placeholders here.
-    return { s, ah: s < CHOO_START ? ah : after, choo, frontM: 0, eta: Infinity, vort: 0, started: s >= CHOO_START };
+    return { s, ah: s < CHOO_START ? ah : after, choo, frontM: 0, eta: Infinity, hitMs: -1, started: s >= CHOO_START };
   },
 
   latex: (params, hl, m) => {
-    const phase = m.s < 1.2 ? '\\text{ah}\\ldots' : m.s < CHOO_START ? '\\text{ah}\\ldots\\ \\text{ah}\\ldots' : m.s < 3.2 ? '\\textbf{CHOO}' : '';
-    let travel = '';
-    if (m.started) {
-      travel = `\\text{front} &= ${hl(m.frontM, 2)}\\ \\text{m},\\quad ` + (Number.isFinite(m.eta) ? `\\text{at this speed, at the camera in } ${hl(m.eta, 0)}\\ \\text{ms}` : m.frontM >= CAMERA_M - 0.01 ? '\\text{it reached the camera}' : '\\text{stalled: the camera is safe}');
-    }
+    const U = params.sneezeSpeed;
+    const nu = params.viscosity * NU_AIR;
+    const re = (U * JET_D * METRES_PER_CELL) / nu;
+    const reAir = (U * JET_D * METRES_PER_CELL) / NU_AIR;
+    let story;
+    if (m.s < 1.2) story = '\\text{ah}\\ldots';
+    else if (m.s < CHOO_START) story = '\\text{ah}\\ldots\\ \\text{ah}\\ldots';
+    else if (m.s < 3.2) story = '\\textbf{CHOO}';
+    else if (m.hitMs >= 0) story = `\\text{direct hit, } ${hl(m.hitMs, 0)}\\ \\text{ms after the sneeze. ew.}`;
+    else if (Number.isFinite(m.eta)) story = `\\text{front at } ${hl(m.frontM, 2)}\\ \\text{m; at this speed it hits him in } ${hl(m.eta, 0)}\\ \\text{ms}`;
+    else story = `\\text{front at } ${hl(m.frontM, 2)}\\ \\text{m: stalled, he's safe}`;
     return (
       '\\begin{aligned}' +
       '\\partial_t \\vec u + (\\vec u\\cdot\\nabla)\\vec u &= -\\nabla p + \\nu\\nabla^2\\vec u,\\quad \\nabla\\cdot\\vec u = 0 \\\\' +
-      `\\mathrm{Re} &= \\tfrac{UD}{\\nu} = ${hl((U_REAL * D_REAL) / 1.5e-5, 0)}\\ \\text{(real)},\\ ${hl((JET_U * JET_D) / VISC, 0)}\\ \\text{(grid)},\\quad |\\omega|_{\\text{max}} = ${hl(m.vort, 0)}\\,\\text{s}^{-1} \\\\` +
-      (travel ? travel + ' \\\\' : '') +
-      `&${phase}` +
+      `U &= ${hl(U, 0)}\\,\\tfrac{\\text{m}}{\\text{s}},\\quad \\nu = ${hl(params.viscosity, 0)}\\times\\nu_{\\text{air}} \\\\` +
+      `\\mathrm{Re} &= \\tfrac{UD}{\\nu} = ${hl(re, 0)}\\ \\ (\\text{air would be } ${hl(reAir, 0)}) \\\\` +
+      `&${story}` +
       '\\end{aligned}'
     );
   },
 
   params: {
     speed: { value: 1, min: 0, max: 3 },
+    sneezeSpeed: { value: 15, min: 3, max: 25, step: 1 },
+    viscosity: { value: 25, min: 10, max: 300, step: 1 },
   },
 
   fragmentShader: `
@@ -199,22 +225,40 @@ export default {
     uniform sampler2D uField;
     uniform float uAh;
     uniform float uChoo;
+    uniform float uNervous;
+    uniform float uHit;
+    uniform float uSinceHit;
     varying vec2 vUv;
 
     const vec2 GRID = vec2(${NX.toFixed(1)}, ${NY.toFixed(1)});
     const vec2 MOUTH = vec2(${MOUTH_X.toFixed(1)}, ${MOUTH_Y.toFixed(1)});
+    const vec2 VICTIM = vec2(${VX.toFixed(1)}, ${VY.toFixed(1)});
 
     float box(vec2 p, vec2 h, float r) {
       vec2 d = abs(p) - h + r;
       return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0) - r;
+    }
+    float segment(vec2 p, vec2 a, vec2 b) {
+      vec2 pa = p - a, ba = b - a;
+      return length(pa - ba * clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0));
     }
     vec2 rot(vec2 p, float a) {
       float c = cos(a), s = sin(a);
       return vec2(c * p.x - s * p.y, s * p.x + c * p.y);
     }
 
+    // A robot head in profile, facing +x, in head units (p), with a pixel of 'a'.
+    vec3 head(vec3 col, vec2 p, float a, vec3 tint) {
+      float stalk = box(p - vec2(0.0, 1.05), vec2(0.05, 0.25), 0.03);
+      col = mix(col, vec3(0.6, 0.65, 0.72), smoothstep(a, -a, stalk));
+      col = mix(col, vec3(0.95, 0.3, 0.25), smoothstep(a, -a, length(p - vec2(0.0, 1.35)) - 0.15));
+      float h = box(p, vec2(0.9, 0.8), 0.25);
+      vec3 metal = mix(vec3(0.5, 0.55, 0.63), vec3(0.85, 0.88, 0.93), smoothstep(-0.8, 0.8, p.y));
+      col = mix(col, metal * tint, smoothstep(a, -a, h));
+      return col;
+    }
+
     void main() {
-      // The grid fills the width (2 : 1), centred.
       float cellPx = min(uResolution.x / GRID.x, uResolution.y * 0.8 / GRID.y);
       vec2 origin = 0.5 * (uResolution - GRID * cellPx);
       vec2 g = (vUv * uResolution - origin) / cellPx;       // grid coordinates
@@ -227,30 +271,47 @@ export default {
         vec3 slime = mix(vec3(0.35, 0.55, 0.15), vec3(0.75, 0.95, 0.4), dye);
         col = mix(col, slime, clamp(dye * 1.4, 0.0, 0.92));
         col += (w > 0.0 ? vec3(0.9, 0.35, 0.6) : vec3(0.3, 0.55, 1.0)) * abs(w) * 0.35;
-        // The camera, at the right edge.
-        col += vec3(0.5, 0.5, 0.6) * smoothstep(0.6, 0.0, abs(g.x - GRID.x + 1.0)) * step(abs(g.y - MOUTH.y), 10.0);
       }
-      // Frame.
       vec2 fr = abs(g - GRID * 0.5) - GRID * 0.5;
       col += vec3(0.15, 0.17, 0.22) * smoothstep(0.35, 0.0, abs(max(fr.x, fr.y)));
+      float a = 1.5 / (7.0 * cellPx);                       // about a pixel, in head units
+      vec3 ink = vec3(0.08, 0.06, 0.08);
 
-      // The robot's head, just behind the mouth; it leans back for "ah" and snaps forward for "CHOO".
+      // ---- The sneezer: leans back for "ah", snaps forward for "CHOO".
       float lean = 0.35 * uAh - 0.25 * uChoo;
       vec2 p = rot(g - (MOUTH + vec2(-8.0, 0.0)), -lean) / 7.0;
-      float head = box(p, vec2(0.9, 0.8), 0.25);
-      vec3 metal = mix(vec3(0.5, 0.55, 0.63), vec3(0.85, 0.88, 0.93), smoothstep(-0.8, 0.8, p.y));
-      float a = 1.5 / (7.0 * cellPx);                     // about a pixel, in head units
-      col = mix(col, metal, smoothstep(a, -a, head));
-      float stalk = box(p - vec2(0.0, 1.05), vec2(0.05, 0.25), 0.03);
-      col = mix(col, vec3(0.6, 0.65, 0.72), smoothstep(a, -a, stalk));
-      col = mix(col, vec3(0.95, 0.3, 0.25), smoothstep(a, -a, length(p - vec2(0.0, 1.35)) - 0.15));
-      // Eyes: squeezed shut for "ah".
+      col = head(col, p, a, vec3(1.0));
       float open = 1.0 - 0.85 * uAh;
-      float eye = box(p - vec2(0.45, 0.25), vec2(0.18, 0.16 * open), 0.05);
-      col = mix(col, vec3(0.37, 0.95, 1.0), smoothstep(a, -a, eye));
-      // Mouth: a slot that opens for the sneeze.
-      float mouth = box(p - vec2(0.75, -0.3), vec2(0.18, 0.05 + 0.22 * max(uChoo, 0.4 * uAh)), 0.04);
-      col = mix(col, vec3(0.08, 0.06, 0.08), smoothstep(a, -a, mouth));
+      col = mix(col, vec3(0.37, 0.95, 1.0), smoothstep(a, -a, box(p - vec2(0.45, 0.25), vec2(0.18, 0.16 * open), 0.05)));
+      col = mix(col, ink, smoothstep(a, -a, box(p - vec2(0.75, -0.3), vec2(0.18, 0.05 + 0.22 * max(uChoo, 0.4 * uAh)), 0.04)));
+
+      // ---- The victim, facing the sneezer (mirrored). He shakes his head after the hit.
+      float shake = 0.35 * sin(uSinceHit * 45.0) * exp(-uSinceHit * 2.5) * uHit;
+      vec2 q = (g - VICTIM - vec2(shake, 0.0)) / 7.0;
+      q.x = -q.x;
+      col = head(col, q, a, mix(vec3(1.0), vec3(0.75, 1.0, 0.55), 0.6 * uHit));   // turning green
+      // Eye: normal, wide when nervous, squeezed shut (">") when hit.
+      vec2 e = q - vec2(0.45, 0.25);
+      if (uHit > 0.5) {
+        float chevron = min(segment(e, vec2(-0.12, 0.12), vec2(0.1, 0.0)), segment(e, vec2(-0.12, -0.12), vec2(0.1, 0.0))) - 0.045;
+        col = mix(col, ink, smoothstep(a, -a, chevron));
+      } else {
+        float wide = 1.0 + 0.5 * uNervous;
+        col = mix(col, vec3(0.37, 0.95, 1.0), smoothstep(a, -a, box(e, vec2(0.15, 0.16) * wide, 0.06)));
+        col = mix(col, ink, smoothstep(a, -a, length(e - vec2(-0.05 * uNervous, 0.0)) - 0.06 * wide));
+      }
+      // Mouth: a flat line, a worried "o", or a wobbly grimace with the tongue out.
+      vec2 mth = q - vec2(0.6, -0.35);
+      if (uHit > 0.5) {
+        float wave = abs(mth.y - 0.06 * sin(mth.x * 28.0 + uSinceHit * 6.0)) - 0.04;
+        col = mix(col, ink, smoothstep(a, -a, max(wave, abs(mth.x) - 0.28)));
+        float tongue = length((mth - vec2(0.08, -0.12)) / vec2(0.1, 0.14)) - 1.0;
+        col = mix(col, vec3(0.95, 0.45, 0.55), smoothstep(0.08, -0.08, tongue));
+      } else if (uNervous > 0.3) {
+        col = mix(col, ink, smoothstep(a, -a, abs(length(mth) - 0.1) - 0.035));
+      } else {
+        col = mix(col, ink, smoothstep(a, -a, box(mth, vec2(0.22, 0.03), 0.02)));
+      }
       gl_FragColor = vec4(col, 1.0);
     }
   `,
@@ -261,7 +322,14 @@ export default {
     tex.magFilter = THREE.LinearFilter;
     tex.minFilter = THREE.LinearFilter;
     tex.needsUpdate = true;
-    return { uField: { value: tex }, uAh: { value: 0 }, uChoo: { value: 0 } };
+    return {
+      uField: { value: tex },
+      uAh: { value: 0 },
+      uChoo: { value: 0 },
+      uNervous: { value: 0 },
+      uHit: { value: 0 },
+      uSinceHit: { value: 0 },
+    };
   },
 
   setup() {
@@ -274,29 +342,31 @@ export default {
     if (m.s < state.lastS) state.fluid = fresh();
     state.lastS = m.s;
     const f = state.fluid;
+    const jetU = (ctx.params.sneezeSpeed * SECONDS_PER_STEP) / METRES_PER_CELL; // m/s → cells per step
+    const nu = (ctx.params.viscosity * NU_AIR * SECONDS_PER_STEP) / METRES_PER_CELL ** 2; // m²/s → cells² per step
 
     state.owed += Math.min(0.1, ctx.delta) * (ctx.params.speed ?? 1) * STEPS_PER_SECOND;
     const n = Math.min(4, Math.floor(state.owed));
     state.owed -= Math.floor(state.owed);
     for (let k = 0; k < n; k++) {
-      step(f, m.choo, 0.12 * Math.sin(f.steps * 0.35));
+      if (m.choo > 0 && f.chooStep < 0) f.chooStep = f.steps;
+      step(f, jetU * m.choo, nu, 0.12 * Math.sin(f.steps * 0.35));
       f.steps++;
     }
 
-    // Readouts: peak vorticity, and the cloud's front (rightmost column with dye).
+    // Readouts and the picture: the cloud's front, and whether it has reached his face.
     const data = state.uniforms.uField.value.image.data;
-    let vmax = 0;
     let front = 0;
+    let onFace = 0;
     for (let j = 1; j <= NY; j++) {
       for (let i = 1; i <= NX; i++) {
         const c = IX(i, j);
-        const w = 0.5 * (f.v[c + 1] - f.v[c - 1] - (f.u[c + W] - f.u[c - W])); // per step
-        vmax = Math.max(vmax, Math.abs(w));
-        // The front: the furthest point where the dye crosses 0.08, to a fraction of a cell.
-        if (f.dye[c] > 0.08 && i >= front) {
+        const w = 0.5 * (f.v[c + 1] - f.v[c - 1] - (f.u[c + W] - f.u[c - W]));
+        if (f.dye[c] > 0.08 && i >= front && i < VX - VHX) {
           const next = f.dye[c + 1];
           front = Math.max(front, next < 0.08 ? i + (f.dye[c] - 0.08) / (f.dye[c] - next) : i + 1);
         }
+        if (i >= VX - VHX - 3 && i < VX - VHX && Math.abs(j - VY) <= VHY) onFace = Math.max(onFace, f.dye[c]);
         const o = ((j - 1) * NX + (i - 1)) * 4;
         data[o] = Math.min(255, f.dye[c] * 255);
         data[o + 1] = Math.max(0, Math.min(255, 128 + w * 2500));
@@ -310,11 +380,21 @@ export default {
       f.frontSpeed += 0.04 * (speed - f.frontSpeed);
       f.front = frontM;
     }
-    m.frontM = frontM;
-    m.vort = vmax / SECONDS_PER_STEP;
-    m.eta = f.frontSpeed > 0.05 && frontM < CAMERA_M - 0.01 ? ((CAMERA_M - frontM) / f.frontSpeed) * 1000 : Infinity;
-    state.uniforms.uAh.value = m.ah;
-    state.uniforms.uChoo.value = m.choo;
+    if (f.hitStep < 0 && onFace > 0.12 && f.chooStep >= 0) {
+      f.hitStep = f.steps;
+      f.hitAt = m.s;
+    }
+    m.frontM = Math.min(frontM, FACE_M);
+    m.hitMs = f.hitStep >= 0 ? (f.hitStep - f.chooStep) * SECONDS_PER_STEP * 1000 : -1;
+    m.eta = f.hitStep < 0 && f.frontSpeed > 0.05 ? ((FACE_M - frontM) / f.frontSpeed) * 1000 : Infinity;
+
+    const u = state.uniforms;
+    u.uAh.value = m.ah;
+    u.uChoo.value = m.choo;
+    u.uHit.value = f.hitStep >= 0 ? 1 : 0;
+    u.uSinceHit.value = f.hitStep >= 0 ? m.s - f.hitAt : 0;
+    // Nervous as the cloud closes in (within 6 cm).
+    u.uNervous.value = f.chooStep >= 0 ? Math.max(0, Math.min(1, 1 - (FACE_M - frontM) / 0.06)) : 0;
   },
 
   dispose(ctx, state) {
