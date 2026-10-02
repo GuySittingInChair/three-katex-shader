@@ -8,6 +8,7 @@ import * as gomoku from '../games/gomoku.js';
 import { createMancalaView } from '../games/mancalaView.js';
 import { createUltimateTttView } from '../games/ultimateTttView.js';
 import { createGomokuView } from '../games/gomokuView.js';
+import { createSneezeDuel } from '../games/sneezeDuel.js';
 import { LEVELS } from '../games/search.js';
 import { recordGameResult, getLeaderboard, getMyGameRecord, onAuthChange, getUser } from '../core/community.js';
 import { promptSignIn } from './signIn.js';
@@ -49,6 +50,11 @@ const GAMES = {
     sides: { 1: 'X', 2: 'O' },
     howTo: 'Tap a cell in a glowing board.',
   },
+  'sneeze-duel': {
+    title: 'Sneeze Duel',
+    blurb: 'Two robots sneeze at each other across a room, on a real Navier–Stokes fluid simulation. Read the draft, aim, time your sneeze. Bet Snot Coins.',
+    custom: createSneezeDuel,
+  },
   gomoku: {
     title: 'Gomoku',
     blurb: 'Five in a row wins, on a 13 × 13 board. Simple rules, sharp tactics.',
@@ -89,7 +95,7 @@ export function createGamesPage(container) {
       </header>
       <section data-role="list">
         <h1 class="page-title">Games</h1>
-        <p class="page-lede">Play against the computer. It thinks by searching ahead through the moves (minimax with alpha-beta pruning); higher levels look further.</p>
+        <p class="page-lede">Play against the computer. In the board games it searches ahead through the moves (minimax with alpha-beta pruning), looking further at higher levels; in Sneeze Duel the toughest robot runs the fluid physics before every sneeze.</p>
         <div class="game-cards"></div>
       </section>
       <section data-role="play" class="hidden">
@@ -124,6 +130,7 @@ export function createGamesPage(container) {
         </div>
         </div>
         <div data-role="bots-pane" class="hidden"></div>
+        <div data-role="custom-pane" class="hidden"></div>
       </section>
     </div>
   `;
@@ -395,6 +402,16 @@ export function createGamesPage(container) {
   }
   for (const b of container.querySelectorAll('[data-tab]')) b.addEventListener('click', () => showTab(b.dataset.tab));
 
+  // A game with its own screen (Sneeze Duel) instead of a board and the minimax AI.
+  let custom = null;
+  function closeCustom() {
+    custom?.destroy();
+    custom = null;
+    $('custom-pane').textContent = '';
+    $('custom-pane').classList.add('hidden');
+    container.querySelector('.game-tabs').classList.remove('hidden');
+  }
+
   function show(id) {
     const known = id && GAMES[id];
     $('list').classList.toggle('hidden', Boolean(known));
@@ -402,6 +419,7 @@ export function createGamesPage(container) {
     if (!known) {
       gameId = null;
       session++;
+      closeCustom();
       document.title = 'Games · aiship';
       return;
     }
@@ -410,10 +428,20 @@ export function createGamesPage(container) {
     arena?.stop();
     arena = null;
     $('bots-pane').textContent = '';
+    closeCustom();
     def = GAMES[id];
     document.title = `${def.title} · aiship`;
     $('title').textContent = def.title;
     $('blurb').textContent = def.blurb;
+    if (def.custom) {
+      session++;
+      container.querySelector('.game-tabs').classList.add('hidden');
+      $('play-pane').classList.add('hidden');
+      $('bots-pane').classList.add('hidden');
+      $('custom-pane').classList.remove('hidden');
+      custom = def.custom($('custom-pane'), { recordResult: recordGameResult, getUser, promptSignIn });
+      return;
+    }
     sideSelect.textContent = '';
     for (const side of [1, 2]) {
       sideSelect.add(new Option(`You play ${def.sides[side]}${side === 1 ? ' (you go first)' : ' (computer goes first)'}`, String(side)));
