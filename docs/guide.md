@@ -29,7 +29,9 @@ sketch's walkthrough.
 15. [Rabbits vs Foxes, annotated](#15-rabbits-vs-foxes-annotated)
 16. [Firefly Sync, annotated](#16-firefly-sync-annotated)
 17. [Robot Picks a Shape, annotated](#17-robot-picks-a-shape-annotated)
-18. [My notes](#18-my-notes)
+18. [Liesegang Rings, annotated](#18-liesegang-rings-annotated)
+19. [Double Pendulum, annotated](#19-double-pendulum-annotated)
+20. [My notes](#20-my-notes)
 
 ---
 
@@ -909,7 +911,64 @@ f of `q` = p × `scale`), `params(rng)` (up to four random numbers, which arrive
 
 ---
 
-## 18. My notes
+## 18. Liesegang Rings, annotated
+
+File: `src/sketches/liesegangRings.js`
+
+Put a drop of silver nitrate in the middle of a gel containing potassium dichromate, wait
+a couple of days, and the dark red silver dichromate comes out not as a smear but as
+**rings**, with clear gel between them. Raphael Liesegang found this in 1896. Rings like
+these appear in some rocks too.
+
+**Why rings.** The product has to become *supersaturated* (reach c\*) before any solid
+appears. Once a ring has formed, it grows by soaking up dissolved product from around it,
+which leaves a gap where nothing can reach c\*. The next ring can only form further out,
+where the front brings in fresh product. The caption narrates c/c\* ("holding
+it in") and each new ring ("could not hold it in any more").
+
+**The model** (Keller–Rubinow): silver a and dichromate b diffuse and react to dissolved
+product c, which turns into immobile precipitate d where c > c\* (nucleation) or where
+there is already precipitate and c > c_s (growth). Explicit finite differences in the
+radius r, so the Laplacian has the extra (1/r)∂/∂r term of a disc.
+
+**The two laws on screen.** Each ring is further out than the last by a nearly constant
+factor (Jablczynski's spacing law, x_{n}/x_{n−1} → 1 + p, here 1.06–1.12), and x_n/√t_n
+settles to a constant (the time law: diffusion covers distance ∝ √time). Real silver
+diffuses at 1.6 × 10⁻⁹ m²/s, so this 9 cm dish takes about 2.3 days, shown in 26 s.
+
+**Code map.** `createSim` runs the simulation (in the first second) and records 520
+snapshots; later loops replay them. The gel's colour is looked up in the shader from a
+240 × 1 texture (r: precipitate, g: dichromate left) by radius, with a small angular
+wobble so the rings look grown.
+
+---
+
+## 19. Double Pendulum, annotated
+
+File: `src/sketches/doublePendulum.js`
+
+Three double pendulums, released together, their tips one atom's width (10⁻¹⁰ m)
+apart. The equations of motion come from the Lagrangian L = T − V on the first line and
+are integrated with RK4. Energy stays constant to 10⁻⁹ J, shown live, so the
+arithmetic is trustworthy.
+
+**What chaos means here.** The gap grows like e^(λt) with λ ≈ 1.6 per second: 10⁻⁶ rad at
+2.9 s, 0.1 rad at 12.6 s. Nothing random is happening; the future is fixed by the start.
+It's just that to predict 12 s ahead you'd need to know the start to better than an atom.
+λ is the **Lyapunov exponent**, and the readout estimates it live as ln(gap/gap₀)/t.
+
+**The white trail.** The LEDs are red, green and blue, and the trails add like light, so
+while the three paths coincide the trail is white. It splits into colours exactly when
+they stop agreeing.
+
+**Honesty about the computer.** The integrator makes tiny errors too, and chaos amplifies
+those as well. Comparing two step sizes from the same start, they reach 0.1 rad at 16.4 s,
+four seconds after the atom. After that the paths are real double-pendulum motions, but
+not the exact ones for these angles, and the caption says so.
+
+---
+
+## 20. My notes
 
 Add your own findings, questions and discoveries here.
 
