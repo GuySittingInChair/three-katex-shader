@@ -28,7 +28,8 @@ sketch's walkthrough.
 14. [Elephant's Toothpaste, annotated](#14-elephants-toothpaste-annotated)
 15. [Rabbits vs Foxes, annotated](#15-rabbits-vs-foxes-annotated)
 16. [Firefly Sync, annotated](#16-firefly-sync-annotated)
-17. [My notes](#17-my-notes)
+17. [Robot Picks a Shape, annotated](#17-robot-picks-a-shape-annotated)
+18. [My notes](#18-my-notes)
 
 ---
 
@@ -838,7 +839,55 @@ grass pulses once they agree.
 
 ---
 
-## 17. My notes
+## 17. Robot Picks a Shape, annotated
+
+File: `src/sketches/robotPicksAShape.js`
+
+A robot names a mathematical object, the shape on screen turns into it, and then it
+picks another. About 45 kinds of object, most with random parameters, so it is never the
+same twice. Ask it for something specific with **Params → Ask for a shape**, or start from
+one with `?shape=klein` at the end of the address.
+
+**One representation for everything.** Every object is a function d(x, y, z) whose zero set
+is the object. There are three kinds:
+
+| Kind | Examples | How d is made |
+|---|---|---|
+| exact distance | sphere, torus, Platonic solids, knots, links | the true distance to the surface, negative inside |
+| distance estimate | Mandelbulb, Julia set, Menger sponge, Sierpinski | a formula that is never more than the true distance |
+| implicit surface | Klein bottle, Clebsch cubic, Kummer, gyroid, Barth | d = f/\|∇f\|: the equation's value, divided by how fast it changes |
+
+The third is one step of Newton's method: if f changes by \|∇f\| per unit of distance, a
+point where f = 0.3 and \|∇f\| = 3 is about 0.1 away from where f = 0. That turns any
+equation into something a raymarcher can draw.
+
+**One formula for every transformation.**
+
+  F_s(x) = (1 − s) d_A(x) + s d_B(x) + 4s(1 − s) φ(x)
+
+At s = 0 this is exactly object A and at s = 1 exactly B, because 4s(1 − s) is 0 at both
+ends and 1 halfway. φ is the flourish, picked at random: a sine ripple, a gyroid lattice,
+a swelling (a constant), or a twist of space (instead of adding to F, it rotates each
+point by an angle proportional to its height before F is evaluated).
+
+**Drawing it.** The surface drawn is \|F\| = 0.008, a thin shell, so a solid sphere and an
+open saddle blend the same way. Everything is clipped to a ball of radius 1.3. The ray
+steps forward by \|F\| divided by L, where L bounds how steep F can be: the blend never
+gets steeper than its steepest ingredient, and the flourish adds its own steepness.
+
+**The robot** follows the comedy formula (section 12). Every fact it states is true
+(27 lines on a cubic surface, 16 nodes on the Kummer surface, 65 on the Barth sextic);
+the opinions are its own. Ask for something it doesn't know and it substitutes a random
+object, "which is basically the same if you squint".
+
+**Adding an object.** Add an entry to `SHAPES`: `id`, `name`, `kind` (`'sdf'` or
+`'implicit'`), `glsl` (for `'sdf'`, return a distance from `p`; for `'implicit'`, return
+f of `q` = p × `scale`), `params(rng)` (up to four random numbers, which arrive as `k`),
+`latex(k)`, `fact(k)` and `aliases`. Check it alone with `?shape=<id>`.
+
+---
+
+## 18. My notes
 
 Add your own findings, questions and discoveries here.
 
