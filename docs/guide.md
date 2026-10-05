@@ -23,7 +23,12 @@ sketch's walkthrough.
 9. [The Hopf fibration sketch, annotated](#9-the-hopf-fibration-sketch-annotated)
 10. [How to read an unfamiliar equation](#10-how-to-read-an-unfamiliar-equation)
 11. [Exercises: changing the Hopf sketch](#11-exercises-changing-the-hopf-sketch)
-12. [My notes](#12-my-notes)
+12. [Funny sketches: the formula](#12-funny-sketches-the-formula)
+13. [Realistic scenes](#13-realistic-scenes)
+14. [Elephant's Toothpaste, annotated](#14-elephants-toothpaste-annotated)
+15. [Rabbits vs Foxes, annotated](#15-rabbits-vs-foxes-annotated)
+16. [Firefly Sync, annotated](#16-firefly-sync-annotated)
+17. [My notes](#17-my-notes)
 
 ---
 
@@ -121,7 +126,8 @@ Comments like `// fiber over θ = 0` use real Unicode characters. On this machin
 | σ | sigma (small) | a width or spread | `\sigma` | `sigma` |
 | Σ | Sigma (capital) | "add all of these up" | `\sum` (for the sum sign), `\Sigma` (letter) | a `for` loop with `+=` |
 | φ | phi | an angle; on a sphere, **longitude** | `\varphi` gives φ, `\phi` gives ϕ | `phi`, `ph` |
-| ψ | psi | a wave function; a field | `\psi` | `psi` |
+| ξ | xi | how far a chemical reaction has gone, 0 (not started) to 1 (finished) | `\xi` | `xi` |
+| ψ | psi | a wave function; a field; the average phase of a crowd of oscillators | `\psi` | `psi` |
 | ω | omega (small) | angular speed (radians per second) | `\omega` | `omega`, `speed` |
 | Ω | Omega (capital) | a region | `\Omega` | — |
 
@@ -134,6 +140,7 @@ Comments like `// fiber over θ = 0` use real Unicode characters. On this machin
 | θᵢ^Fib | theta i, Fib | the θ of item i in the Fibonacci arrangement (the label is a name, not a power) | `\theta_i^{\mathrm{Fib}}` |
 | x² | x squared | x·x | `x^2` |
 | x′ | x prime | the derivative of x, or "a new x" | `x'` |
+| Ṙ | R dot | how fast R is changing per unit of time, dR/dt (Newton's notation) | `\dot R` |
 | x̄ or z̄ | x bar | an average; for complex numbers, the conjugate | `\bar z`, `\overline{z}` |
 | x̂ | x hat | a unit-length direction | `\hat x` |
 | **v** or v⃗ | vector v | a quantity with direction | `\mathbf v`, `\vec v` |
@@ -210,6 +217,10 @@ As typed in a sketch's `latex` function, meaning backslashes are **already doubl
 | `\\,`  `\\ `  `\\quad`  `\\qquad` | thin, normal, wide, very wide space | LaTeX ignores ordinary spaces in math |
 | `\\text{rad}` | upright words inside math | |
 | `\\mathrm{Fib}` | upright letters (for labels) | |
+| `\\mathrm{H_2O_2}` | H₂O₂ | chemical formulas: upright letters, subscript counts |
+| `\\xrightarrow{\\ \\mathrm{I^-}\\ }` | an arrow with I⁻ over it | "turns into, helped by I⁻" in a reaction |
+| `\\ln x` | ln x | natural logarithm, `Math.log(x)` in JS |
+| `\\#\\{i : \\dots\\}` | #{i : …} | "how many i satisfy …"; `#` must be escaped |
 | `\\mathbb{R}` | ℝ | blackboard bold |
 | `\\begin{aligned} a &= b \\\\ c &= d \\end{aligned}` | lines aligned at the `=` | `&` marks the alignment point, `\\\\` starts a new line |
 | `\\textcolor{orange}{x}` | coloured x | the app's yellow live numbers are made this way by `hl()`. `\\color{orange}` instead colours everything after it |
@@ -662,7 +673,172 @@ next one.
 
 ---
 
-## 12. My notes
+## 12. Funny sketches: the formula
+
+The silly sketches (the duck, the robots, the poop) all work the same way, and
+`src/lib/bit.js` turns that into helpers. A bit is
+
+**a true equation × an absurd noun, told deadpan.**
+
+1. **Straight man.** The system, the equation and every number on screen are real and
+   checked. The joke never gets to bend the physics. If the honest number is less funny,
+   use the honest number.
+2. **Casting.** Swap the textbook noun for an absurd one that still fits the maths
+   (spins → robot moods, a test mass → a rubber duck). Or keep the noun and swap the
+   *unit* (litres → elephants brushed).
+3. **Feelings from derivatives.** Name the actors' moods from the signs of real rates.
+   `mood([dR, dF], { '+-': 'Rabbits: thriving. Foxes: on a diet.', ... })` picks the
+   caption from whether each rate is positive or negative, so the joke is true on every
+   frame.
+4. **Punchline readout.** One live number converts a real result into a ridiculous unit,
+   with the conversion shown: `inUnits(hl, vFoam, { per: 2, of: 'L', name: 'elephants brushed' })`.
+5. **Own the reset.** Real processes don't loop. Give the loop's reset its own beat
+   ("Rewinding. Entropy, briefly ignored.") with `beat(t, [[start, text], ...])`.
+
+`caption(text)` formats any of these as the small grey italic line at the bottom of the
+equation. Not every sketch needs all five rules; 1 is the only compulsory one.
+
+---
+
+## 13. Realistic scenes
+
+`src/lib/environment.js` puts a 3D sketch somewhere that looks real:
+
+```js
+setup(ctx) {
+  const env = createEnvironment(ctx, { preset: 'meadow', sun: [12, 230] });
+  // ... add your objects; use MeshStandardMaterial, castShadow = true
+  return { env };
+},
+update(ctx, state) { state.env.update(ctx); },
+dispose(ctx, state) { state.env.dispose(); },
+```
+
+| Preset | What you get |
+|---|---|
+| `meadow` | a physically based sky (the Preetham model) with a sun, swaying instanced grass, ground, haze |
+| `dusk` | the meadow after sunset: no direct sun, the sky still glowing |
+| `lab` | a black epoxy bench and a tiled wall under ceiling lights, with studio reflections |
+
+Options override the preset: `sun: [elevation°, azimuth°]`, `exposure`, `grassHeight`,
+`grassRadius`, `shadowRadius` (how much of the scene gets crisp shadows), `vignette`.
+`env.setSun(elevation, azimuth)` moves the sun at any time.
+
+What makes it look real, in order of importance:
+
+1. **Light in real units, then film.** The scene renders into a high-dynamic-range buffer
+   (the sun can be thousands of times brighter than a shadow), and a last pass maps that
+   onto the screen with the ACES filmic curve, as a camera would. Without this, bright
+   things clip to flat white.
+2. **Reflections of the actual sky.** The sky is baked into an environment map, so every
+   physically based material picks up its colour.
+3. **Soft shadows** from the sun, and **fog matched to the sky's colour at the horizon**,
+   measured from the sky itself in the direction the camera looks.
+4. **Clutter.** Tens of thousands of grass blades, graduation marks on glassware. Real
+   places are never clean.
+
+---
+
+## 14. Elephant's Toothpaste, annotated
+
+File: `src/sketches/elephantToothpaste.js`
+
+Hydrogen peroxide falls apart into water and oxygen on its own, slowly. Iodide ions
+(from potassium iodide) speed this up without being used up, so they're a **catalyst**.
+Dish soap traps the oxygen as foam.
+
+**Everything follows from one number, ξ.** The reaction is first order, so the fraction
+of peroxide used up is ξ = 1 − e^(−kt) with k = 0.6 per second. Then:
+
+| Quantity | Formula | At the end |
+|---|---|---|
+| peroxide left | n₀(1 − ξ), with n₀ = 0.4895 mol in 50 mL of 30 % solution | 0 |
+| oxygen | ½ n₀ ξ RT/P (2 H₂O₂ make 1 O₂; ideal gas at 25 °C) | 5.99 L |
+| foam | oxygen ÷ φ, with φ = 0.9 of the foam being gas | 6.65 L |
+| heat | 98.0 kJ per mole of peroxide × n₀ ξ | 48.0 kJ |
+| temperature | 25 °C + heat ÷ (70 g × 4.18 J/(g·°C)), stopping at 100 °C | 100 °C |
+| steam | heat beyond 100 °C ÷ 2257 J/g | 11.5 g |
+
+The foam is drawn as a tube exactly as wide as the cylinder, so its length *is* its volume
+divided by πr². Two metres of it.
+
+**The joke (formula rules 2, 4, 5).** Elephants brushed = foam ÷ 2 L (an elephant has
+four molars in use at a time; we budget 0.5 L each). The last 4 s rewind the reaction,
+and the caption admits that isn't physics.
+
+**Code map.** `motion` turns loop time into reaction time τ (forwards, a pause, then
+the rewind) and computes every number above. `buildPath` lays out the foam's route
+once (up, over, down, coiling round the foot) and gives it twist-free frames by
+**parallel transport**: each ring's sideways direction is the previous one, nudged to
+stay perpendicular. `update` rebuilds the tube every frame up to the foam's current
+length. Lumps and stripes are looked up by `matter = length − s`, which labels each
+parcel of foam, so they ride along with it instead of sliding over it.
+
+---
+
+## 15. Rabbits vs Foxes, annotated
+
+File: `src/sketches/rabbitsVsFoxes.js`
+
+The Lotka–Volterra equations (1925) are the simplest predator–prey model:
+
+- Ṙ = αR − βRF. Rabbits breed (αR) and get eaten (βRF: proportional to how often a
+  rabbit and a fox meet).
+- Ḟ = δRF − γF. Foxes breed by eating rabbits (δRF) and die (γF).
+
+**Why it loops forever.** V = δR − γ ln R + βF − α ln F never changes. Check it: dV/dt =
+(δ − γ/R)Ṙ + (β − α/F)Ḟ, and substituting the equations makes it cancel to 0. Each
+starting point has its own V, and the populations go round the closed curve of that V.
+The sketch shows V live: it stays at −4.1604 (to rounding) while everything else
+changes.
+
+**The numbers.** α = 1.04, γ = 0.832 per year; β = 0.065, δ = 0.0104 per animal per
+year. Equilibrium is R = γ/δ = 80, F = α/β = 16. Starting from 30 rabbits and 8 foxes,
+rabbits swing 21 → 202 and foxes 5 → 37, with a period of 10.0 years, close to the
+real ~10-year snowshoe hare/lynx cycle in Canadian fur-trading records.
+
+**Feelings from derivatives (formula rule 3).** The four quarters of the loop are the four
+sign combinations of (Ṙ, Ḟ). `mood()` names them: thriving / on a diet, thriving /
+noticing, concerned / never been better, scarce / regretting the last five years.
+
+**Code map.** `CYCLE` integrates one exact period with RK4 (4th-order Runge–Kutta: four
+slope samples per step, averaged) and stores 2400 samples, so `motion` is a lookup and
+the loop closes perfectly. Every animal is one instance of an `InstancedMesh`: animal i
+is shown while i < population, and the newest one grows in by the fractional part.
+
+---
+
+## 16. Firefly Sync, annotated
+
+File: `src/sketches/fireflySync.js`
+
+Each firefly has a phase θᵢ (where it is in its own flash cycle) and flashes as θᵢ passes
+0. The **Kuramoto model** (1975): θ̇ᵢ = ωᵢ + K r sin(ψ − θᵢ).
+
+- ωᵢ is the firefly's natural rhythm. They're all slightly different.
+- r e^(iψ) is the average of all the e^(iθⱼ): put every firefly on a clock face and take
+  the centre of mass. ψ is the crowd's average phase; r, from 0 to 1, is how together
+  they are.
+- K r sin(ψ − θᵢ) nudges each firefly toward the crowd: forward if it's behind, back
+  if it's ahead.
+
+**Kuramoto's exact result.** If the ωᵢ follow a Lorentzian of half-width γ, nothing
+happens until K passes K_c = 2γ; above it, r = √(1 − K_c/K). A firefly joins in iff
+|ωᵢ − ω₀| ≤ K r. The rest, with rhythms too far from the crowd's, keep doing their own
+thing. The live "locked" count is that formula applied to the simulated r.
+
+**Feelings (rule 3, from a threshold rather than a sign).** "Every firefly for itself"
+below K_c, "a band is forming" above it, and at synchrony the caption counts the
+fireflies still freestyling.
+
+**Code map.** The simulation is the mean-field form: compute r and ψ once (O(N)), then
+update every θᵢ, a few small time steps per frame. The flash is a narrow bump in θ. The
+point light at the centre has brightness equal to the total flash, which is why the
+grass pulses once they agree.
+
+---
+
+## 17. My notes
 
 Add your own findings, questions and discoveries here.
 
