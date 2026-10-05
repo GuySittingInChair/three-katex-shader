@@ -1,4 +1,5 @@
 import { TAU, smooth } from '../lib/motion.js';
+import { parseEquation, analyseSurface, EquationError, IPOW_GLSL } from '../lib/equation.js';
 
 // A robot names a mathematical object, any object it likes, and the shape on
 // screen turns into it. Then it picks another. Forever, never the same twice.
@@ -34,6 +35,13 @@ import { TAU, smooth } from '../lib/motion.js';
 //
 // Every fact the robot states about an object is true. Its opinions are its
 // own. Add ?shape=<id> to the address to start from a particular object.
+//
+// You can also type your own equation, like z = x^2 - y^2 (z is up). It is
+// parsed into a syntax tree (src/lib/equation.js), sampled to find where the
+// surface is and how big, compiled into one of three spare shader slots, and
+// then it's just another implicit surface: d = f/|∇f|. The robot reports its
+// degree, symmetries and size, all measured, and names it. ?eq=<equation>
+// in the address starts with it, so it can be shared.
 
 const SEG = 11;           // seconds per object: hold, then morph to the next
 const HOLD = 6.5;
@@ -486,6 +494,52 @@ const MORPHS = [
   '(1 − s) of this, s of {next}. Easy.',
 ];
 
+// --- Your own equations ------------------------------------------------------
+// Three slots, so the shape on screen and the one it's turning into are never
+// overwritten. Their type numbers come after the catalogue's.
+const CUSTOM_SLOTS = 3;
+const customs = new Array(CUSTOM_SLOTS).fill(null);
+const CUSTOM_NAMES = ['Gerald', 'Brenda', 'Kevin', 'Doris', 'Nigel', 'Ingrid', 'Bartholomew', 'Pam', 'Clive', 'Agnes', 'Desmond', 'Mildred', 'Trevor', 'Gladys'];
+const shapeOf = (type) => (type < SHAPES.length ? SHAPES[type] : customs[type - SHAPES.length]);
+
+// What the robot says about a typed surface: every clause is measured.
+function describe(eq, info) {
+  const bits = [];
+  if (eq.degree === null) bits.push('Not a polynomial, which I respect.');
+  else if (eq.degree === 1) bits.push('Degree 1: it is a plane. Bold.');
+  else bits.push(`Degree ${eq.degree}.`);
+  const s = info.sym;
+  if (s.sphere) bits.push('It only depends on the distance from the centre, so it is round in every direction.');
+  else if (s.roundZ) bits.push('Round about the z-axis.');
+  else if (s.allSwaps) bits.push('It treats x, y and z exactly the same.');
+  else {
+    const mirrors = ['x', 'y', 'z'].filter((a) => s[a]);
+    bits.push(mirrors.length ? `Mirror-symmetric in ${mirrors.join(' and ')}.` : 'No mirror symmetry in x, y or z. A rebel.');
+  }
+  bits.push(info.bounded ? `Bounded, ${fmt(info.size, 1)} across at its widest.` : 'It goes on forever, so I cut it off.');
+  if (eq.usesTime) bits.push('It has a t in it, so it moves. I cannot stop it.');
+  return bits.join(' ');
+}
+
+function makeCustom(eq, info, slot, name) {
+  return {
+    id: `custom${slot}`,
+    name: `${name} surface`,
+    kind: 'implicit',
+    custom: true,
+    upright: true,
+    // q = p · scale: a bounded surface fills ~1.15 of the 1.3 ball; an
+    // unbounded one is shown out to its framing radius.
+    scale: info.show / (info.bounded ? 1.15 : R_CLIP),
+    expr: eq.glsl('q', 'uTime'),
+    center: info.center,
+    aliases: [],
+    params: () => [],
+    latex: () => eq.latex,
+    fact: () => describe(eq, info),
+  };
+}
+
 // --- Which object is shown at index k ------------------------------------
 let seed = (Math.random() * 2 ** 32) >>> 0;
 const overrides = new Map();
@@ -521,7 +575,7 @@ function pick(k) {
   if (cache.has(k)) return cache.get(k);
   const type = typeAt(k);
   const rng = mulberry32(hash2(seed ^ 0x5bd1e995, k));
-  const shape = SHAPES[type];
+  const shape = shapeOf(type);
   const k4 = [0, 0, 0, 0];
   shape.params(rng).forEach((v, i) => (k4[i] = v));
   const fl = Math.floor(rng() * FLOURISHES.length);
@@ -544,7 +598,7 @@ function pick(k) {
 // How the robot says a name mid-sentence: proper names keep their capital.
 const PROPER = /^(Klein|Roman|Cayley|Clebsch|Kummer|Barth|Chebyshev|Dupin|Hopf|Borromean|Menger|Sierpinski|Mandelbulb|Schwarz|Neovius|I-WP|Lidinoid|Fischer|Whitney|Stella|Ding)/;
 const capitalise = (t) => t[0].toUpperCase() + t.slice(1);
-const spoken = (shape) => `the ${PROPER.test(shape.name) ? shape.name : shape.name[0].toLowerCase() + shape.name.slice(1)}`;
+const spoken = (shape) => `the ${shape.custom || PROPER.test(shape.name) ? shape.name : shape.name[0].toLowerCase() + shape.name.slice(1)}`;
 
 // Looks up a typed request: an id, a name or an alias, else nothing.
 function findShape(text) {
@@ -556,23 +610,32 @@ function findShape(text) {
 }
 
 // --- The shader ------------------------------------------------------------
-const objectFns = SHAPES.map((s, i) =>
-  s.kind === 'sdf'
-    ? `float obj${i}(vec3 p, vec4 k) { ${s.glsl} }`
-    : `float imp${i}(vec3 q, vec4 k) { ${s.glsl} }
-       float obj${i}(vec3 p, vec4 k) {
-         const float S = ${s.scale.toFixed(4)};
-         vec3 q = p * S;
-         const float e = 0.002;
-         float f1 = imp${i}(q + vec3( e, -e, -e), k), f2 = imp${i}(q + vec3(-e, -e,  e), k);
-         float f3 = imp${i}(q + vec3(-e,  e, -e), k), f4 = imp${i}(q + vec3( e,  e,  e), k);
-         vec3 g = (vec3(1, -1, -1) * f1 + vec3(-1, -1, 1) * f2 + vec3(-1, 1, -1) * f3 + vec3(1, 1, 1) * f4) / (4.0 * e);
-         return 0.25 * (f1 + f2 + f3 + f4) / max(length(g), 1e-4) / S;
-       }`
-).join('\n');
-const dispatch = SHAPES.map((s, i) => `if (id == ${i}) return obj${i}(p, k);`).join('\n    ');
+const implicitFn = (i, scale, body, args = 'vec3 q, vec4 k') => `
+  float imp${i}(${args}) { ${body} }
+  float obj${i}(vec3 p, vec4 k) {
+    const float S = ${scale.toFixed(5)};
+    vec3 q = p * S;
+    const float e = 0.002;
+    float f1 = imp${i}(q + vec3( e, -e, -e), k), f2 = imp${i}(q + vec3(-e, -e,  e), k);
+    float f3 = imp${i}(q + vec3(-e,  e, -e), k), f4 = imp${i}(q + vec3( e,  e,  e), k);
+    vec3 g = (vec3(1, -1, -1) * f1 + vec3(-1, -1, 1) * f2 + vec3(-1, 1, -1) * f3 + vec3(1, 1, 1) * f4) / (4.0 * e);
+    return 0.25 * (f1 + f2 + f3 + f4) / max(length(g), 1e-4) / S;
+  }`;
 
-const FRAG = `
+function objectFns() {
+  const catalogue = SHAPES.map((s, i) =>
+    s.kind === 'sdf' ? `float obj${i}(vec3 p, vec4 k) { ${s.glsl} }` : implicitFn(i, s.scale, s.glsl)
+  );
+  // Typed equations use z-up coordinates; the scene is y-up.
+  const typed = customs.map((c, j) =>
+    implicitFn(SHAPES.length + j, c ? c.scale : 1, `vec3 q = vec3(qw.x, -qw.z, qw.y)${c ? ` + vec3(${c.center.map((v) => v.toFixed(6)).join(', ')})` : ''}; return ${c ? c.expr : 'length(q) - 1.0'};`, 'vec3 qw, vec4 k')
+  );
+  return [...catalogue, ...typed].join('\n');
+}
+const dispatch = () =>
+  Array.from({ length: SHAPES.length + CUSTOM_SLOTS }, (_, i) => `if (id == ${i}) return obj${i}(p, k);`).join('\n    ');
+
+const buildFrag = () => `
   uniform float uTime;
   uniform vec2 uResolution;
   uniform int uA;
@@ -593,10 +656,12 @@ const FRAG = `
   const float PHI = 1.618033988749895;
   const float R_CLIP = ${R_CLIP.toFixed(2)};
 
-  ${objectFns}
+  ${IPOW_GLSL}
+
+  ${objectFns()}
 
   float shape(int id, vec3 p, vec4 k) {
-    ${dispatch}
+    ${dispatch()}
     return length(p) - 1.0;
   }
 
@@ -710,14 +775,31 @@ const ROBOT_SVG = `
     <rect class="rb-mouth" x="22" y="41" width="20" height="4" rx="2" fill="#2a1a05"/>
   </svg>`;
 
-function createRobot() {
+function createRobot(onAsk) {
   const el = document.createElement('div');
   el.className = 'shape-robot';
-  el.innerHTML = `${ROBOT_SVG}<div class="shape-robot-bubble"><span></span></div>`;
+  el.innerHTML = `
+    <div class="shape-robot-row">${ROBOT_SVG}<div class="shape-robot-bubble"><span></span></div></div>
+    <button type="button" class="shape-robot-open">✎ Ask for a shape, or type an equation</button>
+    <form class="shape-robot-ask hidden">
+      <input type="text" maxlength="200" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"
+        placeholder="torus, d20, or z = x^2 - y^2" aria-label="A shape name or an equation in x, y, z" />
+      <button type="submit">Go</button>
+    </form>`;
   const style = document.createElement('style');
   style.textContent = `
-    .shape-robot { position: fixed; left: 16px; bottom: 96px; z-index: 14; display: flex; align-items: flex-end; gap: 8px;
-      max-width: min(420px, calc(100vw - 32px)); pointer-events: none; }
+    .shape-robot { position: fixed; left: 16px; bottom: 96px; z-index: 14; display: flex; flex-direction: column; gap: 8px;
+      align-items: flex-start; max-width: min(440px, calc(100vw - 32px)); pointer-events: none; }
+    .shape-robot-row { display: flex; align-items: flex-end; gap: 8px; }
+    .shape-robot-open, .shape-robot-ask { pointer-events: auto; margin-left: 60px; }
+    .shape-robot-open { background: rgba(14, 15, 22, 0.75); color: #c9d3e6; border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 999px; padding: 6px 12px; font: 13px system-ui, sans-serif; cursor: pointer; }
+    .shape-robot-open:hover { color: #fff; border-color: rgba(255,255,255,0.3); }
+    .shape-robot-ask { display: flex; gap: 6px; width: min(360px, calc(100vw - 92px)); }
+    .shape-robot-ask.hidden, .shape-robot-open.hidden { display: none; }
+    .shape-robot-ask input { flex: 1; min-width: 0; background: rgba(10, 11, 16, 0.92); color: #fff; border: 1px solid rgba(255,209,102,0.5);
+      border-radius: 8px; padding: 8px 10px; font: 15px ui-monospace, monospace; }
+    .shape-robot-ask button { background: #ffd166; color: #2a1a05; border: 0; border-radius: 8px; padding: 0 14px; font: 600 14px system-ui, sans-serif; cursor: pointer; }
     .shape-robot svg { flex: none; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5)); }
     .shape-robot-bubble { background: rgba(14, 15, 22, 0.88); color: #eef1f7; border: 1px solid rgba(255,255,255,0.14);
       border-radius: 14px 14px 14px 4px; padding: 9px 12px; font: 14px/1.4 system-ui, sans-serif; min-height: 1.4em; }
@@ -729,8 +811,29 @@ function createRobot() {
   document.head.appendChild(style);
   document.body.appendChild(el);
   const text = el.querySelector('span');
+  const open = el.querySelector('.shape-robot-open');
+  const form = el.querySelector('.shape-robot-ask');
+  const input = form.querySelector('input');
+  const showForm = (on) => {
+    form.classList.toggle('hidden', !on);
+    open.classList.toggle('hidden', on);
+    if (on) input.focus();
+  };
+  open.addEventListener('click', () => showForm(true));
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const value = input.value.trim();
+    if (value) onAsk(value);
+    input.blur();
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') showForm(false);
+  });
   let timer = null;
   return {
+    openAsk() {
+      showForm(true);
+    },
     say(line, voice) {
       clearInterval(timer);
       let i = 0;
@@ -765,6 +868,58 @@ function createRobot() {
   };
 }
 
+// A typed request: a catalogue name, an equation, or something else.
+function handleRequest(ctx, state, text) {
+  const say = (line) => state.robot.say(line, state.voice);
+  const mathy = /[=^*+/()0-9|²³]/.test(text);
+  if (!mathy) {
+    const i = findShape(text);
+    if (i >= 0) return morphTo(ctx, state, i, `${SHAPES[i].name}? Excellent choice. I was going to pick that.`);
+  }
+  let eq;
+  try {
+    eq = parseEquation(text);
+  } catch (err) {
+    if (!(err instanceof EquationError)) throw err;
+    if (mathy) return say(`I can't read that. ${err.message}`);
+    const i = Math.floor(Math.random() * SHAPES.length);
+    return morphTo(ctx, state, i, `I do not know "${text.slice(0, 40)}". Here is ${spoken(SHAPES[i])}, which is basically the same if you squint.`);
+  }
+  if (!eq.usesSpace) return say('That has no x, y or z in it, so it is a number, not a shape. Try z = x^2 - y^2.');
+  const info = analyseSurface(eq);
+  if (info.empty) return say('I looked for points where that is true and found none. It is either empty, or hiding somewhere I did not look.');
+  installEquation(ctx, state, eq, info);
+  history.replaceState(history.state, '', `${window.location.pathname}?eq=${encodeURIComponent(eq.text)}`);
+}
+
+// Compile a typed equation into a free slot and morph to it.
+function installEquation(ctx, state, eq, info, { now = true } = {}) {
+  const kNow = Math.floor(ctx.motionTime / SEG);
+  const busy = new Set([pick(kNow).type, pick(kNow + 1).type]);
+  let slot = 0;
+  while (slot < CUSTOM_SLOTS - 1 && busy.has(SHAPES.length + slot)) slot++;
+  const name = CUSTOM_NAMES[Math.floor(Math.random() * CUSTOM_NAMES.length)];
+  customs[slot] = makeCustom(eq, info, slot, name);
+  cache.clear();
+  state.material.fragmentShader = buildFrag();
+  state.material.needsUpdate = true;
+  const line = `"${eq.text.slice(0, 60)}"? Lovely. I am calling it the ${name} surface.`;
+  if (now) morphTo(ctx, state, SHAPES.length + slot, line);
+  else overrides.set(0, SHAPES.length + slot);
+}
+
+function morphTo(ctx, state, type, line) {
+  const { k, at } = jumpTarget(ctx.motionTime);
+  overrides.set(k + 1, type);
+  cache.delete(k + 1);
+  cache.delete(k + 2);
+  ctx.motionTime = at;
+  state.lastK = k;              // so update() doesn't announce over this
+  state.announced = 'morph';
+  state.asked = k + 1;
+  state.robot.say(line, state.voice);
+}
+
 // Where to jump so the next object starts transforming now.
 function jumpTarget(t) {
   const k = Math.floor(t / SEG);
@@ -777,7 +932,8 @@ export default {
   description:
     'A robot names a mathematical object (a Klein bottle, the Barth sextic, a torus knot, a Menger sponge, a ' +
     'Mandelbulb, about 45 kinds with random parameters) and the shape turns into it by one formula: ' +
-    'F_s = (1 − s) d_A + s d_B + 4s(1 − s)φ. Different every time. Ask it for a shape with the Params panel.',
+    'F_s = (1 − s) d_A + s d_B + 4s(1 − s)φ. Different every time. Ask it for a shape, or type your own ' +
+    'equation like z = x^2 - y^2 and it will turn into that.',
   tags: ['implicit surfaces', 'homotopy', 'raymarch', 'algebraic geometry', 'fractals', 'knots', 'robots', 'humor'],
   category: 'Algebraic Art',
   mode: 'shader',
@@ -803,7 +959,7 @@ export default {
         '\\begin{aligned}' +
         `&\\textbf{${A.shape.name.replace(/–/g, '\\text{–}')}} \\\\` +
         `&${A.shape.latex(A.k)} \\\\` +
-        `&${how(A)},\\ \\ \\text{next in } ${hl(HOLD - m.local, 1)}\\,\\text{s}` +
+        `&${how(A)},\\ \\ ${A.shape.custom ? '\\text{your equation, } z \\text{ up},\\ \\ ' : ''}\\text{next in } ${hl(HOLD - m.local, 1)}\\,\\text{s}` +
         '\\end{aligned}'
       );
     }
@@ -829,27 +985,9 @@ export default {
       },
     },
     ask: {
-      label: '💬 Ask for a shape',
+      label: '💬 Ask, or type an equation',
       run(ctx, state) {
-        const want = window.prompt('Which mathematical object? (anything: "klein bottle", "d20", "pringle", "trefoil"…)');
-        if (want == null) return;
-        const { k, at } = jumpTarget(ctx.motionTime);
-        const i = findShape(want);
-        const target = i >= 0 ? i : Math.floor(Math.random() * SHAPES.length);
-        overrides.set(k + 1, target);
-        cache.delete(k + 1);
-        cache.delete(k + 2);
-        ctx.motionTime = at;
-        state.lastK = k;            // so update() doesn't announce over this
-        const name = SHAPES[target].name;
-        state.robot.say(
-          i >= 0
-            ? `${name}? Excellent choice. I was going to pick that.`
-            : `I do not know "${want.slice(0, 40)}". Here is ${spoken(SHAPES[target])}, which is basically the same if you squint.`,
-          state.voice
-        );
-        state.announced = 'morph';
-        state.asked = k + 1;
+        state.robot.openAsk();
       },
     },
     voice: {
@@ -861,7 +999,7 @@ export default {
     },
   },
 
-  fragmentShader: FRAG,
+  fragmentShader: buildFrag(),
 
   uniforms() {
     return {
@@ -885,18 +1023,49 @@ export default {
     seed = (Math.random() * 2 ** 32) >>> 0;
     overrides.clear();
     cache.clear();
-    const asked = new URLSearchParams(window.location.search).get('shape');
-    const i = asked ? findShape(asked) : -1;
+    customs.fill(null);
+    const query = new URLSearchParams(window.location.search);
+    const i = query.get('shape') ? findShape(query.get('shape')) : -1;
     if (i >= 0) overrides.set(0, i);
-    return { robot: createRobot(), voice: false, lastK: null, announced: null, asked: null };
+    // The runner merges what setup returns into its own state object, which
+    // update() receives; the input box reaches it through `live`.
+    const live = {};
+    return {
+      live,
+      robot: createRobot((text) => handleRequest(ctx, live.state, text)),
+      voice: false,
+      lastK: null,
+      announced: null,
+      asked: null,
+      pendingEq: query.get('eq'),
+    };
   },
 
   update(ctx, state) {
-    // Compiling ~45 shapes stalls the first frames; don't let that eat the
-    // first object's turn.
+    // Compiling the shader (at the start, and after a typed equation) stalls
+    // for a moment; don't let the stall count as time on the clock.
     if (ctx.frame < 4) {
       ctx.motionTime = 0;
       ctx.motion = this.motion(0);
+    } else if (ctx.delta > 0.2) {
+      const speed = ctx.params.speed ?? 1;
+      ctx.motionTime -= (ctx.delta - 1 / 60) * speed;
+      ctx.motion = this.motion(ctx.motionTime);
+    }
+    state.live.state = state;
+    if (state.pendingEq) {
+      // A shared ?eq= link: start with that equation.
+      try {
+        const eq = parseEquation(state.pendingEq);
+        const info = eq.usesSpace ? analyseSurface(eq) : { empty: true };
+        if (!info.empty) {
+          installEquation(ctx, state, eq, info, { now: false });
+          state.asked = 0;
+        }
+      } catch (err) {
+        if (!(err instanceof EquationError)) throw err;
+      }
+      state.pendingEq = null;
     }
     const m = ctx.motion;
     const A = pick(m.k);

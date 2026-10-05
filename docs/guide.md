@@ -880,6 +880,28 @@ gets steeper than its steepest ingredient, and the flourish adds its own steepne
 the opinions are its own. Ask for something it doesn't know and it substitutes a random
 object, "which is basically the same if you squint".
 
+**Typing your own equation.** Click **✎ Ask for a shape, or type an equation** under the
+robot and type something like `z = x^2 - y^2`, `x^4 + y^4 + z^4 = 1` or
+`r = 1 + 0.2 sin(5x) sin(5y) sin(5z)`. z is up. You can use x, y, z, r (distance from the
+centre), t (time, so it moves), pi, e, phi, `^` for powers, `|x|` for absolute value, and
+sin cos tan exp ln sqrt abs min max and friends. `2xy` means 2·x·y. What happens next
+(`src/lib/equation.js`):
+
+1. **Parse.** The text becomes a syntax tree. Everything else is generated from the tree,
+   never from your text, so only known pieces can reach the shader.
+2. **Find it.** f is sampled on a grid, first in a 6-unit box, then 24 units, then 1.2
+   units. Grid points within one cell of f = 0 are snapped onto the surface by Newton's
+   method (p ← p − f∇f/|∇f|²). That gives its centre, its size, and whether it reaches the
+   edge of the box, which counts as infinite.
+3. **Describe it.** The robot's facts are all measured: the polynomial degree (read off the
+   tree), mirror and rotational symmetries (f compared with f after reflecting or rotating,
+   at 60 random points), and the width of its bounding box. Then it gets a name.
+4. **Draw it.** The tree is written out as GLSL (whole powers become repeated
+   multiplication, because GLSL's `pow` can't handle negative bases), compiled into one of
+   three spare slots, and drawn like any other implicit surface: d = f/|∇f|.
+
+The address changes to `?eq=…`, so you can share your surface.
+
 **Adding an object.** Add an entry to `SHAPES`: `id`, `name`, `kind` (`'sdf'` or
 `'implicit'`), `glsl` (for `'sdf'`, return a distance from `p`; for `'implicit'`, return
 f of `q` = p × `scale`), `params(rng)` (up to four random numbers, which arrive as `k`),

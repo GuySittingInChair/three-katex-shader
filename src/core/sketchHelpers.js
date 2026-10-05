@@ -18,6 +18,7 @@ import { createFatLines, createDots } from '../lib/fatLines.js';
 import { SHELL_STRIDE, createShellBuffer, extractShell, packPoints } from '../lib/voxelShell.js';
 import { createEnvironment } from '../lib/environment.js';
 import { caption, mood, inUnits, beat } from '../lib/bit.js';
+import { parseEquation, analyseSurface, EquationError, IPOW_GLSL } from '../lib/equation.js';
 
 // Every name a sketch can use without importing it. The code panel runs edited
 // sketches as plain function bodies (see sketchCompiler.js), so these are
@@ -58,6 +59,10 @@ export {
   mood,
   inUnits,
   beat,
+  parseEquation,
+  analyseSurface,
+  EquationError,
+  IPOW_GLSL,
 };
 
 export const HELPERS = {
@@ -94,4 +99,8 @@ export const HELPERS = {
   mood,
   inUnits,
   beat,
+  parseEquation,
+  analyseSurface,
+  EquationError,
+  IPOW_GLSL,
 };
