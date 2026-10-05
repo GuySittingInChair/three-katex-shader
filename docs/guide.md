@@ -31,7 +31,9 @@ sketch's walkthrough.
 17. [Robot Picks a Shape, annotated](#17-robot-picks-a-shape-annotated)
 18. [Liesegang Rings, annotated](#18-liesegang-rings-annotated)
 19. [Double Pendulum, annotated](#19-double-pendulum-annotated)
-20. [My notes](#20-my-notes)
+20. [Quantum Tunnelling, annotated](#20-quantum-tunnelling-annotated)
+21. [Sunflower Phyllotaxis, annotated](#21-sunflower-phyllotaxis-annotated)
+22. [My notes](#22-my-notes)
 
 ---
 
@@ -968,7 +970,63 @@ not the exact ones for these angles, and the caption says so.
 
 ---
 
-## 20. My notes
+## 20. Quantum Tunnelling, annotated
+
+File: `src/sketches/quantumTunnelling.js`
+
+An electron with 13.6 eV of energy meets a wall 16.3 eV high. Classically, it bounces
+every time. Quantum mechanically, part of it comes out the other side.
+
+**What's drawn.** The wavefunction ψ is a complex number at every point x, drawn as a
+curve that winds around the x-axis: real part up, imaginary part sideways, colour =
+phase. The translucent curtain is |ψ|², the probability of finding the electron there.
+The glass pane is the wall, drawn to scale (0.05 to 0.21 nm thick).
+
+**How it's solved.** The Schrödinger equation, i∂ψ/∂t = −½∂²ψ/∂x² + Vψ, in atomic
+units. The split-step Fourier method alternates two exact steps: V just rotates ψ's phase
+at each point, and −½∂² just rotates the phase of each wavelength (an FFT switches
+between the two views). Rotating phases never changes |ψ|, so the total probability
+stays exactly 1.0000, as the readout shows.
+
+**The check.** For a single wavelength the transmission through a rectangular wall is
+known exactly, T = [1 + V₀² sinh²(κa)/(4E(V₀ − E))]⁻¹. A packet is a mixture of
+wavelengths, so its transmission is the average ⟨T⟩. Each loop thickens the wall, and
+the simulated P_through lands within 1% of ⟨T⟩: 0.718, 0.350, 0.159, 0.077. Thicker walls
+let through exponentially less, roughly e^(−2κa).
+
+**You, through a wall.** Same formula, your numbers: 70 kg, a 10 cm wall, 1 J short.
+κ = √(2mΔE)/ħ is about 10³⁵ per metre, so T ≈ 10^(−9.7×10³³). Don't wait up.
+
+---
+
+## 21. Sunflower Phyllotaxis, annotated
+
+File: `src/sketches/sunflowerPhyllotaxis.js`
+
+Seed n of a sunflower sits at angle n·α and radius c√n (Vogel's model). The √n makes
+every seed take the same area. Everything else depends on the single angle α.
+
+**Fractions make spokes.** If α is p/q of a turn, every q-th seed comes back to the same
+direction, so the seeds pile up on q straight spokes with wasted gaps between. The loop
+visits 2/5, 3/8, 5/13, 8/21 and 13/34: 5, 8, 13, 21, 34 spokes, each closer to the next
+angle.
+
+**The golden angle has no spokes.** Those fractions are ratios of Fibonacci numbers,
+and they're the best approximations to 1/φ² = 0.381966…, where φ is the golden ratio.
+360°/φ² = 137.508° is the golden angle. φ is the hardest number of all to approximate by
+fractions (its continued fraction is 1, 1, 1, 1, …), so seeds placed by it never line
+up, and they pack evenly. The closest pair of seeds goes from 0.07c at 2/5 to 1.67c at the
+golden angle.
+
+**Where the spirals come from.** At the golden angle each seed's nearest neighbours are a
+Fibonacci number of seeds away, here 55 and 89 at the rim. Neighbours along a family of k
+spirals are k apart, so those are the spiral counts you can see and count: 55 one way, 89
+the other. Real sunflowers commonly show 34/55 or 55/89. The petals are placed by the
+golden angle too.
+
+---
+
+## 22. My notes
 
 Add your own findings, questions and discoveries here.
 

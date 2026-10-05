@@ -16,7 +16,8 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 // tall screens so a phone in portrait sees the same scene.
 //
 // Presets: 'meadow' (sky, grass), 'dusk' (meadow after sunset), 'lab'
-// (indoor bench under ceiling lights). Objects you add should use
+// (indoor bench under ceiling lights), 'studio' (a photographer's seamless
+// backdrop: the floor curves up into the back wall, so there's no horizon). Objects you add should use
 // MeshStandardMaterial / MeshPhysicalMaterial and set castShadow /
 // receiveShadow; scene.environment gives them reflections for free.
 //
@@ -37,6 +38,10 @@ const PRESETS = {
   lab: {
     sky: false, exposure: 1.0, ground: 'bench', grass: false, fog: 0,
     sunIntensity: 2.4, hemi: 0.35, sun: [62, 140],
+  },
+  studio: {
+    sky: false, exposure: 0.9, ground: 'cyc', grass: false, fog: 0,
+    sunIntensity: 2.0, hemi: 0.15, sun: [55, 150], background: 0x0c0d11,
   },
 };
 
@@ -247,7 +252,7 @@ export function createEnvironment(ctx, options = {}) {
   } else {
     envTarget = pmrem.fromScene(new RoomEnvironment(), 0.04);
     scene.environment = envTarget.texture;
-    scene.background = new THREE.Color(0x15171b);
+    scene.background = new THREE.Color(opts.background ?? 0x15171b);
   }
 
   const sunDir = new THREE.Vector3();
@@ -361,6 +366,35 @@ export function createEnvironment(ctx, options = {}) {
     );
     wall.receiveShadow = true;
     scene.add(wall);
+  }
+  if (opts.ground === 'cyc') {
+    // A cyclorama: floor from the front to z = 0, a quarter circle of radius
+    // `cycRadius`, then straight up. Sized by `cycSize` (scene units).
+    const S = opts.cycSize ?? 10;
+    const R = S * 0.3;
+    const profile = [];
+    for (let i = 0; i <= 12; i++) profile.push([S * 2 * (1 - i / 12), 0]);
+    for (let i = 1; i <= 16; i++) {
+      const a = (i / 16) * (Math.PI / 2);
+      profile.push([-R * Math.sin(a), R * (1 - Math.cos(a))]);
+    }
+    for (let i = 1; i <= 8; i++) profile.push([-R, R + (i / 8) * S]);
+    const cols = 2;
+    const pos = [];
+    const idx = [];
+    profile.forEach(([z, y]) => {
+      for (let c = 0; c < cols; c++) pos.push((c / (cols - 1) - 0.5) * S * 3, y, z);
+    });
+    for (let r = 0; r < profile.length - 1; r++) {
+      const a = r * cols;
+      idx.push(a, a + 1, a + cols, a + 1, a + cols + 1, a + cols);
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.setIndex(idx);
+    geo.computeVertexNormals();
+    ground = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: opts.cycColor ?? 0x2a2c33, roughness: 0.92, side: THREE.DoubleSide }));
+    ground.position.z = -(opts.cycBack ?? S * 0.4);
   }
   if (ground) {
     ground.receiveShadow = true;
