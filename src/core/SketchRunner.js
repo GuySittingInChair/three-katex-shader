@@ -87,17 +87,18 @@ export class SketchRunner {
 
     this._stepMotion(0);
 
-    if (this.sketch.setup) {
-      const returned = this.sketch.setup(this.ctx);
-      this.state = { ...(this.state || {}), ...(returned || {}) };
-    }
-
+    // Before setup(), so a sketch can aim the camera with ctx.controls.target.
     if (this.sketch.controls === 'orbit') {
       this.ctx.controls = new OrbitControls(this.ctx.camera, this.domElement);
       // With a mouse the wheel flips between sketches (see main.js), so zoom
       // is Ctrl + wheel there; touch keeps pinch-to-zoom.
       if (!window.matchMedia('(pointer: coarse)').matches) this.ctx.controls.enableZoom = false;
       this.ctx.controls.enableDamping = true;
+    }
+
+    if (this.sketch.setup) {
+      const returned = this.sketch.setup(this.ctx);
+      this.state = { ...(this.state || {}), ...(returned || {}) };
     }
 
     this.built = true;
@@ -123,15 +124,22 @@ export class SketchRunner {
   render() {
     if (!this.built) return;
     const prev = this.renderer.getRenderTarget();
-    this.renderer.setRenderTarget(this.target);
-    this.renderer.clear();
-    this.renderer.render(this.ctx.scene, this.ctx.camera);
+    // A sketch can install its own pipeline (src/lib/environment.js does:
+    // HDR scene → film tone mapping → this.target); otherwise draw directly.
+    if (this.ctx.pipeline) {
+      this.ctx.pipeline.render(this.renderer, this.ctx.scene, this.ctx.camera, this.target);
+    } else {
+      this.renderer.setRenderTarget(this.target);
+      this.renderer.clear();
+      this.renderer.render(this.ctx.scene, this.ctx.camera);
+    }
     this.renderer.setRenderTarget(prev);
   }
 
   resize(size) {
     this.ctx.size = { ...size };
     this.target.setSize(size.width, size.height);
+    this.ctx.pipeline?.setSize(size.width, size.height);
     if (this.ctx.camera.isPerspectiveCamera) {
       this.ctx.camera.aspect = size.width / size.height;
       this.ctx.camera.updateProjectionMatrix();

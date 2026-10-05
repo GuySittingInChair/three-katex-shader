@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import * as Tone from 'tone';
 import { fibonacciSphere, hopfFiber } from '../lib/hopf.js';
 import { parametricSurface } from '../lib/parametric.js';
@@ -15,6 +16,8 @@ import { morphParams, createMorphSurface, updateMorphSurface } from '../lib/morp
 import { TAU, clamp01, lerp, smooth, phaseOf, segments } from '../lib/motion.js';
 import { createFatLines, createDots } from '../lib/fatLines.js';
 import { SHELL_STRIDE, createShellBuffer, extractShell, packPoints } from '../lib/voxelShell.js';
+import { createEnvironment } from '../lib/environment.js';
+import { caption, mood, inUnits, beat } from '../lib/bit.js';
 
 // Every name a sketch can use without importing it. The code panel runs edited
 // sketches as plain function bodies (see sketchCompiler.js), so these are
@@ -24,6 +27,7 @@ import { SHELL_STRIDE, createShellBuffer, extractShell, packPoints } from '../li
 export {
   THREE,
   OrbitControls,
+  mergeGeometries,
   Tone,
   fibonacciSphere,
   hopfFiber,
@@ -49,11 +53,17 @@ export {
   createShellBuffer,
   extractShell,
   packPoints,
+  createEnvironment,
+  caption,
+  mood,
+  inUnits,
+  beat,
 };
 
 export const HELPERS = {
   THREE,
   OrbitControls,
+  mergeGeometries,
   Tone,
   fibonacciSphere,
   hopfFiber,
@@ -79,4 +89,9 @@ export const HELPERS = {
   createShellBuffer,
   extractShell,
   packPoints,
+  createEnvironment,
+  caption,
+  mood,
+  inUnits,
+  beat,
 };

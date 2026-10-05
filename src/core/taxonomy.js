@@ -10,7 +10,7 @@ export const TAXONOMY = [
   },
   {
     group: 'Systems',
-    categories: ['Cellular Automata', 'Reaction-Diffusion', 'Emergence', 'Growth', 'Physics', 'Optimization', 'Graphs & Networks'],
+    categories: ['Chemistry', 'Biology', 'Cellular Automata', 'Reaction-Diffusion', 'Emergence', 'Growth', 'Physics', 'Optimization', 'Graphs & Networks'],
   },
   {
     group: 'Fields',
