@@ -41,7 +41,8 @@ sketch's walkthrough.
 27. [Kuramoto–Sivashinsky on a Torus, annotated](#27-kuramotosivashinsky-on-a-torus-annotated)
 28. [Kuramoto–Sivashinsky Spiral, annotated](#28-kuramotosivashinsky-spiral-annotated)
 29. [Kuramoto–Sivashinsky Soap Film, annotated](#29-kuramotosivashinsky-soap-film-annotated)
-30. [My notes](#30-my-notes)
+30. [Voodoo Doll, annotated](#30-voodoo-doll-annotated)
+31. [My notes](#31-my-notes)
 
 ---
 
@@ -195,6 +196,8 @@ Comments like `// fiber over θ = 0` use real Unicode characters. On this machin
 | ∞ | infinity | | `\infty` | `Infinity` |
 | Σ | sum | add many terms | `\sum_{k=1}^{n}` | loop with `+=` |
 | ∫ | integral | a continuous sum, area under a curve | `\int_a^b` | loop over small steps |
+| ∬ | double integral | a continuous sum over an area | `\iint` | double loop: `total += u * dx * dx` |
+| K₀, K₁ | modified Bessel functions | how a dent in a sheet on a soft bed fades with distance (about e^{−r}/√r far out) | `K_0(x)` | a polynomial fit (`besselK` in voodooDoll.js) |
 | ∂ | partial derivative | rate of change in one direction | `\partial` | finite difference |
 | ∇ | nabla, gradient | the direction of steepest increase | `\nabla` | |
 | ⟨a, b⟩ | inner product | the dot product | `\langle a, b \rangle` | GLSL `dot(a, b)` |
@@ -1175,7 +1178,40 @@ goes black. Real soap films turn black at the top just before they pop.
 
 ---
 
-## 30. My notes
+## 30. Voodoo Doll, annotated
+
+File: `src/sketches/voodooDoll.js`
+
+Click and hold on the doll to push a pin in (on a phone, turn on hand mode first). Leave it
+alone and it pokes itself; after ten pins they all pop out.
+
+**The shape.** Solve ∇²φ = −1 inside the outline, with φ = 0 on the seam. For a long tube of
+half-width a that gives φ = (a² − x²)/2, so √(2φ) = √(a² − x²) is a semicircle: a stuffed
+fabric tube is round however wide it is. The doll's thickness is 0.6√(2φ).
+
+**The skin** is a stretched sheet (tension T) on a bed of stuffing (stiffness k), dented
+inward by w: ρ w_tt = T∇²w − k w − γ w_t + f. That's a wave equation (T∇²w) plus a spring
+(−k w) plus friction (−γ w_t). Press on it with a flat tip of radius a and the dent is
+w(r) = δ K₀(r/ℓ)/K₀(a/ℓ), with ℓ = √(T/k) = 13.5 mm. Add up the forces and the push needed
+is F = πa²kδ + 2πTδ (a/ℓ) K₁(a/ℓ)/K₀(a/ℓ). The sketch measures F on its grid and prints the
+formula beside it; they agree to about 1%, except near a seam (the formula assumes a sheet
+with no edges, and a seam makes it stiffer).
+
+**The pin** follows a needle-insertion model from surgical robotics (Okamura et al., 2004):
+the force builds as the fabric dents, the fabric gives way at about 2.2 N (the pop, and the
+dent rings out as a wave), then friction grows with depth, f = μs, dragging the fabric in
+around the pin. Every force also twists the doll (torque τ = r × F on a damped spring).
+
+**The pain** is a heat equation: u_t = D∇²u − u/τ + η F·v. The source is the needle's power
+F·v, so a pin that took more work hurts more; the −u/τ term makes it fade. "Pain" and "ow"
+are the joke. The equation is the one that spreads heat.
+
+Try: set **speed** to 0.1 and poke. In slow motion you can see the dent deepen, the pop, and
+the ring of the wave crossing the doll.
+
+---
+
+## 31. My notes
 
 Add your own findings, questions and discoveries here.
 
