@@ -49,24 +49,24 @@ export function fft(re, im, inverse) {
   if (inverse) for (let i = 0; i < n; i++) { re[i] /= n; im[i] /= n; }
 }
 
-// 2D FFT in place on N×N arrays (row-major).
-const rowBuf = { re: null, im: null };
-export function fft2(re, im, N, inverse) {
-  if (!rowBuf.re || rowBuf.re.length !== N) {
-    rowBuf.re = new Float64Array(N);
-    rowBuf.im = new Float64Array(N);
-  }
-  const r = rowBuf.re;
-  const m = rowBuf.im;
-  for (let y = 0; y < N; y++) {
-    for (let x = 0; x < N; x++) { r[x] = re[y * N + x]; m[x] = im[y * N + x]; }
+// 2D FFT in place on Nx × Ny arrays (row-major, rows of length Nx).
+const bufs = new Map();
+const bufFor = (n) => {
+  if (!bufs.has(n)) bufs.set(n, { re: new Float64Array(n), im: new Float64Array(n) });
+  return bufs.get(n);
+};
+export function fft2(re, im, Nx, inverse, Ny = Nx) {
+  let { re: r, im: m } = bufFor(Nx);
+  for (let y = 0; y < Ny; y++) {
+    for (let x = 0; x < Nx; x++) { r[x] = re[y * Nx + x]; m[x] = im[y * Nx + x]; }
     fft(r, m, inverse);
-    for (let x = 0; x < N; x++) { re[y * N + x] = r[x]; im[y * N + x] = m[x]; }
+    for (let x = 0; x < Nx; x++) { re[y * Nx + x] = r[x]; im[y * Nx + x] = m[x]; }
   }
-  for (let x = 0; x < N; x++) {
-    for (let y = 0; y < N; y++) { r[y] = re[y * N + x]; m[y] = im[y * N + x]; }
+  ({ re: r, im: m } = bufFor(Ny));
+  for (let x = 0; x < Nx; x++) {
+    for (let y = 0; y < Ny; y++) { r[y] = re[y * Nx + x]; m[y] = im[y * Nx + x]; }
     fft(r, m, inverse);
-    for (let y = 0; y < N; y++) { re[y * N + x] = r[y]; im[y * N + x] = m[y]; }
+    for (let y = 0; y < Ny; y++) { re[y * Nx + x] = r[y]; im[y * Nx + x] = m[y]; }
   }
 }
 
@@ -188,19 +188,23 @@ export function createKS1D(N, L, h) {
   };
 }
 
+// N and L may be numbers (a square) or [Nx, Ny] and [Lx, Ly] (a rectangle,
+// e.g. to wrap round a torus without stretching the cells).
 export function createKS2D(N, L, h) {
-  const n = N * N;
-  const k1 = (i) => ((2 * Math.PI) / L) * (i <= N / 2 ? i : i - N);
+  const [Nx, Ny] = Array.isArray(N) ? N : [N, N];
+  const [Lx, Ly] = Array.isArray(L) ? L : [L, L];
+  const n = Nx * Ny;
+  const kOf = (i, M, len) => ((2 * Math.PI) / len) * (i <= M / 2 ? i : i - M);
   const kx = new Float64Array(n);
   const ky = new Float64Array(n);
   const lam = new Float64Array(n);
-  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-    const i = y * N + x;
-    const a = k1(x);
-    const b = k1(y);
+  for (let y = 0; y < Ny; y++) for (let x = 0; x < Nx; x++) {
+    const i = y * Nx + x;
+    const a = kOf(x, Nx, Lx);
+    const b = kOf(y, Ny, Ly);
     lam[i] = a * a + b * b - (a * a + b * b) ** 2;
-    kx[i] = x === N / 2 ? 0 : a;
-    ky[i] = y === N / 2 ? 0 : b;
+    kx[i] = x === Nx / 2 ? 0 : a;
+    ky[i] = y === Ny / 2 ? 0 : b;
   }
   const co = etdCoefficients(lam, h);
   const gxr = new Float64Array(n), gxi = new Float64Array(n), gyr = new Float64Array(n), gyi = new Float64Array(n);
@@ -210,22 +214,22 @@ export function createKS2D(N, L, h) {
       gxr[i] = -kx[i] * vi[i]; gxi[i] = kx[i] * vr[i];
       gyr[i] = -ky[i] * vi[i]; gyi[i] = ky[i] * vr[i];
     }
-    fft2(gxr, gxi, N, true);
-    fft2(gyr, gyi, N, true);
+    fft2(gxr, gxi, Nx, true, Ny);
+    fft2(gyr, gyi, Nx, true, Ny);
     for (let i = 0; i < n; i++) {
       outR[i] = -0.5 * (gxr[i] * gxr[i] + gyr[i] * gyr[i]);
       outI[i] = 0;
     }
-    fft2(outR, outI, N, false);
+    fft2(outR, outI, Nx, false, Ny);
   };
   const tr = new Float64Array(n);
   const ti = new Float64Array(n);
   const makeReal = (vr, vi) => {
     tr.set(vr);
     ti.set(vi);
-    fft2(tr, ti, N, true);
+    fft2(tr, ti, Nx, true, Ny);
     ti.fill(0);
-    fft2(tr, ti, N, false);
+    fft2(tr, ti, Nx, false, Ny);
     vr.set(tr);
     vi.set(ti);
   };
@@ -235,32 +239,32 @@ export function createKS2D(N, L, h) {
   const out = new Float64Array(n);
   const tmp = new Float64Array(n);
   return {
-    N, L, h,
+    N, L, h, Nx, Ny, Lx, Ly,
     set(u) {
       vr.set(u);
       vi.fill(0);
-      fft2(vr, vi, N, false);
+      fft2(vr, vi, Nx, false, Ny);
     },
     step() { step(vr, vi); },
     u() {
       out.set(vr);
       tmp.set(vi);
-      fft2(out, tmp, N, true);
+      fft2(out, tmp, Nx, true, Ny);
       return out;
     },
     // Peak of the curvature spectrum (k⁴|v|², summed over shells of |k|):
     // the size of the cells. (u itself is dominated by the longest waves.)
     spectrumPeak() {
-      const shells = new Float64Array(N);
-      for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-        const i = y * N + x;
-        const kk = Math.hypot(k1(x), k1(y));
-        const s = Math.round(kk / ((2 * Math.PI) / L));
-        if (s > 0 && s < N / 2) shells[s] += kk ** 4 * (vr[i] * vr[i] + vi[i] * vi[i]);
+      const dk = (2 * Math.PI) / Math.max(Lx, Ly);
+      const shells = new Float64Array(Math.max(Nx, Ny));
+      for (let i = 0; i < n; i++) {
+        const kk = Math.hypot(kx[i], ky[i]);
+        const s = Math.round(kk / dk);
+        if (s > 0 && s < shells.length) shells[s] += kk ** 4 * (vr[i] * vr[i] + vi[i] * vi[i]);
       }
       let best = 1;
-      for (let s = 1; s < N / 2; s++) if (shells[s] > shells[best]) best = s;
-      return (best * 2 * Math.PI) / L;
+      for (let s = 1; s < shells.length; s++) if (shells[s] > shells[best]) best = s;
+      return best * dk;
     },
     mean() { return vr[0] / n; },
     // ⟨|∇u|²⟩, exactly, from the spectrum (Parseval).

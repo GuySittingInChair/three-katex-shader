@@ -21,6 +21,7 @@ import { caption, mood, inUnits, beat } from '../lib/bit.js';
 import { parseEquation, analyseSurface, EquationError, IPOW_GLSL } from '../lib/equation.js';
 import { voronoiCells, polygonArea, polygonCentroid, secondMoment, lloydStep, cellStats, delaunayTriangles, G_HEXAGON } from '../lib/voronoi.js';
 import { createKS1D, createKS2D, fft, fft2 } from '../lib/kuramotoSivashinsky.js';
+import { createGlow } from '../lib/glow.js';
 
 // Every name a sketch can use without importing it. The code panel runs edited
 // sketches as plain function bodies (see sketchCompiler.js), so these are
@@ -77,6 +78,7 @@ export {
   createKS2D,
   fft,
   fft2,
+  createGlow,
 };
 
 export const HELPERS = {
@@ -129,4 +131,5 @@ export const HELPERS = {
   createKS2D,
   fft,
   fft2,
+  createGlow,
 };

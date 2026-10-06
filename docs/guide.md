@@ -38,7 +38,10 @@ sketch's walkthrough.
 24. [Giant's Causeway, annotated](#24-giants-causeway-annotated)
 25. [Kuramoto–Sivashinsky Spacetime, annotated](#25-kuramotosivashinsky-spacetime-annotated)
 26. [Cellular Flame, annotated](#26-cellular-flame-annotated)
-27. [My notes](#27-my-notes)
+27. [Kuramoto–Sivashinsky on a Torus, annotated](#27-kuramotosivashinsky-on-a-torus-annotated)
+28. [Kuramoto–Sivashinsky Spiral, annotated](#28-kuramotosivashinsky-spiral-annotated)
+29. [Kuramoto–Sivashinsky Soap Film, annotated](#29-kuramotosivashinsky-soap-film-annotated)
+30. [My notes](#30-my-notes)
 
 ---
 
@@ -1119,13 +1122,60 @@ lean hydrogen flames look like this.
 zero, leaving d⟨φ⟩/dt = −½⟨|∇φ|²⟩. Both sides are measured live and agree. A wrinkled flame
 has more area, and more area burns more fuel.
 
+**How it's drawn.** A thin sheet of glowing gas looks brightest where you look along it, so the
+brightness grows as the sheet turns edge-on; the creases between cells are brightest of all, and a
+glow (bloom) pass (`src/lib/glow.js`) lets them bleed light, as real flames do.
+
 **Cell size.** Linear theory says the fastest-growing wavelength is 2π√2 = 8.9 (k = 1/√2,
 where k² − k⁴ peaks). The measured cells, from the peak of the curvature spectrum, are a
 little smaller (6–8): the nonlinearity keeps splitting them.
 
 ---
 
-## 27. My notes
+## 27. Kuramoto–Sivashinsky on a Torus, annotated
+
+File: `src/sketches/ksTorus.js`
+
+A periodic rectangle (what leaves the right edge comes back on the left, and the same top to
+bottom) *is* a torus: glue left to right to get a tube, then glue the tube's ends. So the 2D
+KS equation, which is always solved on a periodic rectangle, is drawn on one.
+
+The rectangle is 80 × 32, close to the torus's own proportions (the long way round is 2.5
+times the short way), so the cells aren't stretched much. What's drawn is the curvature −∇²u
+rather than u itself, because u's size is mostly in very long, gentle waves, while the cells
+live in its curvature: the surface bulges over each cell and creases between them.
+
+---
+
+## 28. Kuramoto–Sivashinsky Spiral, annotated
+
+File: `src/sketches/ksSpiral.js`
+
+The 1D equation lives on a periodic line, which is a circle. So space goes round the rim and
+time sinks inward: each new moment is the outer ring, and older ones slide toward the centre
+and down into the dark, like looking into a tunnel of time. With L = 64, ten waves can grow
+(k = 2πn/L < 1), which is plenty for chaos: cells are born, drift sideways (the tilted streaks),
+merge and split.
+
+---
+
+## 29. Kuramoto–Sivashinsky Soap Film, annotated
+
+File: `src/sketches/ksSoapFilm.js`
+
+KS also describes waves on thin liquid films. Here it ripples the thickness d of a soap film
+that is also draining under gravity, so it's thin at the top and thick at the bottom.
+
+**The colours are physics.** Light bounces off the front of the film and off the back. The
+front reflection flips the wave over (a half-wave shift), the back one doesn't, and the two
+interfere: R(λ) = 2r²(1 − cos(4πnd/λ)). For each pixel that's computed at 16 wavelengths and
+turned into a colour with the CIE colour-matching functions (how the eye's cones respond),
+then into screen RGB. When d is tiny, the two reflections cancel at every colour: the film
+goes black. Real soap films turn black at the top just before they pop.
+
+---
+
+## 30. My notes
 
 Add your own findings, questions and discoveries here.
 
