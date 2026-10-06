@@ -33,7 +33,12 @@ sketch's walkthrough.
 19. [Double Pendulum, annotated](#19-double-pendulum-annotated)
 20. [Quantum Tunnelling, annotated](#20-quantum-tunnelling-annotated)
 21. [Sunflower Phyllotaxis, annotated](#21-sunflower-phyllotaxis-annotated)
-22. [My notes](#22-my-notes)
+22. [Voronoi Metrics, annotated](#22-voronoi-metrics-annotated)
+23. [Lloyd's Relaxation, annotated](#23-lloyds-relaxation-annotated)
+24. [Giant's Causeway, annotated](#24-giants-causeway-annotated)
+25. [Kuramoto–Sivashinsky Spacetime, annotated](#25-kuramotosivashinsky-spacetime-annotated)
+26. [Cellular Flame, annotated](#26-cellular-flame-annotated)
+27. [My notes](#27-my-notes)
 
 ---
 
@@ -1026,7 +1031,101 @@ golden angle too.
 
 ---
 
-## 22. My notes
+## 22. Voronoi Metrics, annotated
+
+File: `src/sketches/voronoiMetrics.js`
+
+A Voronoi cell is everything closer to its seed than to any other seed. "Closer" needs a
+distance, and this sketch changes which one: d_p = (|Δx|^p + |Δy|^p)^(1/p).
+
+| p | Name | A "circle" is a… |
+|---|---|---|
+| 1 | taxicab, Manhattan | diamond |
+| 2 | Euclidean | circle |
+| ∞ | chessboard, Chebyshev: max(\|Δx\|, \|Δy\|) | square |
+| < 1 | not a distance: the triangle inequality fails | four-pointed star |
+
+The small outline round each seed is its "unit circle" for the current p; every cell
+boundary is built from that shape. The black patches at p = 1 are real: whole regions can
+be exactly as far from two seeds.
+
+---
+
+## 23. Lloyd's Relaxation, annotated
+
+File: `src/sketches/lloydRelaxation.js`
+
+Move every seed to the centre of mass of its own cell; redraw the cells; repeat. The cells
+end up nearly all hexagons, the honeycomb, without being told to.
+
+**Why.** Each step lowers the energy G = Σ∫|x − pᵢ|² dA / (2nĀ²): moving a seed to its
+centroid minimises its own cell's integral, and redrawing the cells can only lower it
+further. In the plane nothing beats the regular hexagon, G = 5/(36√3) = 0.080188 (Fejes
+Tóth). The readout is computed exactly from the polygons (`src/lib/voronoi.js`), not
+sampled.
+
+**The colours** count sides: honey 6, blue 5, red 7. The average stays at 6 throughout:
+Euler's formula, with three cells meeting at every corner, forces it. Lloyd doesn't change
+the average; it makes everyone average. Blue–red pairs left over are defects, like
+dislocations in a crystal.
+
+**The dual.** Join two seeds when their cells share an edge and you get the Delaunay
+triangulation. No seed is inside any triangle's circumcircle (the circles drawn at the end).
+
+---
+
+## 24. Giant's Causeway, annotated
+
+File: `src/sketches/giantsCauseway.js`
+
+The same relaxation, drawn as basalt columns rising from the sea, each keeping its own
+height while its outline changes. The real columns formed differently: a thick lava flow
+cooled, contracted and cracked, the cracks advancing layer by layer, and that crack pattern
+also drifts toward hexagons. Most columns there have 5, 6 or 7 sides, most often 6.
+
+---
+
+## 25. Kuramoto–Sivashinsky Spacetime, annotated
+
+File: `src/sketches/ksSpacetime.js`
+
+u_t = −u u_x − u_xx − u_xxxx, on a periodic box of length L, drawn as a landscape: across is
+x, the front edge is now, the past recedes behind it.
+
+**One number organises it.** A wave e^(ikx) grows at rate k² − k⁴, so only 0 < k < 1 grows.
+In a box of length L the waves that fit are k = 2πn/L, so ⌊L/2π⌋ of them are unstable. The
+loop goes through L = 5, 12, 16, 22, 100: 0, 1, 2, 3 and 15 unstable modes, and the
+behaviour goes decay, a travelling cell, steady cells, chaos, spatiotemporal chaos. The
+"regime" readout is measured live: chaos if the energy ⟨u²⟩ fluctuates, travelling if it's
+constant but the profile moves, steady if nothing moves.
+
+**How it's solved** (`src/lib/kuramotoSivashinsky.js`): in Fourier space the stiff part,
+(k² − k⁴)v, can be integrated exactly; ETDRK4 does that and handles the nonlinear part to
+fourth order. Two traps, both hit while building it: keep the shortest wave damped, and keep
+the field exactly real after every step, or round-off grows into a blow-up.
+
+---
+
+## 26. Cellular Flame, annotated
+
+File: `src/sketches/cellularFlame.js`
+
+Sivashinsky derived his equation for flame fronts: φ_t + ∇²φ + ∇⁴φ + ½|∇φ|² = 0, where φ is
+where the flame is. A flat flame is unstable (∇²), small wrinkles are smoothed (∇⁴), and
+burning along the normal (½|∇φ|²) folds the wrinkles into cells with sharp creases. Real
+lean hydrogen flames look like this.
+
+**Wrinkles make it faster.** Average the equation over the burner: ∇² and ∇⁴ average to
+zero, leaving d⟨φ⟩/dt = −½⟨|∇φ|²⟩. Both sides are measured live and agree. A wrinkled flame
+has more area, and more area burns more fuel.
+
+**Cell size.** Linear theory says the fastest-growing wavelength is 2π√2 = 8.9 (k = 1/√2,
+where k² − k⁴ peaks). The measured cells, from the peak of the curvature spectrum, are a
+little smaller (6–8): the nonlinearity keeps splitting them.
+
+---
+
+## 27. My notes
 
 Add your own findings, questions and discoveries here.
 

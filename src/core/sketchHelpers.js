@@ -19,6 +19,8 @@ import { SHELL_STRIDE, createShellBuffer, extractShell, packPoints } from '../li
 import { createEnvironment } from '../lib/environment.js';
 import { caption, mood, inUnits, beat } from '../lib/bit.js';
 import { parseEquation, analyseSurface, EquationError, IPOW_GLSL } from '../lib/equation.js';
+import { voronoiCells, polygonArea, polygonCentroid, secondMoment, lloydStep, cellStats, delaunayTriangles, G_HEXAGON } from '../lib/voronoi.js';
+import { createKS1D, createKS2D, fft, fft2 } from '../lib/kuramotoSivashinsky.js';
 
 // Every name a sketch can use without importing it. The code panel runs edited
 // sketches as plain function bodies (see sketchCompiler.js), so these are
@@ -63,6 +65,18 @@ export {
   analyseSurface,
   EquationError,
   IPOW_GLSL,
+  voronoiCells,
+  polygonArea,
+  polygonCentroid,
+  secondMoment,
+  lloydStep,
+  cellStats,
+  delaunayTriangles,
+  G_HEXAGON,
+  createKS1D,
+  createKS2D,
+  fft,
+  fft2,
 };
 
 export const HELPERS = {
@@ -103,4 +117,16 @@ export const HELPERS = {
   analyseSurface,
   EquationError,
   IPOW_GLSL,
+  voronoiCells,
+  polygonArea,
+  polygonCentroid,
+  secondMoment,
+  lloydStep,
+  cellStats,
+  delaunayTriangles,
+  G_HEXAGON,
+  createKS1D,
+  createKS2D,
+  fft,
+  fft2,
 };
