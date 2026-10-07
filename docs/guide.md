@@ -43,7 +43,8 @@ sketch's walkthrough.
 29. [Kuramoto–Sivashinsky Soap Film, annotated](#29-kuramotosivashinsky-soap-film-annotated)
 30. [Voodoo Doll, annotated](#30-voodoo-doll-annotated)
 31. [Radar Shadow, annotated](#31-radar-shadow-annotated)
-32. [My notes](#32-my-notes)
+32. [Supernova Remnant, annotated](#32-supernova-remnant-annotated)
+33. [My notes](#33-my-notes)
 
 ---
 
@@ -1249,7 +1250,54 @@ passes through it twice, so the glow is AF⁴/r⁴, swept round, with each outgo
 
 ---
 
-## 32. My notes
+## 32. Supernova Remnant, annotated
+
+File: `src/sketches/supernovaRemnant.js`
+
+A star explodes. Its shock sweeps up the gas around it for 160 000 years, shown on a log time scale.
+Each loop is a new star (a white dwarf or a collapsed massive star) in gas of a different density.
+
+**Free expansion.** At first the ejecta just coast. A uniform ball of mass M_ej carrying energy E has
+edge speed v_ej = √(10E / 3M_ej), about 11 000 km/s for a white dwarf, so R = v_ej·t. The fading light
+at the start is cobalt-56 decaying to iron-56: L ∝ e^(−t/111 d).
+
+**Sedov–Taylor (dimensional analysis).** Once the shock has swept up about its own mass of gas, the
+ejecta stop mattering. All that is left is the energy E (J = kg·m²/s²), the gas density ρ (kg/m³) and
+the time t. The only length you can build from them is (E t²/ρ)^⅕, so R = ξ₀ (E t²/ρ)^⅕ with a pure
+number ξ₀ in front. G. I. Taylor used this to estimate the energy of a blast from photographs of its
+radius over time. The shock speed follows by differentiating: v_s = Ṙ = 2R / 5t.
+
+**Finding ξ₀.** Dimensional analysis can't give the number in front, but the flow is *self-similar*:
+the profiles of velocity, density and pressure keep the same shape and just stretch with R. Writing
+u = Ṙ f(λ), ρ = ρ₁ g(λ), p = ρ₁ Ṙ² h(λ) with λ = r/R turns the gas equations into three ordinary
+differential equations in λ. The sketch integrates them at load (RK4, from the shock inwards, starting
+from the strong-shock jump g = 4, f = h = ¾), then requires the total energy to equal E. That gives
+ξ₀ = 1.1517 for a monatomic gas (γ = 5/3), the textbook value. The same solution gives the density
+inside: 4× the gas density at the shock, falling to almost nothing in the middle (ρ ∝ λ^4.5). Nearly all
+the mass is piled up in a thin shell just behind the front.
+
+**Why the rim glows.** Hot gas shines by bremsstrahlung, ε ∝ ρ² √T, so the thin dense shell does the
+shining. Looking through the middle of a hollow shell you cross it twice, briefly; at the edge your line
+of sight runs along it for a long way. So the remnant looks like a ring (limb brightening), as real ones
+do. The shader adds up ε along each view ray.
+
+**Temperature.** Just behind a strong shock T_s = 3μ m_p v_s² / 16k (μ = 0.6, the mean particle mass
+in proton masses). At thousands of km/s that is hundreds of millions of kelvin: X-rays, drawn in false
+colour like a Chandra image (blue rim; red, gold and blue knots for silicon, sulfur and iron).
+
+**Snowplow.** At t_tr ≈ 2.9×10⁴ yr · E₅₁^(4/17) n^(−9/17) the shell is cool enough to radiate its heat
+away. It collapses into a thin cold shell pushed by the hot interior, R ∝ t^(2/7), and glows in
+hydrogen-alpha red and oxygen teal, like the Veil Nebula. (The filaments are noise, not hydrodynamics.)
+
+**Checks.** R(340 yr) = 2.1 pc for Cas A-like numbers (observed ≈ 2.5 pc), R(450 yr) = 3.8 pc for
+Tycho (observed ≈ 3.7 pc), and Ṙ matches 2R/5t to 0.2% in the Sedov phase.
+
+Try: speed 0.2 around the "swept up its own mass" caption, and watch v_s start to fall while R keeps
+growing.
+
+---
+
+## 33. My notes
 
 Add your own findings, questions and discoveries here.
 
