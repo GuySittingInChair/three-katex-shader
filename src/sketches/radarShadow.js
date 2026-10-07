@@ -370,6 +370,7 @@ export default {
     field.material.uniforms.uFade.value = m.fade;
     state.glow.strength = 0.85 * g;
     if (ctx.params.zoom !== state.lastZoom) { state.lastZoom = ctx.params.zoom; state.zoomTo(ctx.params.zoom); }
+    state.ui.style.display = document.body.dataset.view === 'clean' ? 'none' : 'flex';   // hidden with the rest of the UI
     const fade = m.fade;
     // Place a drone model: on the plane at flight height, nose along its heading, prop spinning, lights blinking.
     const place = (model, p, heading) => {
