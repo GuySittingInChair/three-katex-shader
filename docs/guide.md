@@ -44,7 +44,8 @@ sketch's walkthrough.
 30. [Voodoo Doll, annotated](#30-voodoo-doll-annotated)
 31. [Radar Shadow, annotated](#31-radar-shadow-annotated)
 32. [Supernova Remnant, annotated](#32-supernova-remnant-annotated)
-33. [My notes](#33-my-notes)
+33. [Intercept, annotated](#33-intercept-annotated)
+34. [My notes](#34-my-notes)
 
 ---
 
@@ -1297,7 +1298,45 @@ growing.
 
 ---
 
-## 33. My notes
+## 33. Intercept, annotated
+
+File: `src/sketches/intercept.js`
+
+A Shahed-type drone makes a pop-up attack on a gun position, and a twin 35 mm autocannon shoots it
+down. The whole attack is simulated at 240 steps a second and played back. The camera cuts between a
+chase view, the gun's view, a slow-motion orbit of the hit and the fall of the wreckage. Every loop is a
+new attack.
+
+**The attack.** It flies in at 45 m, below the tree line where the gun's radar can't see it, climbs
+steeply near the target, then dives. In the dive it steers by **proportional navigation**:
+a = N·V_c·(Ω × v̂), where Ω = (r × ṙ)/|r|² is how fast the line of sight to the target is turning. Turn
+N times faster than the line of sight turns, and you end up on a collision course.
+
+**The gun.** Each round leaves at 1175 m/s and slows by air drag, v̇ = −k|v|v + g (about 850 m/s left
+at 2 km). To hit, the gun aims where the drone will be when the round gets there, solving
+|r + v·t| = v̄·t. Under drag the flight time over distance d is t = (e^{kd} − 1)/(k·v₀). The gun only
+knows the drone's velocity from noisy radar fixes, smoothed by a filter that lags, so every turn the
+drone makes throws the aim off for a moment.
+
+**The hit.** One 35 mm explosive round is enough, and where it lands decides what happens: the warhead
+may go off, the fuselage snaps in three, a wing comes off, or the engine dies and it glides down. Each
+piece then falls as its own rigid body, v̇ = g − (ρC_dA/2m)|v|v, spinning, at its own terminal speed
+√(2mg/ρC_dA): a wing flutters down at about 15 m/s, the warhead section falls at about 100.
+
+**The blast.** The shock front grows as the Taylor–Sedov point blast, R = 1.03(E t²/ρ)^{1/5}, the same
+law the Supernova Remnant uses, here with E ≈ 75 MJ instead of 10⁴⁴ J. The casing breaks into
+fragments thrown at the Gurney velocity √(2E)·(M/C + 3/5)^{−1/2} ≈ 1.9 km/s, which drag slows over
+tens of metres: s(t) = ln(1 + k·v₀·t)/k.
+
+**Checks.** Over 40 simulated attacks: 30 shot down in the climb, 10 in the dive, after 25–120 rounds,
+at 1.2–1.6 km. The blast front is 6 m out after 10 ms and 11.5 m after 50 ms.
+
+Try: speed 0.3, and watch the tracers arc as gravity and drag bend them, and the gun's aim chase the
+drone through its climb.
+
+---
+
+## 34. My notes
 
 Add your own findings, questions and discoveries here.
 
