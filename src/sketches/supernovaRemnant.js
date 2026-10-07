@@ -214,12 +214,12 @@ export default {
         blending: THREE.AdditiveBlending,
         uniforms: {
           uCam: { value: new THREE.Vector3() }, uR: { value: 1 }, uProf: { value: SEDOV.prof },
-          uInner: { value: 0.6 }, uCompress: { value: 1 }, uHot: { value: 1 }, uEj: { value: 1 }, uFil: { value: 0 },
+          uInner: { value: 0.6 }, uCompress: { value: 1 }, uHot: { value: 1 }, uEj: { value: 1 }, uFil: { value: 0 }, uWisp: { value: 0 },
           uGain: { value: 1 }, uSeed: { value: 0 }, uPwn: { value: 0 },
         },
         vertexShader: 'varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
         fragmentShader: `varying vec3 vW;
-          uniform vec3 uCam; uniform float uR, uProf[${PROF_N}], uInner, uCompress, uHot, uEj, uFil, uGain, uSeed, uPwn;
+          uniform vec3 uCam; uniform float uR, uProf[${PROF_N}], uInner, uCompress, uHot, uEj, uFil, uWisp, uGain, uSeed, uPwn;
           float hash(vec3 p) { p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
           float noise(vec3 x) {
             vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
@@ -248,9 +248,17 @@ export default {
               float ridge = pow(1.0 - abs(2.0 * n - 1.0), 6.0);
               e *= mix(1.0, 0.04 + 5.0 * ridge, uFil);
             }
+            // hot-phase wisps: finer, softer ridges in the X-ray shell (as in Tycho or SN 1006)
+            float wisp = 0.0;
+            if (e > 0.002 && uWisp > 0.001) {
+              float n = fbm(p * 6.0 - uSeed * 2.3);
+              wisp = pow(1.0 - abs(2.0 * n - 1.0), 7.0);
+              e *= mix(1.0, 0.06 + 5.5 * wisp, uWisp);
+            }
             vec3 hotRim = vec3(0.35, 0.65, 2.2) * (0.6 + 0.8 * dent), warm = vec3(1.2, 0.55, 0.35);
             vec3 oiii = vec3(0.12, 0.95, 0.75), ha = vec3(1.7, 0.2, 0.26);
             vec3 cs = mix(mix(ha, oiii, rim * 0.85), mix(warm, hotRim, 0.35 + 0.65 * rim), uHot);
+            cs = mix(cs, vec3(0.55, 0.9, 2.0), clamp(wisp * uWisp * 1.2, 0.0, 0.45));   // wisp crests run hotter
             vec3 col = cs * e;
             // ejecta knots (Rayleigh–Taylor fingers behind the contact surface), X-ray false colour
             if (uEj > 0.01 && l > 0.25 && l < 0.97) {
@@ -359,6 +367,7 @@ export default {
     U.uCompress.value = 1 + 2.5 * m.cool;
     U.uInner.value = m.ej > 0.01 ? 0.25 : 0.62 + 0.25 * m.cool;
     U.uFil.value = m.cool;
+    U.uWisp.value = (0.4 + 0.55 * smooth(clamp01((m.lt - m.ltSw) / 4))) * (1 - m.cool);
     U.uHot.value = smooth(clamp01((Math.log10(m.T) - 5.6) / 0.9));
     U.uEj.value = m.ej;
     U.uSeed.value = s.seed;
