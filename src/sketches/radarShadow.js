@@ -149,6 +149,59 @@ const COL = {
   sight: new THREE.Color(0.5, 0.9, 1.4),
 };
 const W3 = (p, h = 0.02) => new THREE.Vector3(p.x, h, -p.y);   // plane (x, y) → world (x, h, −y)
+const ALT = 0.3;                                                 // drawn flight height, km
+
+// A delta-wing loitering munition (2.5 m span in life), drawn about 200× life size so it reads at this
+// scale: fuselage, delta wing with winglets, pusher propeller, and navigation lights (red on the left
+// wingtip, green on the right, a white strobe on the tail). Forward is +x.
+function buildDrone(tint, ghost) {
+  const g = new THREE.Group();
+  const body = new THREE.MeshStandardMaterial({
+    color: ghost ? 0x401010 : 0x1b1f24, roughness: 0.55, metalness: 0.35,
+    emissive: tint, emissiveIntensity: ghost ? 0.35 : 0.08, transparent: ghost, opacity: ghost ? 0.55 : 1,
+  });
+  const fus = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.04, 0.42, 16).rotateZ(-Math.PI / 2), body);
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.026, 16, 10), body);
+  nose.position.x = 0.21;
+  const shape = new THREE.Shape();
+  shape.moveTo(0.2, 0); shape.lineTo(-0.17, 0.27); shape.lineTo(-0.23, 0.27); shape.lineTo(-0.17, 0);
+  shape.lineTo(-0.23, -0.27); shape.lineTo(-0.17, -0.27); shape.lineTo(0.2, 0);
+  const wingGeo = new THREE.ExtrudeGeometry(shape, { depth: 0.012, bevelEnabled: false }).translate(0, 0, -0.006).rotateX(Math.PI / 2);
+  g.add(fus, nose, new THREE.Mesh(wingGeo, body));
+  for (const z of [-0.27, 0.27]) {
+    const fin = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.008), body);
+    fin.position.set(-0.2, 0.03, z);
+    g.add(fin);
+  }
+  // a glowing outline, so the shape blooms against the dark field
+  g.add(new THREE.LineSegments(new THREE.EdgesGeometry(wingGeo, 20), new THREE.LineBasicMaterial({ color: tint.clone().multiplyScalar(ghost ? 1.2 : 1.6), transparent: true, opacity: ghost ? 0.6 : 0.9 })));
+  const prop = new THREE.Group();
+  for (let i = 0; i < 2; i++) {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.11, 0.012), body);
+    b.rotation.x = (i * Math.PI) / 2;
+    prop.add(b);
+  }
+  prop.position.x = -0.225;
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(0.06, 24).rotateY(Math.PI / 2), new THREE.MeshBasicMaterial({ color: tint, transparent: true, opacity: 0.12, depthWrite: false }));
+  disc.position.x = -0.226;
+  g.add(prop, disc);
+  const light = (c, x, z) => {
+    const s = new THREE.Mesh(new THREE.SphereGeometry(0.014, 10, 8), new THREE.MeshBasicMaterial({ color: c }));
+    s.position.set(x, 0.01, z);
+    g.add(s);
+    return s;
+  };
+  const lights = { red: light(new THREE.Color(4, 0.3, 0.2), -0.2, -0.27), green: light(new THREE.Color(0.3, 4, 0.6), -0.2, 0.27), strobe: light(new THREE.Color(6, 6, 6), -0.22, 0) };
+  g.userData = { prop, lights };
+  g.scale.setScalar(1.4);
+  g.visible = false;
+  return g;
+}
+// heading of a path (plane angle) at arc length d
+function headingAt(path, d) {
+  const a = at(path, d - 0.02), b = at(path, d + 0.02);
+  return Math.atan2(b.y - a.y, b.x - a.x);
+}
 
 export default {
   name: 'Radar Shadow',
@@ -196,7 +249,7 @@ export default {
       ? `J_{\\text{curve}} = ${hl(m.Jc * 1000, 2)},\\ J_{\\text{straight}} = ${hl(m.Jl * 1000, 2)}\\ \\ (\\times 10^{-3}\\,\\text{km}^{-3}) \\\\ & P_d = \\tfrac12\\operatorname{erfc}\\!\\big(\\sqrt{-\\ln P_{fa}} - \\sqrt{S+\\tfrac12}\\big) = ${hl(m.Pc, 2)}\\ \\text{curved},\\ ${hl(m.Pl, 2)}\\ \\text{straight}`
       : `\\text{AF}(\\theta) = \\frac{\\sin(N\\psi/2)}{N\\sin(\\psi/2)},\\ \\ \\psi = \\pi\\sin(\\theta - \\theta_b),\\ \\ \\text{echo} \\propto \\text{AF}^4/r^4`;
     const line = beat(m.lt, [
-      [0, 'Searching. The camera needs about one pixel pair across the target.'],
+      [0, 'Searching. The camera needs about one pixel pair across the target. (Drones drawn about 200× life size.)'],
       [T_FIND - 1.2, 'Target. Now: how to get there without being seen?'],
       [T_FIND + 0.5, 'The best path depends on how fast the sensor fades with distance.'],
       [T_PLAN, 'Flying the radar geodesic. The red ghost goes straight.'],
@@ -209,15 +262,58 @@ export default {
   params: {
     speed: { value: 1, min: 0, max: 3 },
     glow: { value: 1, min: 0, max: 2 },
+    zoom: { value: 1, min: 0.4, max: 3 },
   },
 
   setup(ctx) {
     const { scene } = ctx;
     scene.background = new THREE.Color(0x02050a);
     const glow = createGlow(ctx, { fov: 40, strength: 0.85, threshold: 0.75, exposure: 1.0, vignette: 0.55 });
-    ctx.camera.position.set(4.5, 15.5, 9.5);
-    ctx.controls?.target.set(4.2, 0, -2.6);
+    // Frame the whole curve (it reaches 13 km out) with room to spare.
+    const home = new THREE.Vector3(5.2, 0, -1.8);
+    const viewDir = new THREE.Vector3(0.05, 0.78, 0.62).normalize();
+    const baseDist = 27;
+    ctx.camera.position.copy(home).addScaledVector(viewDir, baseDist / ctx.params.zoom);
+    ctx.controls?.target.copy(home);
     ctx.controls?.update();
+    scene.add(new THREE.HemisphereLight(0x9fc4d8, 0x05080c, 0.9));
+    const key = new THREE.DirectionalLight(0xfff1dc, 1.6);
+    key.position.set(4, 10, 3);
+    scene.add(key);
+    const drone = buildDrone(new THREE.Color(1.0, 0.85, 0.55), false);
+    const ghost = buildDrone(new THREE.Color(1.0, 0.25, 0.2), true);
+    scene.add(drone, ghost);
+
+    // On-screen zoom: + / − / fit. (Ctrl + scroll and a pinch zoom too.)
+    const zoomTo = (z) => {
+      if (!ctx.controls) return;
+      const off = ctx.camera.position.clone().sub(ctx.controls.target).normalize();
+      ctx.camera.position.copy(ctx.controls.target).addScaledVector(off, baseDist / z);
+      ctx.controls.update();
+    };
+    const distNow = () => (ctx.controls ? ctx.camera.position.distanceTo(ctx.controls.target) : baseDist);
+    const ui = document.createElement('div');
+    ui.style.cssText = 'position:absolute;left:14px;bottom:86px;display:flex;flex-direction:column;gap:6px;z-index:5;';
+    const button = (label, title, fn) => {
+      const b = document.createElement('button');
+      b.textContent = label;
+      b.title = title;
+      b.setAttribute('aria-label', title);
+      b.style.cssText = 'width:36px;height:36px;border-radius:8px;border:1px solid rgba(255,255,255,0.18);background:rgba(8,14,20,0.72);color:#d8e6ea;font:600 16px system-ui;cursor:pointer;';
+      b.addEventListener('click', (e) => { e.stopPropagation(); fn(); });
+      ui.appendChild(b);
+    };
+    button('+', 'Zoom in', () => zoomTo((baseDist / distNow()) * 1.35));
+    button('−', 'Zoom out', () => zoomTo(baseDist / distNow() / 1.35));
+    button('⤢', 'Show the whole path', () => {
+      if (!ctx.controls) return;
+      ctx.controls.target.copy(home);
+      ctx.camera.position.copy(home).addScaledVector(viewDir, baseDist / ctx.params.zoom);
+      ctx.controls.update();
+    });
+    const host = ctx.renderer.domElement.parentElement || document.body;
+    if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+    host.appendChild(ui);
 
     // The radar field: two-way array pattern over 1/r⁴, plus the outgoing pulse rings.
     const field = new THREE.Mesh(
@@ -259,7 +355,7 @@ export default {
     const thin = createFatLines({ maxSegments: 2400, width: 1.2 });
     const dots = createDots({ maxPoints: 64 });
     scene.add(lines.object, thin.object, dots.object);
-    return { glow, field, lines, thin, dots, trail: [], ghostTrail: [], c: new THREE.Color() };
+    return { glow, field, lines, thin, dots, drone, ghost, ui, zoomTo, lastZoom: ctx.params.zoom, c: new THREE.Color() };
   },
 
   update(ctx, state) {
@@ -273,7 +369,19 @@ export default {
     field.material.uniforms.uGain.value = g;
     field.material.uniforms.uFade.value = m.fade;
     state.glow.strength = 0.85 * g;
+    if (ctx.params.zoom !== state.lastZoom) { state.lastZoom = ctx.params.zoom; state.zoomTo(ctx.params.zoom); }
     const fade = m.fade;
+    // Place a drone model: on the plane at flight height, nose along its heading, prop spinning, lights blinking.
+    const place = (model, p, heading) => {
+      model.visible = fade > 0.02;
+      model.position.copy(W3(p, ALT));
+      model.rotation.set(0, heading, 0);
+      const u = model.userData;
+      u.prop.rotation.x += 1.4;
+      u.lights.strobe.visible = ctx.time % 1.1 < 0.06 || (ctx.time + 0.18) % 1.1 < 0.06;
+    };
+    state.drone.visible = false;
+    state.ghost.visible = false;
     const k = (col, s = 1) => c.copy(col).multiplyScalar(s * fade);
 
     lines.reset(); thin.reset(); dots.reset();
@@ -300,9 +408,9 @@ export default {
     if (m.phase === 'find') {
       // drone inbound; the camera's line of sight brightens with P
       const d = m.inbound;
-      dots.push(W3(d, 0.3), k(COL.drone), 0.11);
-      lines.push(W3(d, 0.3), W3(PB, 0.05), k(COL.sight, 0.15 + 0.8 * m.Pj));
-      thin.push(W3(INB, 0.3), W3(d, 0.3), k(COL.drone, 0.25));
+      place(state.drone, d, Math.atan2(PA.y - INB.y, PA.x - INB.x));
+      lines.push(W3(d, ALT), W3(PB, 0.05), k(COL.sight, 0.15 + 0.8 * m.Pj));
+      thin.push(W3(INB, ALT), W3(d, ALT), k(COL.drone, 0.25));
     } else {
       // straight line (red, faint) and the geodesic for the current sensor exponent
       for (let i = 1; i < LINE.pts.length; i += 2) {
@@ -318,18 +426,20 @@ export default {
       }
       if (m.phase !== 'plan') {
         // the two drones; the straight one is a ghost and flashes when the radar's odds of seeing it pass ½
-        dots.push(W3(m.cur, 0.3), k(COL.drone), 0.12);
+        place(state.drone, m.cur, headingAt(CURVE, m.fly * CURVE.L));
+        place(state.ghost, m.lin, Math.atan2(PB.y - PA.y, PB.x - PA.x));
         const seen = m.Pl > 0.5;
-        dots.push(W3(m.lin, 0.3), k(COL.line, seen ? 1.4 + 0.6 * Math.sin(ctx.time * 14) : 0.8), seen ? 0.14 : 0.1);
         if (seen) {
-          const p = W3(m.lin, 0.3), r = 0.35 + 0.1 * Math.sin(ctx.time * 8);
+          const p = W3(m.lin, ALT), r = 0.45 + 0.1 * Math.sin(ctx.time * 8);
           for (let a = 0; a < 24; a++) {
             const a0 = (a / 24) * Math.PI * 2, a1 = ((a + 1) / 24) * Math.PI * 2;
             lines.push(new THREE.Vector3(p.x + r * Math.cos(a0), p.y, p.z + r * Math.sin(a0)), new THREE.Vector3(p.x + r * Math.cos(a1), p.y, p.z + r * Math.sin(a1)), k(COL.line, 1.2));
           }
         }
       } else {
-        dots.push(W3(PA, 0.3), k(COL.drone), 0.11);
+        // waiting at A, its nose turning to follow the path being planned
+        const pl = geodesic(m.n, 60);
+        place(state.drone, PA, Math.atan2(pl[2].y - pl[0].y, pl[2].x - pl[0].x));
       }
     }
     lines.commit(); thin.commit(); dots.commit();
@@ -338,6 +448,8 @@ export default {
   dispose(ctx, state) {
     state.glow.dispose();
     state.lines.dispose(); state.thin.dispose(); state.dots.dispose();
+    state.ui.remove();
+    for (const model of [state.drone, state.ghost]) model.traverse((o) => { o.geometry?.dispose(); o.material?.dispose(); });
     state.field.geometry.dispose(); state.field.material.dispose();
   },
 };
