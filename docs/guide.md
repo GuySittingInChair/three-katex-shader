@@ -42,7 +42,8 @@ sketch's walkthrough.
 28. [Kuramoto–Sivashinsky Spiral, annotated](#28-kuramotosivashinsky-spiral-annotated)
 29. [Kuramoto–Sivashinsky Soap Film, annotated](#29-kuramotosivashinsky-soap-film-annotated)
 30. [Voodoo Doll, annotated](#30-voodoo-doll-annotated)
-31. [My notes](#31-my-notes)
+31. [Radar Shadow, annotated](#31-radar-shadow-annotated)
+32. [My notes](#32-my-notes)
 
 ---
 
@@ -197,6 +198,8 @@ Comments like `// fiber over θ = 0` use real Unicode characters. On this machin
 | Σ | sum | add many terms | `\sum_{k=1}^{n}` | loop with `+=` |
 | ∫ | integral | a continuous sum, area under a curve | `\int_a^b` | loop over small steps |
 | ∬ | double integral | a continuous sum over an area | `\iint` | double loop: `total += u * dx * dx` |
+| erfc | complementary error function | the tail of a bell curve: erfc(x) = 1 − erf(x) | `\operatorname{erfc}` | a polynomial fit (`erfc` in radarShadow.js) |
+| w = z⁻³ | a conformal map | a way of bending the plane that keeps angles; here it turns radar exposure into plain length | `w = z^{-3}` | complex power: raise r, multiply θ |
 | K₀, K₁ | modified Bessel functions | how a dent in a sheet on a soft bed fades with distance (about e^{−r}/√r far out) | `K_0(x)` | a polynomial fit (`besselK` in voodooDoll.js) |
 | ∂ | partial derivative | rate of change in one direction | `\partial` | finite difference |
 | ∇ | nabla, gradient | the direction of steepest increase | `\nabla` | |
@@ -1211,7 +1214,42 @@ the ring of the wave crossing the doll.
 
 ---
 
-## 31. My notes
+## 31. Radar Shadow, annotated
+
+File: `src/sketches/radarShadow.js`
+
+A drone spots a target, then flies the route a radar is least likely to notice.
+
+**Spotting it (Johnson criteria).** A camera can tell something is there when about one pair of
+pixels (one "cycle") spans its critical size. Across a target of size h at range R, with each pixel
+covering IFOV radians, that's N = h / (2R·IFOV) cycles. The chance of detection is
+P = (N/N50)^E / (1 + (N/N50)^E) with E = 2.7 + 0.7·N/N50 and N50 = 1. Watch P climb as the drone
+closes in.
+
+**Hiding (a geodesic).** A radar's echo weakens as 1/r⁴ (the signal goes out and comes back), so a
+drone at steady speed collects echo energy J = ∫ ds/r⁴ along its path. Finding the path with the
+smallest J is a calculus-of-variations problem, and it has a beautiful shortcut. Treat the plane as
+complex numbers z and use the map w = z⁻³. Then |dw| = 3|dz|/r⁴, so J is just a third of the path's
+length in the w-plane, and the shortest path there is a straight line. Mapped back, that line is the
+curve r³ = a³cos(3θ + φ), which swings wide of the radar before cutting in. It is about twice as
+long and gets about 40% less echo.
+
+**The family.** For a sensor whose signal falls as 1/rⁿ, the map is w = z^(1−n). n = 0 gives a
+straight line (no sensor). n = 1 gives a logarithmic spiral, using w = log z. n = 2 (a camera) gives
+a circle through the sensor. n = 4 (radar) gives the three-lobed curve. The planning phase sweeps n
+from 0 to 4 so you can watch the path bend.
+
+**Was it seen?** Integrated echo S is proportional to J. North's approximation gives the detection
+probability P_d = ½ erfc(√(−ln P_fa) − √(S + ½)). The straight route ends at 87% and the curved one
+at 40%. Less, not never.
+
+**The background.** The radar is a 16-element phased array. Its beam pattern is the array factor
+AF(θ) = sin(Nψ/2) / (N sin(ψ/2)) with ψ = π sin(θ − θ_beam): one main lobe plus sidelobes. The echo
+passes through it twice, so the glow is AF⁴/r⁴, swept round, with each outgoing pulse drawn as a ring.
+
+---
+
+## 32. My notes
 
 Add your own findings, questions and discoveries here.
 
