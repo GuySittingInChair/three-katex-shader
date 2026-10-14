@@ -45,7 +45,8 @@ sketch's walkthrough.
 31. [Radar Shadow, annotated](#31-radar-shadow-annotated)
 32. [Supernova Remnant, annotated](#32-supernova-remnant-annotated)
 33. [Intercept, annotated](#33-intercept-annotated)
-34. [My notes](#34-my-notes)
+34. [Radian628 — Shape Mirror, annotated](#34-radian628--shape-mirror-annotated)
+35. [My notes](#35-my-notes)
 
 ---
 
@@ -1336,7 +1337,53 @@ drone through its climb.
 
 ---
 
-## 34. My notes
+## 34. Radian628 — Shape Mirror, annotated
+
+File: `src/sketches/radian628ShapeMirror.js`
+
+Radian628's fractal repeats one step: fold, shift, scale, turn, and warp by an integral,
+p ↦ s·R_θ(|p| − c) − (0.08/k) cos(kp + t). The fold `|p|` is a **mirror**: every point on the negative
+side of an axis is reflected onto the positive side. This variation swaps the straight mirror for a
+**curved one**, so the fractal grows on a shape.
+
+**A mirror made from an equation.** Write the shape as an implicit curve g(p) = 0, with g < 0 inside.
+Near the curve, g/|∇g| is (to first order) the signed distance to it, and ∇g/|∇g| points straight out.
+So the reflection across the curve is
+
+  p ↦ p + (|g| − g) ∇g/|∇g|²
+
+Outside (g > 0) nothing moves. Inside, the point is pushed out by twice its distance: it lands on the
+other side of the curve. For the line g = x this is exactly x ↦ |x|, the fold Radian628 already uses.
+
+**The shapes** are ones from other sketches:
+
+| Shape | g(x, y) | Where it came from |
+|---|---|---|
+| Hopf link | (\|p − c₁\| − r)(\|p − c₂\| − r) | two Hopf fibres, each through the other's centre |
+| trefoil | (x² + y²)² − a(x³ − 3xy²) | the trefoil knot's shadow, the rose r = a cos 3θ |
+| lemniscate | (x² + y²)² − a²(x² − y²) | the figure-eight, a Möbius strip's shadow |
+| cardioid | (x² + y² − ax)² − a²(x² + y²) | the main bulb of the Mandelbrot set |
+| deltoid | (x² + y²)² + 18a²(x² + y²) − 27a⁴ − 8a(x³ − 3xy²) | a circle rolling inside one 3× its size |
+
+A product g₁g₂ is zero where either factor is, so the Hopf link is two circles from one equation.
+
+**Morphing.** The slide from shape A to shape B uses g = (1 − s) g_A + s g_B, with both first turned
+into distances (divided by |∇g|). Blending distances, not raw polynomials, keeps the curve in between a
+sensible mix of the two.
+
+**Glow.** At every step the shader measures |g| at the current point, divided by how much the step has
+magnified things so far. That is the point's distance on screen from the mirror at that depth. Light is
+added in proportion to 1/(distance + ε), so the shape and every smaller echo of it glow.
+
+**μ** fades the curved mirror in over the first 4 s of the 30 s loop (μ = 0 is plain Radian628) and out
+again at the end, so the loop closes.
+
+Try: iterations 3 shows the shape with one ring of echoes; 14 shows the full filigree. Scale near 1.1
+keeps the echoes close to the curve; 1.6 throws them out into petals.
+
+---
+
+## 35. My notes
 
 Add your own findings, questions and discoveries here.
 

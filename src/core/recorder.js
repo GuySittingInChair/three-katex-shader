@@ -1,4 +1,5 @@
 import { getRecordingAudioStream, getMusic } from './audioEngine.js';
+import { renderSmooth, smoothSupported } from './smoothRecorder.js';
 
 // Records the visualisation (and whatever is audible) to a video file.
 //
@@ -16,6 +17,10 @@ import { getRecordingAudioStream, getMusic } from './audioEngine.js';
 // Resolution: "match window" records exactly what is on screen; a preset
 // (1080p, square, vertical …) temporarily resizes the drawing buffer — the
 // canvas on screen just letterboxes — and restores it afterwards.
+//
+// Smooth mode (the default where WebCodecs exists — phones included) doesn't
+// film the screen at all: see smoothRecorder.js. Live mode is kept for sketches
+// that react to sound or to your fingers while you record.
 //
 // What is *not* in the file: the equation overlay and any panels are HTML on
 // top of the canvas, so they are not part of the canvas pixels.
@@ -64,7 +69,12 @@ function timestamp() {
   return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
 }
 
-export function createRecorder({ renderer, manager, size, getName }) {
+// Longest side of a "Match window" recording. Phones have very tall, very dense
+// screens; past this the encoder (and the upload) only gets slower.
+const MAX_SIDE = 1920;
+const even = (n) => Math.max(2, Math.round(n / 2) * 2);
+
+export function createRecorder({ renderer, manager, size, getName, timeline }) {
   let mediaRecorder = null;
   let chunks = [];
   let recCanvas = null;
@@ -77,6 +87,7 @@ export function createRecorder({ renderer, manager, size, getName }) {
   let sizeLock = null; // { pixelRatio } to restore, when a preset resized the canvas
   let onEnded = null;
   let musicEndedHandler = null;
+  let smooth = null; // { stop, progress } while a smooth clip is rendering
   const listeners = new Set();
 
   const emit = () => listeners.forEach((fn) => fn(api));
@@ -101,17 +112,25 @@ export function createRecorder({ renderer, manager, size, getName }) {
   }
 
   const api = {
-    get recording() { return mediaRecorder !== null && mediaRecorder.state !== 'inactive'; },
+    get recording() { return smooth !== null || (mediaRecorder !== null && mediaRecorder.state !== 'inactive'); },
+    // True while a smooth clip is rendering: main.js must not advance or draw the sketch.
+    get rendering() { return smooth !== null; },
+    get progress() { return smooth ? smooth.progress : 0; },
     get sizeLocked() { return sizeLock !== null; },
-    get elapsed() { return api.recording ? (performance.now() - startedAt) / 1000 : 0; },
+    get elapsed() { return smooth ? smooth.seconds : api.recording ? (performance.now() - startedAt) / 1000 : 0; },
     get saved() { return saved; },
     get mime() { return mime; },
-    supported: pickMimeType() !== null,
+    supported: pickMimeType() !== null || smoothSupported(),
+    smoothSupported: smoothSupported(),
     subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); },
 
-    // opts: { sizeId, fps, mbps, includeAudio, restartMusic, stopAtMusicEnd }
+    // opts: { mode: 'smooth'|'live', seconds, sizeId, fps, mbps, includeAudio, restartMusic, stopAtMusicEnd }
     start(opts = {}) {
       if (api.recording) return;
+      if (opts.mode !== 'live' && smoothSupported()) {
+        startSmooth(opts);
+        return;
+      }
       if (!pickMimeType()) throw new Error('This browser cannot record video (no MediaRecorder support).');
 
       const preset = SIZE_PRESETS.find((p) => p.id === opts.sizeId) || SIZE_PRESETS[0];
@@ -178,6 +197,10 @@ export function createRecorder({ renderer, manager, size, getName }) {
     },
 
     stop() {
+      if (smooth) {
+        smooth.stop = true; // the render loop ends the clip after the current frame
+        return;
+      }
       if (!api.recording) return;
       const music = getMusic();
       if (music && musicEndedHandler) music.el.removeEventListener('ended', musicEndedHandler);
@@ -209,13 +232,65 @@ export function createRecorder({ renderer, manager, size, getName }) {
     recCtx = null;
     unlockSize();
 
+    keep(blob, ext, seconds);
+  }
+
+  // Keeps the finished clip for Share / Save / Post. On a phone a download
+  // link just opens a player, so there the panel offers the share sheet instead.
+  function keep(blob, ext, seconds) {
     if (saved) URL.revokeObjectURL(saved.url);
     saved = blob.size
-      ? { blob, url: URL.createObjectURL(blob), filename: `${getName()}-${timestamp()}.${ext}`, seconds }
+      ? { blob, url: URL.createObjectURL(blob), filename: `${getName()}-${timestamp()}.${ext}`, seconds, sketchId: getName() }
       : null;
-    if (saved) api.download();
+    if (saved && !window.matchMedia('(pointer: coarse)').matches) api.download();
     emit();
     if (onEnded) onEnded(saved);
+  }
+
+  async function startSmooth(opts) {
+    const preset = SIZE_PRESETS.find((p) => p.id === opts.sizeId) || SIZE_PRESETS[0];
+    let w = preset.w;
+    let h = preset.h;
+    if (!w) {
+      const k = Math.min(1, MAX_SIDE / Math.max(renderer.domElement.width, renderer.domElement.height));
+      w = renderer.domElement.width * k;
+      h = renderer.domElement.height * k;
+    }
+    lockSize(even(w), even(h));
+    smooth = { stop: false, progress: 0, seconds: 0 };
+    const fps = opts.fps || 30;
+    // The clip gets its own copy of the sound; the live one would only be out of step.
+    const music = getMusic();
+    const wasPlaying = music && !music.el.paused;
+    if (wasPlaying) music.el.pause();
+    if (music && opts.restartMusic !== false) music.el.currentTime = 0;
+    emit();
+    try {
+      const out = await renderSmooth({
+        canvas: renderer.domElement,
+        timeline,
+        seconds: opts.seconds || 10,
+        fps,
+        mbps: opts.mbps || 12,
+        includeAudio: opts.includeAudio !== false,
+        shouldStop: () => smooth.stop,
+        onProgress: (n, total) => {
+          smooth.progress = n / total;
+          smooth.seconds = n / fps;
+        },
+      });
+      smooth = null;
+      unlockSize();
+      if (wasPlaying) music.el.play().catch(() => {});
+      keep(out.blob, 'mp4', out.seconds);
+    } catch (err) {
+      console.error('Smooth recording failed', err);
+      smooth = null;
+      unlockSize();
+      if (wasPlaying) music.el.play().catch(() => {});
+      emit();
+      if (onEnded) onEnded(null, err);
+    }
   }
 
   return api;

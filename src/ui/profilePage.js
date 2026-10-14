@@ -1,6 +1,8 @@
 import { getProfileByUsername, updateProfile, onAuthChange, getProfile, signOut } from '../core/community.js';
 import { authorOf } from '../core/authors.js';
 import { createSketchGrid } from './sketchGrid.js';
+import { listClips } from '../core/clips.js';
+import { clipCard } from './mediaPanel.js';
 
 // /u/<username>: who someone is and every sketch they've made. On your own
 // profile you can edit your name and bio, start a new sketch, or sign out.
@@ -32,6 +34,8 @@ export function createProfilePage(container, { onPick, onWriteSketch, onSignedOu
       </header>
       <h2 class="profile-section">Sketches</h2>
       <div class="profile-grid"></div>
+      <h2 class="profile-section profile-clips-head hidden">Clips</h2>
+      <div class="profile-clips media-clips"></div>
     </div>
   `;
   const q = (sel) => container.querySelector(sel);
@@ -84,6 +88,21 @@ export function createProfilePage(container, { onPick, onWriteSketch, onSignedOu
     }
     if (username !== name) return; // navigated elsewhere meanwhile
     renderHeader();
+    renderClips(name);
+  }
+
+  async function renderClips(name) {
+    const box = q('.profile-clips');
+    box.textContent = '';
+    let clips = [];
+    try {
+      if (shown) clips = await listClips({ userId: shown.id });
+    } catch {
+      clips = []; // no clips table yet
+    }
+    if (username !== name) return;
+    q('.profile-clips-head').classList.toggle('hidden', !clips.length);
+    for (const clip of clips) box.append(clipCard(clip, () => renderClips(name)));
   }
 
   q('[data-role="write"]').addEventListener('click', () => onWriteSketch());

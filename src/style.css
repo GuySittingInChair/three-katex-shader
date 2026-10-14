@@ -2831,3 +2831,79 @@ body.feed-on #toast {
 .duel-record {
   cursor: pointer;
 }
+
+/* ---- Clips (record panel, profiles, review) ---- */
+.media-progress {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.media-progress > div {
+  height: 100%;
+  width: 0;
+  background: #ff5a50;
+  transition: width 0.2s linear;
+}
+.media-preview {
+  width: 100%;
+  max-height: 46vh;
+  border-radius: 8px;
+  background: #000;
+}
+.media-wrap {
+  flex-wrap: wrap;
+}
+.media-caption input {
+  width: 100%;
+  min-width: 0;
+}
+.media-post {
+  border-color: rgba(120, 170, 255, 0.6);
+}
+.media-clips {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+.profile-clips {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  margin-bottom: 40px;
+}
+.clip-card {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+.clip-card video {
+  width: 100%;
+  border-radius: 8px;
+  background: #000;
+  max-height: 60vh;
+}
+.clip-card a {
+  color: inherit;
+}
+.clip-caption {
+  color: rgba(255, 255, 255, 0.9);
+  overflow-wrap: anywhere;
+}
+.clip-delete {
+  background: none;
+  border: none;
+  color: #ff8a80;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+}
+.review-video {
+  width: 100%;
+  max-height: 40vh;
+  background: #000;
+}
+.media-panel [hidden] {
+  display: none;
+}

@@ -79,7 +79,24 @@ manager.isListed = (s) => isPublished(s);
 
 const toast = createToast();
 const viewMode = createViewMode({ toast });
-const recorder = createRecorder({ renderer, manager, size, getName: () => manager.getCurrent().id });
+const clock = new THREE.Clock();
+// The sketch clock. Normally it follows real time; while a smooth recording is
+// rendering, the recorder steps it frame by frame instead (core/smoothRecorder.js).
+let simTime = 0;
+const timeline = {
+  get: () => simTime,
+  set: (t) => {
+    simTime = t;
+    clock.getDelta(); // don't count the render's wall-clock time as one huge frame
+  },
+  step: (t, delta) => {
+    simTime = t;
+    updateAudio();
+    manager.update(t, delta);
+  },
+};
+const recorder = createRecorder({ renderer, manager, size, timeline, getName: () => manager.getCurrent().id });
+if (import.meta.env.DEV) window.__recorder = recorder; // for tools/ tests
 
 // --- Equation ---
 // Re-resolved against live values every frame, but KaTeX only re-renders when
@@ -296,8 +313,16 @@ const reviewApi = createReviewPanel($('review-panel'), manager, {
 registerPanel('review', $('review-panel'), { button: $('review-toggle'), onShow: () => reviewApi.show() });
 
 // --- Media (music track + video recording) ---
-const mediaApi = createMediaPanel($('media-panel'), { recorder, toast });
-registerPanel('media', $('media-panel'), { button: $('media-toggle') });
+const mediaApi = createMediaPanel($('media-panel'), {
+  recorder,
+  toast,
+  getSketchId: () => manager.getCurrent().id,
+  getSketchName: () => manager.getCurrent().name,
+});
+registerPanel('media', $('media-panel'), { button: $('media-toggle'), onShow: () => mediaApi.refreshClips() });
+manager.onChange(() => {
+  if (!$('media-panel').classList.contains('hidden')) mediaApi.refreshClips();
+});
 
 // --- Dock and "more" menu ---
 const DOCK = {
@@ -704,10 +729,14 @@ soundReady = true;
 updateSound();
 
 // --- Loop ---
-const clock = new THREE.Clock();
 function animate() {
   const delta = clock.getDelta();
-  const time = clock.getElapsedTime();
+  if (recorder.rendering) {
+    requestAnimationFrame(animate); // the smooth recorder is drawing the frames
+    return;
+  }
+  simTime += delta;
+  const time = simTime;
   if (page === 'viewer' || (page === 'landing' && heroVisible)) {
     updateAudio();
     manager.update(time, delta);
