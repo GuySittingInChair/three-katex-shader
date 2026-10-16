@@ -1444,7 +1444,49 @@ alone.
 
 ---
 
-## 37. My notes
+## 37. Kali Mart, annotated
+
+File: `src/sketches/kaliMart.js`
+
+A shop whose stock is Kali's fractal, walked by a shopper on autopilot.
+
+**The shelves** show the 3D Kaliset, the same step as Kali Drift one dimension up: p ↦ |p|/|p|² − c
+with p ∈ ℝ³. Each shelf face is cut into 0.7 × 0.6 m product boxes, and each box shows a different
+flat slice of the 3D set (the slice's depth comes from a hash of the box's position). c drifts on
+irrational clocks as in Kali Drift, so the stock keeps changing.
+
+**Ray marching.** There are no triangles. For every pixel the shader shoots a ray and asks a
+*distance function* "how far is the nearest surface from here?" (the minimum over floor, ceiling,
+shelf units, shelf boards and items). Moving that far along the ray can't overshoot anything, so it
+steps forward by that distance and asks again until the distance is tiny (a hit) or the ray has gone
+70 m. The floor sends a second ray in the mirror direction for its reflection, and fog
+(1 − e^(−0.045 t)) takes the far aisles. That reflection and fog are most of the sense of depth.
+
+**The items** are signed distance functions:
+
+| Item | Distance function |
+|---|---|
+| Hopf link | min of two tori, one turned 90°: each ring passes through the other |
+| trefoil knot | distance to the curve (sin t + 2 sin 2t, cos t − 2 cos 2t, −sin 3t), sampled as 36 segments, minus the tube radius |
+| Menger sponge | a cube with crosses cut out at 3 scales (fold with mod, take the max) |
+| gyroid ball | \|sin x cos y + sin y cos z + sin z cos x\| thickened, cut to a sphere |
+| Möbius strip | a thin rectangle swept round a circle, turning by half the angle it has gone round |
+
+Each item first checks a bounding sphere, so the expensive formula only runs on rays that pass close.
+
+**The shopper** walks only along aisles (x = 6i) and cross aisles (z = 24j). Every frame it checks
+which list items it can *see*: a straight line from it to the item, sampled every 0.4 m, must not pass
+through a shelf. Then it routes there: along its aisle to a crossing, across, then down the item's
+aisle. If it sees nothing it wanders crossing to crossing and looks both ways down each cross aisle.
+After 40 s without luck it "asks a member of staff" (goes to the nearest list item it hasn't seen). A
+finished list is checked out, and the basket is dropped from the ceiling at random spots, under
+gravity with one bounce, for the next list.
+
+Try: speed 3 to watch a whole list get done; detail 4 for flat posters, 14 for full fractal lace.
+
+---
+
+## 38. My notes
 
 Add your own findings, questions and discoveries here.
 
