@@ -1383,7 +1383,37 @@ keeps the echoes close to the curve; 1.6 throws them out into petals.
 
 ---
 
-## 35. My notes
+## 35. Radian628 — Prism Mirror, annotated
+
+File: `src/sketches/radian628PrismMirror.js`
+
+The same curved mirror as §34, with two changes to Radian628's step and a brighter palette.
+It plays behind the front page.
+
+**A kaleidoscope instead of |p|.** The axis fold |p| reflects across two mirrors, x = 0 and y = 0.
+Put N mirrors through the origin instead, at angles π/N apart, and fold the angle φ = atan2(y, x)
+into a single wedge:
+
+  φ ↦ |(φ mod 2π/N) − π/N|
+
+N = 2 is the old fold, turned. The loop uses N = 3, 4, 5, 6, so the echoes around each shape come in
+threes, fours, fives and sixes. A fractional N would leave a seam where the wedges don't meet, so the
+slide between two counts blends the two folds: K = (1 − s)K_{N_A} + s K_{N_B}.
+
+**A crossed warp.** Radian628 adds ∫ sin(kx + t) dx to x and ∫ sin(ky + t) dy to y. Here the
+arguments are swapped: x gets −cos(ky + t)/k and y gets −cos(kx + t)/k. Each coordinate is pushed by the
+*other*, which shears the echoes into swirls.
+
+**Colour.** Each glow's hue is the depth i plus the orbit's angle, on a full-saturation rainbow
+(0.5 + 0.5 cos 2π(t + (0, ⅓, ⅔))). The tone map divides by the brightest channel, compresses that, and
+multiplies back, so bright spots get brighter but keep their hue instead of turning white.
+
+Try: saturation 0 for a grey version (it shows the structure without the colour), or iterations 4 to
+see the first ring of kaleidoscope echoes clearly.
+
+---
+
+## 36. My notes
 
 Add your own findings, questions and discoveries here.
 

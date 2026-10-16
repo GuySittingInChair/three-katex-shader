@@ -38,7 +38,7 @@ import { enableAudio, updateAudio, setSketchSound, setSoundOn, isSoundOn } from 
 import { soundUrl, uploadSound, deleteSound } from './core/sounds.js';
 
 // The sketch playing behind the landing page's headline.
-const FEATURED = 'poopRocket';
+const FEATURED = 'radian628PrismMirror';
 const $ = (id) => document.getElementById(id);
 const mobile = window.matchMedia('(max-width: 720px)');
 // Touch screens get the swipe feed; mouse users keep drag-to-rotate.
