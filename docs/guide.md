@@ -1486,7 +1486,42 @@ Try: speed 3 to watch a whole list get done; detail 4 for flat posters, 14 for f
 
 ---
 
-## 38. My notes
+## 38. Kali Run, annotated
+
+File: `src/sketches/kaliRun.js`
+
+A man made of Kali Drift walks an endless hall, and something follows him.
+
+**What's drawn with what.**
+
+| Part | Formula |
+|---|---|
+| his skin | Kali's 2D step p ↦ \|p\|/\|p\|^α − c, in his own body coordinates (it moves with him) |
+| wall screens | the same step, with c and α nudged by a hash of each screen |
+| floor, ceiling | Inferno Cape: f = fbm(x + k·fbm(x + fbm(x))), cracks where sin(14 f) ≈ 0, in Kali colours |
+| floor objects | the five shape SDFs from Kali Mart, one per 2.6 m slot (some empty), from a hash of the slot |
+| it | a sphere squashed to 0.8 tall, with sin·sin·sin spikes that move, and two red eyes |
+
+**His body** is 13 capsules (rounded line segments) blended with a smooth minimum, plus a sphere for
+the head. JavaScript solves the joints every frame from a walk cycle: each thigh swings by
+0.62·a·sin φ, the knee bends on the way through, and the arms swing the opposite way. The phase φ
+advances by 2π per stride *of distance walked*, so his feet don't slide however fast he goes. a grows
+with speed, and he leans forward when he runs.
+
+**The chase.** It walks at 2.5 m/s, a little faster than his 1.9, so the gap shrinks. Under 6 m he runs
+at 4.4 m/s and it slows to 3.9, so the gap grows again, and over 13 m he walks. The gap *breathes*.
+The caption comes from the sign of d(gap)/dt ("it's gaining" / "losing it"). Every 18–30 s it fades
+out and comes back 7 m *in front* of him. He stops, turns 180°, and runs back the way he came, which
+puts it behind him again.
+
+**The camera** sits behind him and a little to one side, turning with him. Every 11–17 s it swings
+round in front of him for 3 s, so you can see what's following.
+
+Try: speed 2 to see the gap breathe; detail 4 for bold, simple screens.
+
+---
+
+## 39. My notes
 
 Add your own findings, questions and discoveries here.
 
