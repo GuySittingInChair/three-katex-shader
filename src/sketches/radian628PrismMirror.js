@@ -32,7 +32,7 @@ const SHAPES = [
   { name: 'cardioid', tex: '(x^2+y^2-ax)^2 - a^2(x^2+y^2)' },
   { name: 'deltoid', tex: '(x^2+y^2)^2 + 18a^2(x^2+y^2) - 27a^4 - 8a(x^3-3xy^2)' },
 ];
-const FOLDS = [3, 4, 5, 6, 3]; // mirrors in the kaleidoscope while each shape holds
+const FOLDS = [3, 4, 5, 6, 3]; // mirrors in the kaleidoscope while each shape holds (wraps to the first)
 
 export default {
   name: 'Radian628 — Prism Mirror',
@@ -53,7 +53,7 @@ export default {
     const s = smooth((local - 0.6) / 0.35); // hold 60 %, slide, settle
     // The kaleidoscope changes its mirror count along with the shape. A
     // fractional N would leave a seam, so the two whole folds are blended.
-    const na = FOLDS[a], nb = FOLDS[a + 1];
+    const na = FOLDS[a], nb = FOLDS[(a + 1) % FOLDS.length];
     const tl = p * PERIOD;
     const mu = Math.min(smooth(tl / 4), smooth((PERIOD - tl) / 2));
     return { a, b: (a + 1) % SHAPES.length, s, mu, na, nb, hue: p, theta: 0.3 * Math.sin(2 * Math.PI * p * 2) + 0.1 };

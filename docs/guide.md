@@ -1413,7 +1413,38 @@ see the first ring of kaleidoscope echoes clearly.
 
 ---
 
-## 36. My notes
+## 36. Kali Drift, annotated
+
+File: `src/sketches/kaliDrift.js`
+
+Kali's fractal (the "Kaliset") repeats one step:
+
+  p ↦ |p| / |p|^α − c
+
+The |p| is the axis mirror again. Dividing by |p|² is an **inversion in the unit circle**: a point at
+distance r goes to distance 1/r, so the inside of the circle is turned outside and back. Mirror,
+invert, shift by c, repeat. α = 2 is the classic set. Smaller α inverts more gently (soft lace), and
+larger α inverts harder (bold cells and jewels).
+
+**Never the same twice.** The other sketches loop. Here c, α, the turn θ and the zoom each move on a
+sum of sines whose frequencies are in irrational ratio (1, φ, √2, √3, φ√3, ...). Two frequencies with an
+irrational ratio never line up again, so the point (c, α, θ, zoom) never returns to where it was: the
+motion is **quasi-periodic**. The slowest clock takes about 47 s, so the picture keeps changing
+character without ever jumping.
+
+**Colour from the closest pass.** For each pixel, the shader follows the orbit and records its
+closest pass to the mirror axes or the inversion circle, and *at which step* it happened. The step
+picks the hue (one colour per level of the fractal), and closeness picks the brightness. Deeper passes
+are counted as further away (×(1 + 0.8i)), so the first few levels draw the picture and the chaos
+underneath is fine texture rather than noise. A smooth wash from the first step's radius fills the
+background, so nothing goes black. Four samples per pixel (2×2) keep the fine lines from flickering.
+
+Try: iterations 5 for just the big shapes, 20 for all the lace; saturation 0 to see the structure
+alone.
+
+---
+
+## 37. My notes
 
 Add your own findings, questions and discoveries here.
 

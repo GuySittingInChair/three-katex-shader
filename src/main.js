@@ -96,7 +96,7 @@ const timeline = {
   },
 };
 const recorder = createRecorder({ renderer, manager, size, timeline, getName: () => manager.getCurrent().id });
-if (import.meta.env.DEV) window.__recorder = recorder; // for tools/ tests
+if (import.meta.env.DEV) Object.assign(window, { __recorder: recorder, __manager: manager }); // for tools/ tests
 
 // --- Equation ---
 // Re-resolved against live values every frame, but KaTeX only re-renders when
