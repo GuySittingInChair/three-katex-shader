@@ -1532,7 +1532,61 @@ Try: wall style "separate screens" for the old look; wall speed 8 for a hall tha
 
 ---
 
-## 39. My notes
+## 39. Kali Tangle, annotated
+
+File: `src/sketches/kaliTangle.js`
+
+Kali Drift with the tidiness taken out. Kali Drift's lines look neat because every step folds with the
+same mirror |p| (so the picture is mirror-symmetric) and glows against the same three curves (the two
+axes and the unit circle). Here both are random *per step*:
+
+    p ↦ |R_i p + s_i| / |p|^α − c
+
+- **R_i** turns by a random angle a_i, which drifts at its own random rate;
+- **s_i** shifts the mirror off the centre, while the inversion still measures |p| from the centre, so
+  no symmetry survives;
+- each step glows against **its own random line and circle**, in its own random hue, and every near
+  pass is *added* (not only the closest), so strands cross and tangle.
+
+Try: chaos 0 to get back (nearly) to Kali Drift; chaos 1 for the full mess.
+
+---
+
+## 40. Kali Silk, annotated
+
+File: `src/sketches/kaliSilk.js`
+
+A different Kali set in every patch of the screen. c and α become *fields* picked by a slowly drifting
+noise n(z) (fractal Brownian motion: a few octaves of smooth value noise):
+
+    c(z) = c + k (n(z) − ½),     α(z) = α + 1.5 k (n₁(z) − n₂(z))
+
+Neighbouring pixels run nearly the same fractal, so lines stay continuous, but across the screen they
+bend, split and wander. Each step's trap line turns by the golden angle (≈ 137.5°), so no two steps glow
+against the same direction, and hues come from the noise field.
+
+Try: warp 0 for plain Kali; warp 1 for threads that barely remember the fractal.
+
+---
+
+## 41. Kali Scribble, annotated
+
+File: `src/sketches/kaliScribble.js`
+
+The Tangle step (random turns and shifted mirrors), drawn as shaky ink and **re-dealt** every few
+seconds. All the random numbers come from a seed; every `reseed` seconds the seed moves on, and over the
+last quarter of the period every turn, shift, trap and colour slides from one random set to the next.
+
+- **Jitter:** the distance to each trap line is wobbled by noise, d ↦ |d + j (n(18p) − ½)|, so lines
+  shake like a pen (or crackle like lightning).
+- **Breaks:** a coarser noise lifts the pen, so strokes break into dashes and scraps.
+- **Colour:** each stroke has its own random hue from the seed, so neighbours clash.
+
+Try: reseed 3 for a fast shuffle; jitter 1.5 for lightning.
+
+---
+
+## 42. My notes
 
 Add your own findings, questions and discoveries here.
 
