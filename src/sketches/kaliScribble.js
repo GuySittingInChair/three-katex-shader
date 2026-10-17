@@ -5,9 +5,20 @@ import { TAU, smooth } from '../lib/motion.js';
 // The step is Kali's p ↦ |R_i p + s_i| / |p|^α − c with a random turn R_i and
 // an off-centre mirror shift s_i for every step i (as in Kali Tangle), but all
 // of the random numbers come from a seed, and every `reseed` seconds the seed
-// moves on: the turns, shifts, traps and colours slide from one random set to
-// the next over the last quarter of each period. So the picture is never the
-// same family twice: it is re-dealt, not just drifted.
+// moves on. So the picture is never the same family twice: it is re-dealt, not
+// just drifted.
+//
+// Each random number follows a Catmull-Rom curve through its values for seeds
+// k−1, k, k+1, k+2, so it moves on with no jumps and no stops. How the deal
+// behaves depends on the period T, so that a fast reseed still looks continuous:
+//   • blend: each re-deal takes `blend` seconds (its own setting); the picture
+//     holds still for the rest of the period, and when blend ≥ T it never
+//     holds, it just keeps flowing;
+//   • step size: under 6 s each deal moves only T/6 of a full re-deal, on top
+//     of a slow deal every 9 s, so the picture changes at the same rate however
+//     fast the reseed: a short T just makes the motion wigglier, not faster;
+//   • flow: the pen breaks and the line directions move sqrt(6/T) times
+//     faster (up to 5×), so everything keeps pace.
 //
 // The strokes are ink, not glow:
 //   • the distance to each step's trap line is jittered by value noise,
@@ -37,15 +48,25 @@ export default {
     const period = params.reseed ?? 9;
     const x = t / period;
     const k = Math.floor(x);
+    const blend = params.blend ?? 2.25;
+    const hold = Math.min(0.98, Math.max(0, 1 - blend / period)); // the part of each period spent holding still
+    const lin = Math.min(1, Math.max(0, (x - k - hold) / (1 - hold)));
+    const u = lin + (smooth(lin) - lin) * Math.min(1, hold / 0.3); // eased while holding, linear (C¹ with Catmull-Rom) when not
+    const seeds = (j) => [j - 1, j, j + 1, j + 2].map((v) => ((v % 997) + 997) % 997);
+    const ks = Math.floor(t / 9);
     return {
       cx: 0.8 + 0.2 * s(1, 2.7) + 0.07 * s(R3, 1.5),
       cy: 0.6 + 0.15 * s(PHI, 0.1) + 0.06 * s(R2 * PHI, 1.8),
       alpha: 2.05 + 0.35 * s(R2, 0.4) + 0.1 * s(PHI * R3, 2.6),
       theta: 0.6 * s(1 / PHI, 0.9),
       zoom: Math.exp(0.4 + 0.35 * s(1 / R3, 1.2)),
-      seedA: k % 997,
-      seedB: (k + 1) % 997,
-      mix: smooth((x - k - 0.75) / 0.25),
+      k: k % 997,
+      seeds: seeds(k),
+      u,
+      slowSeeds: seeds(ks),
+      slowU: t / 9 - ks,
+      amp: Math.min(1, Math.max(0.01, period / 6)),
+      flow: Math.min(5, Math.max(1, Math.sqrt(6 / period))),
       clock: t,
     };
   },
@@ -53,14 +74,15 @@ export default {
   latex: (params, hl, m) =>
     '\\begin{aligned}' +
     `p &\\mapsto \\frac{|R_{a_i} p + s_i|}{|p|^{\\alpha}} - c,\\quad \\alpha = ${hl(m.alpha, 2)},\\quad c = (${hl(m.cx, 2)},\\ ${hl(m.cy, 2)}) \\\\` +
-    `(a_i, s_i, h_i) &= (1-\\mu)\\,\\text{rand}_{${m.seedA}}(i) + \\mu\\,\\text{rand}_{${m.seedB}}(i),\\quad \\mu = ${hl(m.mix, 2)} \\\\` +
+    `(a_i, s_i, h_i) &= \\text{CR}\\big(\\text{rand}_{${m.k}-1\\,..\\,${m.k}+2}(i),\\ u = ${hl(m.u, 2)}\\big)\\ \\text{step } ${hl(m.amp, 2)} \\\\` +
     `d_i &= \\big|\\,p_i\\cdot n_i - o_i + ${hl(params.jitter, 2)}\\,(\\text{noise}(18p_i) - \\tfrac12)\\big| \\\\` +
     '\\text{ink} &= \\textstyle\\sum_i \\text{rainbow}(h_i)\\,\\Big(\\frac{w}{d_i(1+0.6i) + w}\\Big)^2\\,[\\text{noise}(4p_i) > \\tfrac12]' +
     '\\end{aligned}',
 
   params: {
     speed: { value: 1, min: 0, max: 3, step: 0.05 },
-    reseed: { value: 9, min: 3, max: 30, step: 0.5 },
+    reseed: { value: 9, min: 0.1, max: 300, step: 0.05 },
+    blend: { value: 2.25, min: 0.05, max: 60, step: 0.05 },
     jitter: { value: 0.5, min: 0, max: 1.5, step: 0.01 },
     breaks: { value: 0.5, min: 0, max: 1, step: 0.01 },
     iterations: { value: 12, min: 4, max: 20, step: 1 },
@@ -74,9 +96,12 @@ export default {
     uniform float uAlpha;
     uniform float uTheta;
     uniform float uZoom;
-    uniform float uSeedA;
-    uniform float uSeedB;
-    uniform float uMix;
+    uniform vec4 uS;              // seeds k−1 .. k+2
+    uniform float uU;
+    uniform vec4 uSlowS;          // the slow (9 s) deal
+    uniform float uSlowU;
+    uniform float uAmp;
+    uniform float uFlow;
     uniform float uClock;
     uniform float uJitter;
     uniform float uBreaks;
@@ -88,8 +113,26 @@ export default {
     vec3 rainbow(float t) { return 0.5 + 0.5 * cos(6.2831 * (t + vec3(0.0, 0.333, 0.667))); }
     mat2 rot(float a) { float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }
     float h(float n) { return fract(sin(n * 127.1 + 4.7) * 43758.5453); }
-    // A random number for step i, slid from seed A's set to seed B's.
-    float rs(float i, float k) { return mix(h(i * 13.7 + k + uSeedA * 71.3), h(i * 13.7 + k + uSeedB * 71.3), uMix); }
+    // Catmull-Rom through four values: passes through b at u = 0 and c at u = 1, smooth across.
+    float cr(float a, float b, float c, float d, float u) {
+      return b + 0.5 * u * (c - a + u * (2.0 * a - 5.0 * b + 4.0 * c - d + u * (3.0 * (b - c) + d - a)));
+    }
+    vec3 crv(vec3 a, vec3 b, vec3 c, vec3 d, float u) {
+      return b + 0.5 * u * (c - a + u * (2.0 * a - 5.0 * b + 4.0 * c - d + u * (3.0 * (b - c) + d - a)));
+    }
+    float seq(float n, vec4 S, float u) {
+      return cr(h(n + S.x * 71.3), h(n + S.y * 71.3), h(n + S.z * 71.3), h(n + S.w * 71.3), u);
+    }
+    // A random number for step i: the fast deal, a step of size uAmp from the slow one.
+    float rs(float i, float k) {
+      float n = i * 13.7 + k;
+      float fast = seq(n, uS, uU);
+      return uAmp > 0.999 ? fast : mix(seq(n, uSlowS, uSlowU), fast, uAmp);
+    }
+    vec3 inkOf(float fi, vec4 S, float u) {
+      float n = fi * 5.1;
+      return crv(rainbow(h(n + S.x * 3.7)), rainbow(h(n + S.y * 3.7)), rainbow(h(n + S.z * 3.7)), rainbow(h(n + S.w * 3.7)), u);
+    }
     float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     float noise(vec2 p) {
       vec2 i = floor(p), f = fract(p);
@@ -109,14 +152,16 @@ export default {
         vec2 sh = 0.4 * (vec2(rs(fi, 0.2), rs(fi, 0.3)) - 0.5);
         p = abs(p + sh) / pow(r2, 0.5 * uAlpha) - uC;
         // a shaky line: random direction and offset, wobbled by noise
-        float b = 6.2831 * rs(fi, 0.4) + uClock * 0.05;
+        float b = 6.2831 * rs(fi, 0.4) + uClock * 0.05 * uFlow;
         float d = dot(p, vec2(cos(b), sin(b))) - (rs(fi, 0.5) - 0.5) * 1.2;
         d = abs(d + uJitter * 0.06 * (noise(p * 18.0 + fi * 7.1) - 0.5)) * (1.0 + 0.6 * fi);
-        float pen = smoothstep(0.5 * uBreaks - 0.08, 0.5 * uBreaks + 0.08, noise(p * 4.0 + vec2(fi * 3.3, uClock * 0.15)));
+        float pen = smoothstep(0.5 * uBreaks - 0.08, 0.5 * uBreaks + 0.08, noise(p * 4.0 + vec2(fi * 3.3, uClock * 0.15 * uFlow)));
         float w = 0.008 + 0.016 * rs(fi, 0.6);
         float g = w / (d + w);
-        // each stroke its own random hue: blend the two seeds' colours, not their hue numbers
-        vec3 ink = mix(rainbow(h(fi * 5.1 + uSeedA * 3.7)), rainbow(h(fi * 5.1 + uSeedB * 3.7)), uMix);
+        // each stroke its own random hue: blend the seeds' colours, not their hue numbers
+        vec3 ink = inkOf(fi, uS, uU);
+        if (uAmp < 0.999) ink = mix(inkOf(fi, uSlowS, uSlowU), ink, uAmp);
+        ink = clamp(ink, 0.0, 1.0);
         col += ink * g * g * pen * exp(-0.12 * fi) * 2.6;
       }
       return col * uGlow;
@@ -152,9 +197,12 @@ export default {
       uAlpha: { value: 2 },
       uTheta: { value: 0 },
       uZoom: { value: 2 },
-      uSeedA: { value: 0 },
-      uSeedB: { value: 1 },
-      uMix: { value: 0 },
+      uS: { value: [996, 0, 1, 2] },
+      uU: { value: 0 },
+      uSlowS: { value: [996, 0, 1, 2] },
+      uSlowU: { value: 0 },
+      uAmp: { value: 1 },
+      uFlow: { value: 1 },
       uClock: { value: 0 },
       uJitter: { value: 0.5 },
       uBreaks: { value: 0.5 },
@@ -171,9 +219,12 @@ export default {
     u.uAlpha.value = m.alpha;
     u.uTheta.value = m.theta;
     u.uZoom.value = m.zoom;
-    u.uSeedA.value = m.seedA;
-    u.uSeedB.value = m.seedB;
-    u.uMix.value = m.mix;
+    u.uS.value = m.seeds;
+    u.uU.value = m.u;
+    u.uSlowS.value = m.slowSeeds;
+    u.uSlowU.value = m.slowU;
+    u.uAmp.value = m.amp;
+    u.uFlow.value = m.flow;
     u.uClock.value = m.clock;
     u.uJitter.value = ctx.params.jitter;
     u.uBreaks.value = ctx.params.breaks;

@@ -1573,16 +1573,22 @@ Try: warp 0 for plain Kali; warp 1 for threads that barely remember the fractal.
 
 File: `src/sketches/kaliScribble.js`
 
-The Tangle step (random turns and shifted mirrors), drawn as shaky ink and **re-dealt** every few
-seconds. All the random numbers come from a seed; every `reseed` seconds the seed moves on, and over the
-last quarter of the period every turn, shift, trap and colour slides from one random set to the next.
+The Tangle step (random turns and shifted mirrors), drawn as shaky ink and **re-dealt** every
+`reseed` seconds (0.1 to 300). All the random numbers come from a seed, and each one follows a
+Catmull-Rom curve through its values for seeds k−1, k, k+1, k+2, so a re-deal never jumps or stops dead.
+
+- **Blend:** how long each re-deal takes, in seconds. The picture holds still for the rest of the
+  period; when blend ≥ reseed it never holds, it just keeps flowing.
+- **Fast reseeds stay continuous:** under 6 s each deal moves only T/6 of the way (on top of a slow
+  deal every 9 s), so the picture changes at the same rate whatever the reseed; a short reseed makes the
+  motion wigglier, not faster. The pen breaks and line directions speed up by √(6/T) to keep pace.
 
 - **Jitter:** the distance to each trap line is wobbled by noise, d ↦ |d + j (n(18p) − ½)|, so lines
   shake like a pen (or crackle like lightning).
 - **Breaks:** a coarser noise lifts the pen, so strokes break into dashes and scraps.
 - **Colour:** each stroke has its own random hue from the seed, so neighbours clash.
 
-Try: reseed 3 for a fast shuffle; jitter 1.5 for lightning.
+Try: reseed 0.1 for a constant shimmer; reseed 120 with blend 30 for a slow, long re-deal; jitter 1.5 for lightning.
 
 ---
 
