@@ -1608,7 +1608,37 @@ Try: weave 0 for Silk with folds; folds 2.5 and sheen 2.5 for crumpled satin.
 
 ---
 
-## 43. My notes
+## 43. Mocalocky, annotated
+
+File: `src/sketches/mocalocky.js`
+
+A cartoon, not a line fractal: seven jelly blobs hop to a chant at 112 bpm, two beats a word, then a
+beat of wobble:
+
+| word | hop |
+|---|---|
+| ne-ka | two small hops, one per beat |
+| noo-ka | one big, long hop over both beats (the "oo" is long) |
+| noc-ka | two sharp, higher hops |
+
+Each blob belongs to one word, so the hopping goes round the group.
+
+**Cartoon physics, all closed-form in t.** A hop is a parabola, y = 4A·u(1 − u). Squash and stretch
+keeps the area: x is scaled by (1 + s) and y by 1/(1 + s), squashed on landing and stretched in the air.
+
+**Metaballs.** The blobs are one field F(p) = Σ (r_i²/|q_i|²)², drawn where F > 1, so neighbours melt
+together when they touch. For the outline, f = F^(−1/4) equals |q|/r for a lone blob, so (f − 1)/|∇f| is
+a true distance to the edge, which gives an even outline.
+
+**Toon shading.** Three flat bands of light, a hard white highlight and a thick outline. Inside each
+blob is Kali's fractal in the blob's own squashed coordinates (so the pattern squashes with it), and
+every "nocka" deals it a new c.
+
+Try: goo 2 for one big melting slime; bounce 2 for silly jumps; outline 0 for a softer look.
+
+---
+
+## 44. My notes
 
 Add your own findings, questions and discoveries here.
 
