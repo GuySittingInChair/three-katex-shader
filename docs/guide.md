@@ -1644,7 +1644,29 @@ Try: goo 2 for one big melting slime; bounce 2 for silly jumps; outline 0 for a 
 
 ---
 
-## 44. My notes
+## 44. Kali Ink, annotated
+
+File: `src/sketches/kaliInk.js`
+
+Kali Scribble (§41) with the smooth wobble swapped for a nervous hand, and paper that moves:
+
+- **Scratchy strokes (fBm):** the jitter noise is three octaves, fbm₃(p) = ½n(p) + 0.3n(2.13p) + 0.2n(4.37p),
+  so the edge of a line is jagged at several scales instead of one smooth wave.
+- **Hand fatigue:** step i's jitter is scaled by (1 + 0.15 i), so the fine detail of the deep steps
+  shakes more than the big early strokes.
+- **Ink bleed (`bleed`):** each colour channel gets its own small noise nudge on the distance d, and
+  green/blue spread a little wider, so the dye separates at stroke edges like fountain-pen ink in paper.
+- **Line boil (`shudder`):** every pixel's z gets a sub-pixel offset hashed from floor(12 t), so the whole
+  drawing twitches 12 times a second, like hand-drawn animation traced afresh each frame.
+- **Breathing paper (`breathe`):** a slow, low-frequency fBm warp is added to z before the loop, so the
+  sheet gently swells and drifts under the lines.
+
+Try: shudder 0, bleed 0, breathe 0 to get Scribble back (apart from the scratchier edges); jitter 1.5 with
+shudder 4 for a very shaky hand; bleed 3 for wet ink.
+
+---
+
+## 45. My notes
 
 Add your own findings, questions and discoveries here.
 
