@@ -1664,6 +1664,27 @@ Kali Scribble (§41) with the smooth wobble swapped for a nervous hand, and pape
 Try: shudder 0, bleed 0, breathe 0 to get Scribble back (apart from the scratchier edges); jitter 1.5 with
 shudder 4 for a very shaky hand; bleed 3 for wet ink.
 
+**The lens.** The finished drawing I is then filmed through a dirty lens. The brightest strokes (the
+jets) are picked out as B, and everything optical is made from B and added as light L:
+
+    out = 1 − (1 − I) e^(−L)
+
+so it never blows out to white, and with L = 0 (`optics` 0) the picture is exactly as above.
+
+- **bloom:** B blurred at 1/2, 1/4 and 1/8 size, with a red fringe (film halation).
+- **spikes:** twinkling glints on the jets, each with six spikes like light through a hexagonal iris; a
+  spike runs white, then rainbow toward its tip (red diffracts further than blue).
+- **streak:** B smeared far sideways and tinted blue, the anamorphic-lens look.
+- **rays:** B smeared toward the centre, fading as it goes (god rays).
+- **ghosts:** reflections between lens elements land at c + κ(c − z) through the screen centre c, so B
+  is sampled at a few κ (−0.55, 0.4, 1.25, …), each colour channel with a slightly different κ; plus a
+  rainbow halo ring.
+- **dirt:** hexagonal bokeh specks and smudges on the glass, visible only where bloom or ghosts light them.
+- **aberration:** red and blue land a little apart, more toward the edges.
+
+Try: optics 0 for the bare drawing; streak 3 and everything else 0 for a sci-fi lens; dirt 3 for a
+greasy phone camera.
+
 ---
 
 ## 45. My notes

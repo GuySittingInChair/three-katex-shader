@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { TAU, smooth } from '../lib/motion.js';
 
 // Kali Ink: Kali Scribble drawn by a nervous hand on breathing paper, in ink that bleeds.
@@ -35,6 +36,226 @@ import { TAU, smooth } from '../lib/motion.js';
 // And the paper: a slow, low-frequency warp under everything (it breathes),
 // and a sub-pixel shudder re-hashed 12 times a second (line boil, as in
 // hand-drawn animation, where every frame is traced again).
+//
+// Then the whole drawing is filmed through a cheap, dirty lens (all of it
+// unnecessary). The brightest strokes, the jets, are picked out (B, a soft
+// threshold on the picture) and everything optical is made from B:
+//   • bloom with warm halation (B blurred at 1/2, 1/4, 1/8 size);
+//   • glints: sparse points on the jets that twinkle, each with the six
+//     diffraction spikes of a hexagonal iris, every spike running through the
+//     spectrum toward its tip (a longer wavelength diffracts further);
+//   • an anamorphic streak: B smeared far sideways, tinted blue;
+//   • god rays: B smeared toward the screen centre, decaying as it goes;
+//   • ghosts: reflections between lens elements land at c + κ(c − z) through
+//     the centre c, so B is sampled at κ = −0.55, 0.4, … with a slightly
+//     different κ per channel (dispersion), plus a rainbow halo ring;
+//   • lens dirt: hexagonal bokeh specks and smudges, lit only by bloom and
+//     ghosts, like grease on the front glass;
+//   • lateral chromatic aberration: red and blue land a little apart, more so
+//     toward the edge.
+// All of it is added as light, out = 1 − (1 − I)e^(−L), which never blows
+// out to white and leaves the picture exactly as it was when L = 0.
+
+const LENS_VERT = `
+  varying vec2 vUv;
+  void main() { vUv = uv; gl_Position = vec4(position, 1.0); }
+`;
+
+// The jets: only the brightest strokes, kept in colour.
+const BRIGHT_FRAG = `
+  uniform sampler2D tSrc;
+  uniform float uThreshold;
+  varying vec2 vUv;
+  void main() {
+    vec3 c = texture2D(tSrc, vUv).rgb;
+    float l = max(c.r, max(c.g, c.b));
+    gl_FragColor = vec4(c * smoothstep(uThreshold, uThreshold + 0.3, l) * (l - 0.5 * uThreshold), 1.0);
+  }
+`;
+
+const COPY_FRAG = `
+  uniform sampler2D tSrc;
+  varying vec2 vUv;
+  void main() { gl_FragColor = vec4(texture2D(tSrc, vUv).rgb, 1.0); }
+`;
+
+// 9-tap Gaussian along one direction, using linear filtering (5 fetches).
+const BLUR_FRAG = `
+  uniform sampler2D tSrc;
+  uniform vec2 uStep;
+  varying vec2 vUv;
+  void main() {
+    vec3 c = texture2D(tSrc, vUv).rgb * 0.2270270;
+    c += texture2D(tSrc, vUv + uStep * 1.3846154).rgb * 0.3162162;
+    c += texture2D(tSrc, vUv - uStep * 1.3846154).rgb * 0.3162162;
+    c += texture2D(tSrc, vUv + uStep * 3.2307692).rgb * 0.0702703;
+    c += texture2D(tSrc, vUv - uStep * 3.2307692).rgb * 0.0702703;
+    gl_FragColor = vec4(c, 1.0);
+  }
+`;
+
+// Streak and rays, at a quarter of the size. Lengths are in units of
+// the screen's short side (uShort turns them into uv), so they look the same
+// at any size; each pixel starts its smear at a random fraction of a step,
+// which turns banding into fine noise.
+const FLARE_FRAG = `
+  uniform sampler2D tSoft;      // B blurred at 1/4 size
+  uniform vec2 uShort;
+  uniform float uStreak;
+  uniform float uRays;
+  varying vec2 vUv;
+  vec3 rainbow(float t) { return 0.5 + 0.5 * cos(6.2831 * (t + vec3(0.0, 0.333, 0.667))); }
+  float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+  void main() {
+    float j0 = hash(gl_FragCoord.xy);
+    vec3 col = vec3(0.0);
+
+    if (uStreak > 0.0) {
+      vec3 s = vec3(0.0);
+      vec2 dir = vec2(uShort.x * (1.1 / 48.0), 0.0);
+      for (int j = 0; j < 48; j++) {
+        float t = (float(j) + j0) / 48.0;
+        vec2 o = dir * (float(j) + j0 + 0.5);
+        s += exp(-3.5 * t) * (texture2D(tSoft, vUv + o).rgb + texture2D(tSoft, vUv - o).rgb);
+      }
+      float l = dot(s, vec3(0.3, 0.5, 0.2));
+      col += uStreak * mix(vec3(l), s, 0.25) * vec3(0.35, 0.6, 1.0) * 0.07;
+    }
+
+    if (uRays > 0.0) {
+      vec3 s = vec3(0.0);
+      vec2 d = (vUv - 0.5) * (0.7 / 40.0);
+      vec2 q = vUv - d * j0;
+      float decay = 1.0;
+      for (int j = 0; j < 40; j++) {
+        q -= d;
+        s += decay * texture2D(tSoft, q).rgb;
+        decay *= 0.94;
+      }
+      col += uRays * s * 0.035;
+    }
+
+    gl_FragColor = vec4(col, 1.0);
+  }
+`;
+
+const COMPOSITE_FRAG = `
+  uniform sampler2D tScene;
+  uniform sampler2D tB1;
+  uniform sampler2D tB2;
+  uniform sampler2D tB3;
+  uniform sampler2D tFlare;
+  uniform vec2 uResolution;
+  uniform float uOptics;
+  uniform float uBloom;
+  uniform float uGhosts;
+  uniform float uDirt;
+  uniform float uAberration;
+  uniform float uSpikes;
+  uniform float uClock;
+  varying vec2 vUv;
+  vec3 rainbow(float t) { return 0.5 + 0.5 * cos(6.2831 * (t + vec3(0.0, 0.333, 0.667))); }
+  float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  float noise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+  }
+  float hex(vec2 p) { p = abs(p); return max(p.x * 0.866 + p.y * 0.5, p.y); }
+  // Grease on the front glass: hexagonal bokeh specks (bright rims) and smudges.
+  float dirt(vec2 z) {
+    float d = 0.0;
+    for (int l = 0; l < 2; l++) {
+      float sc = l == 0 ? 7.0 : 13.0;
+      vec2 g = z * sc + float(l) * 17.3;
+      vec2 id = floor(g), f = fract(g) - 0.5;
+      float on = step(0.55, hash(id + 3.1));
+      vec2 c = (vec2(hash(id), hash(id + 9.7)) - 0.5) * 0.5;
+      float r = 0.18 + 0.2 * hash(id + 5.3);
+      float h = hex(f - c) / r;
+      d += on * (1.0 - smoothstep(0.85, 1.0, h)) * (0.35 + 0.65 * smoothstep(0.6, 0.97, h)) * (l == 0 ? 1.0 : 0.6);
+    }
+    float smear = noise(z * vec2(3.0, 9.0) + 2.0) * noise(z * 1.7 - 4.0);
+    return d * 0.8 + smoothstep(0.25, 0.7, smear) * 0.7;
+  }
+  // Glints: sparse points on the jets, each with the six-spike pattern of a
+  // hexagonal iris. A spike runs white, then through the spectrum toward its tip
+  // (longer wavelengths diffract further). z is in short-side units.
+  vec3 glints(vec2 z, float aspect) {
+    const float CELL = 0.085;
+    vec2 g = z / CELL;
+    vec2 id0 = floor(g);
+    vec3 acc = vec3(0.0);
+    float ang = 0.35 + 0.015 * uClock;
+    vec2 d0 = vec2(cos(ang), sin(ang)), d1 = vec2(cos(ang + 1.0472), sin(ang + 1.0472)), d2 = vec2(cos(ang + 2.0944), sin(ang + 2.0944));
+    for (int i = -2; i <= 2; i++) {
+      for (int j = -2; j <= 2; j++) {
+        vec2 id = id0 + vec2(float(i), float(j));
+        float h = hash(id + 0.37);
+        if (h > 0.6) continue;
+        vec2 sp = (id + 0.15 + 0.7 * vec2(hash(id + 1.3), hash(id + 7.1))) * CELL;
+        vec3 src = texture2D(tB2, vec2(sp.x / aspect, sp.y)).rgb;
+        float lum = max(src.r, max(src.g, src.b));
+        if (lum < 0.01) continue;
+        float tw = 0.55 + 0.45 * sin(uClock * (1.5 + 2.5 * hash(id + 4.4)) + 6.2831 * h);
+        float len = 0.09 + 0.16 * hash(id + 2.9);
+        vec2 p = z - sp;
+        float star = 0.0;
+        vec3 col = vec3(0.0);
+        for (int k = 0; k < 3; k++) {
+          vec2 d = k == 0 ? d0 : k == 1 ? d1 : d2;
+          float a = abs(dot(p, d)) / len, q = abs(dot(p, vec2(-d.y, d.x)));
+          float s = exp(-q / (0.0016 + 0.006 * a)) * exp(-3.0 * a) * (1.0 - smoothstep(0.7, 1.0, a));
+          col += s * mix(vec3(1.0), rainbow(0.85 * a + 0.05), smoothstep(0.08, 0.5, a));
+        }
+        col += exp(-length(p) / 0.009) * 1.5;            // the core
+        acc += col * normalize(src + 0.15) * min(lum * 14.0, 3.0) * tw;
+      }
+    }
+    return acc;
+  }
+  void main() {
+    vec2 c = vUv - 0.5;
+    float aspect = uResolution.x / uResolution.y;
+    vec2 ca = c * (0.004 + 0.03 * dot(c, c)) * uAberration * uOptics;
+    vec3 scene = vec3(texture2D(tScene, vUv + ca).r, texture2D(tScene, vUv).g, texture2D(tScene, vUv - ca).b);
+    if (uOptics <= 0.0) { gl_FragColor = vec4(scene, 1.0); return; }
+
+    vec3 b1 = texture2D(tB1, vUv).rgb, b2 = texture2D(tB2, vUv).rgb, b3 = texture2D(tB3, vUv).rgb;
+    vec3 bloom = b1 * 0.45 + b2 * 0.35 + b3 * 0.3;
+    bloom += b3 * vec3(0.3, 0.07, 0.02);                              // red halation
+
+    // ghosts at c + κ(c − z), each channel with its own κ
+    vec3 ghosts = vec3(0.0);
+    for (int i = 0; i < 5; i++) {
+      float fi = float(i);
+      float k = i == 0 ? -0.55 : i == 1 ? 0.4 : i == 2 ? 1.25 : i == 3 ? -1.4 : 0.75;
+      vec3 g;
+      for (int ch = 0; ch < 3; ch++) {
+        vec2 q = 0.5 - c * k * (1.0 + 0.035 * float(ch - 1));
+        float fall = pow(clamp(1.0 - length(q - 0.5) / 0.75, 0.0, 1.0), 3.0);
+        g[ch] = texture2D(tB2, q)[ch] * fall;
+      }
+      ghosts += g * mix(vec3(1.0), rainbow(0.21 * fi + 0.55), 0.7) * (i == 2 ? 1.6 : 0.9);
+    }
+    // the halo: a ring at a fixed radius from the centre, split into a rainbow
+    vec2 ca2 = vec2(c.x * aspect, c.y);
+    vec2 hv = length(ca2) > 1e-4 ? normalize(ca2) : vec2(0.0, 1.0);
+    vec3 halo;
+    for (int ch = 0; ch < 3; ch++) {
+      vec2 q = vUv + vec2(hv.x / aspect, hv.y) * 0.36 * (1.0 + 0.06 * float(ch - 1));
+      halo[ch] = texture2D(tB3, q)[ch];
+    }
+    halo *= smoothstep(0.1, 0.45, length(ca2)) * 1.6;
+
+    vec3 flare = texture2D(tFlare, vUv).rgb;
+    vec3 L = uBloom * bloom * 0.9 + flare + uGhosts * (ghosts * 0.8 + halo);
+    if (uSpikes > 0.0) L += uSpikes * glints(vec2(vUv.x * aspect, vUv.y), aspect);
+    L += uDirt * dirt(vec2(vUv.x * aspect, vUv.y)) * (b3 * 2.5 + ghosts * 0.6 + flare * 0.5);
+    L *= uOptics;
+    gl_FragColor = vec4(1.0 - (1.0 - clamp(scene, 0.0, 1.0)) * exp(-L), 1.0);
+  }
+`;
 
 const PHI = (1 + Math.sqrt(5)) / 2;
 const R2 = Math.SQRT2;
@@ -45,7 +266,8 @@ export default {
   name: 'Kali Ink',
   description:
     'Kali Scribble by a nervous hand: scratchy fBm strokes that get shakier on the deeper steps, ink that bleeds ' +
-    'into its colour channels, a line-boil shudder and paper that slowly breathes underneath.',
+    'into its colour channels, a line-boil shudder and paper that slowly breathes underneath, all filmed through a ' +
+    'dirty lens: the bright jets throw spectral diffraction spikes, anamorphic streaks, god rays, ghosts and halos.',
   tags: ['fractal', '2d', 'glsl', 'kaliset', 'inversion', 'noise', 'fbm', 'orbit trap', 'random', 'hand-drawn'],
   category: 'Fractals',
   mode: 'shader',
@@ -84,7 +306,8 @@ export default {
     `p &\\mapsto \\frac{|R_{a_i} p + s_i|}{|p|^{\\alpha}} - c,\\quad \\alpha = ${hl(m.alpha, 2)},\\quad c = (${hl(m.cx, 2)},\\ ${hl(m.cy, 2)}) \\\\` +
     `(a_i, s_i, h_i) &= \\text{CR}\\big(\\text{rand}_{${m.k}-1\\,..\\,${m.k}+2}(i),\\ u = ${hl(m.u, 2)}\\big)\\ \\text{step } ${hl(m.amp, 2)} \\\\` +
     `d_i &= \\big|\\,p_i\\cdot n_i - o_i + ${hl(params.jitter, 2)}\\,(1 + 0.15\\,i)\\,(\\text{fbm}_3(18p_i) - \\tfrac12) + \\beta_{rgb}\\big| \\\\` +
-    '\\text{ink} &= \\textstyle\\sum_i \\text{rainbow}(h_i)\\,\\Big(\\frac{w}{d_i(1+0.6i) + w}\\Big)^2\\,[\\text{noise}(4p_i) > \\tfrac12]' +
+    '\\text{ink} &= \\textstyle\\sum_i \\text{rainbow}(h_i)\\,\\Big(\\frac{w}{d_i(1+0.6i) + w}\\Big)^2\\,[\\text{noise}(4p_i) > \\tfrac12] \\\\' +
+    `\\text{out} &= 1 - (1 - I)\\,e^{-L},\\ \\ L = ${hl(params.optics, 2)}\\big(${hl(params.bloom, 2)}\\,G\\!*\\!B + ${hl(params.spikes, 2)}\\,\\text{PSF}_{6}\\!*\\!B + ${hl(params.streak, 2)}\\,S_x\\!*\\!B + ${hl(params.ghosts, 2)}\\textstyle\\sum_k B\\big(c + \\kappa_k(c - z)\\big) + \\dots\\big)` +
     '\\end{aligned}',
 
   params: {
@@ -99,6 +322,14 @@ export default {
     iterations: { value: 12, min: 4, max: 20, step: 1 },
     glow: { value: 1, min: 0, max: 2.5, step: 0.05 },
     saturation: { value: 1, min: 0, max: 1.5, step: 0.05 },
+    optics: { value: 1, min: 0, max: 2, step: 0.05 },
+    bloom: { value: 1, min: 0, max: 2.5, step: 0.05 },
+    spikes: { value: 1, min: 0, max: 3, step: 0.05 },
+    streak: { value: 1, min: 0, max: 3, step: 0.05 },
+    rays: { value: 0.7, min: 0, max: 3, step: 0.05 },
+    ghosts: { value: 1, min: 0, max: 3, step: 0.05 },
+    dirt: { value: 0.7, min: 0, max: 3, step: 0.05 },
+    aberration: { value: 1, min: 0, max: 4, step: 0.05 },
   },
 
   fragmentShader: `
@@ -263,5 +494,119 @@ export default {
     u.uIterations.value = ctx.params.iterations;
     u.uGlow.value = ctx.params.glow;
     u.uSat.value = ctx.params.saturation;
+
+    const p = ctx.params;
+    const L = state.lens;
+    L.on = p.optics > 0;
+    Object.assign(L.flare, { uStreak: p.streak, uRays: p.rays });
+    Object.assign(L.comp, { uClock: m.clock, uSpikes: p.spikes, uOptics: p.optics, uBloom: p.bloom, uGhosts: p.ghosts, uDirt: p.dirt, uAberration: p.aberration });
+  },
+
+  // The lens: picture → B (the jets) → blurs at 1/2, 1/4, 1/8 → spikes, streak
+  // and rays at 1/4 → composite.
+  setup(ctx) {
+    const half = { type: THREE.HalfFloatType, depthBuffer: false };
+    const rt = (d) => new THREE.WebGLRenderTarget(Math.max(1, ctx.size.width / d), Math.max(1, ctx.size.height / d), half);
+    const scene = rt(1);
+    const bright = rt(2);
+    const levels = [2, 4, 8].map((d) => ({ d, a: rt(d), b: rt(d) }));
+    const flareRT = rt(4);
+
+    const quadScene = new THREE.Scene();
+    const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2));
+    quad.frustumCulled = false;
+    quadScene.add(quad);
+    const quadCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    const mat = (frag, uniforms) =>
+      new THREE.ShaderMaterial({ vertexShader: LENS_VERT, fragmentShader: frag, uniforms, depthTest: false, depthWrite: false });
+    const brightMat = mat(BRIGHT_FRAG, { tSrc: { value: scene.texture }, uThreshold: { value: 0.6 } });
+    const copyMat = mat(COPY_FRAG, { tSrc: { value: null } });
+    const blurMat = mat(BLUR_FRAG, { tSrc: { value: null }, uStep: { value: new THREE.Vector2() } });
+    const flareMat = mat(FLARE_FRAG, {
+      tSoft: { value: levels[1].a.texture },
+      uShort: { value: new THREE.Vector2() },
+      uStreak: { value: 1 },
+      uRays: { value: 1 },
+    });
+    const compMat = mat(COMPOSITE_FRAG, {
+      tScene: { value: scene.texture },
+      tB1: { value: levels[0].a.texture },
+      tB2: { value: levels[1].a.texture },
+      tB3: { value: levels[2].a.texture },
+      tFlare: { value: flareRT.texture },
+      uResolution: { value: new THREE.Vector2() },
+      uOptics: { value: 1 },
+      uBloom: { value: 1 },
+      uGhosts: { value: 1 },
+      uDirt: { value: 1 },
+      uAberration: { value: 1 },
+      uSpikes: { value: 1 },
+      uClock: { value: 0 },
+    });
+    const sizeUniforms = (w, h) => {
+      compMat.uniforms.uResolution.value.set(w, h);
+      const s = Math.min(w, h);
+      flareMat.uniforms.uShort.value.set(s / w, s / h);
+    };
+    sizeUniforms(ctx.size.width, ctx.size.height);
+
+    const pass = (r, material, target) => {
+      quad.material = material;
+      r.setRenderTarget(target);
+      r.render(quadScene, quadCam);
+    };
+    // update() writes plain numbers here; render() copies them into the materials.
+    const lens = { on: true, flare: {}, comp: {} };
+    const apply = (material, values) => {
+      for (const k in values) material.uniforms[k].value = values[k];
+    };
+
+    ctx.pipeline = {
+      render(r, sceneToDraw, camera, target) {
+        r.setRenderTarget(scene);
+        r.render(sceneToDraw, camera);
+        apply(compMat, lens.comp);
+        if (lens.on) {
+          apply(flareMat, lens.flare);
+          pass(r, brightMat, bright);
+          let src = bright.texture;
+          for (const lv of levels) {
+            copyMat.uniforms.tSrc.value = src;
+            pass(r, copyMat, lv.a);
+            blurMat.uniforms.tSrc.value = lv.a.texture;
+            blurMat.uniforms.uStep.value.set(1 / lv.a.width, 0);
+            pass(r, blurMat, lv.b);
+            blurMat.uniforms.tSrc.value = lv.b.texture;
+            blurMat.uniforms.uStep.value.set(0, 1 / lv.a.height);
+            pass(r, blurMat, lv.a);
+            src = lv.a.texture;
+          }
+          pass(r, flareMat, flareRT);
+        }
+        pass(r, compMat, target);
+      },
+      setSize(w, h) {
+        scene.setSize(w, h);
+        bright.setSize(Math.max(1, w / 2), Math.max(1, h / 2));
+        for (const lv of levels) {
+          lv.a.setSize(Math.max(1, w / lv.d), Math.max(1, h / lv.d));
+          lv.b.setSize(Math.max(1, w / lv.d), Math.max(1, h / lv.d));
+        }
+        flareRT.setSize(Math.max(1, w / 4), Math.max(1, h / 4));
+        sizeUniforms(w, h);
+      },
+    };
+
+    lens.dispose = () => {
+      delete ctx.pipeline;
+      for (const t of [scene, bright, flareRT, ...levels.flatMap((lv) => [lv.a, lv.b])]) t.dispose();
+      for (const m of [brightMat, copyMat, blurMat, flareMat, compMat]) m.dispose();
+      quad.geometry.dispose();
+    };
+    return { lens };
+  },
+
+  dispose(ctx, state) {
+    state.lens.dispose();
   },
 };
