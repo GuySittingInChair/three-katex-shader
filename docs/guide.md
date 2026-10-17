@@ -1586,7 +1586,29 @@ Try: reseed 3 for a fast shuffle; jitter 1.5 for lightning.
 
 ---
 
-## 42. My notes
+## 42. Kali Drape, annotated
+
+File: `src/sketches/kaliDrape.js`
+
+Kali Silk woven into cloth. The noise field that picks each patch's c and α is also the cloth's height:
+
+    H(z) = fbm(0.6 z + 1.6 q(z)),   q(z) = fbm(0.6 z + v t)
+
+(noise warped by noise, so the folds bunch and twist instead of rolling in even waves). From H:
+
+- **Folds pull the threads:** z ↦ z + k ∇H, so the threads bunch in the folds like real fabric;
+- **The cloth is lit:** its normal is (−∇H, 1), a light circles overhead once every 23 s, giving a soft
+  shade plus a narrow sheen;
+- **Iridescent sheen:** the highlight's colour comes from the slope direction, so it shifts through
+  the rainbow as the folds move;
+- **Warp and weft:** a second layer of threads runs a quarter turn round in its own hues, and the brighter
+  of the two lies on top, like over-and-under weaving.
+
+Try: weave 0 for Silk with folds; folds 2.5 and sheen 2.5 for crumpled satin.
+
+---
+
+## 43. My notes
 
 Add your own findings, questions and discoveries here.
 
