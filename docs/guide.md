@@ -1698,8 +1698,8 @@ A Kali fractal where a stroke that closes into too round a ring gets caught and 
   `warp` for Silk, and `reseed`, `blend`, `jitter`, `bleed`, `shudder`, `breathe`, `breaks` for Ink. Tangle's
   random circle traps make rings of their own, so it throws up pearls readily.
 
-- **Finding rings:** twice a second the picture is blurred, and for every point c and seven radii r
-  (0.07·1.4ʲ) it is sampled at 24 angles round the circle |z − c| = r, plus inside (½r) and outside (1.5r).
+- **Finding rings:** twice a second the picture is blurred, and for every point c and six radii r
+  (0.07·1.4ʲ, j = 0..5) it is sampled at 24 angles round the circle |z − c| = r, plus inside (½r) and outside (1.5r).
   With μ the mean round the circle, b the background (the inside, or the inside/outside average if that
   is brighter: the middle must be dark, busy surroundings count half), and f the share of the 24 angles that
   are clearly ink, the score is S(μ − b)·S(μ/b)·f² (S = smoothstep): a bright ring that stands out and has
@@ -1721,11 +1721,19 @@ A Kali fractal where a stroke that closes into too round a ring gets caught and 
 - **Riding (`ride`):** each base maps the screen into its fractal's plane as p = zoom · R₋θ (z + pan(t)). A pearl
   remembers its point P in that plane, so it is carried along like the strands around it:
   c(t) = R_θ P / zoom − pan(t), turning by θ − θ₀ and scaling with the zoom (kept within 0.6–1.4×).
-  A pearl carried off screen is dropped. `ride` 0 pins pearls to the screen.
+  `ride` 0 leaves only the pearls' own motion (below).
+- **Bouncing (`drift`, `bounce`):** each pearl is launched at speed `drift` in a direction hashed from the time
+  it was caught, and glides on top of the riding. Pearls are discs with mass m ∝ R². When two touch they are
+  pushed apart (the lighter one moves more) and, if they are closing, swap momentum along the line of
+  centres n with the impulse j = −(1 + e)(v_b − v_a)·n / (1/m_a + 1/m_b), e = `bounce` (1 = perfectly
+  elastic). The screen edges bounce them back the same way. Each hit squashes the pearl along n,
+  d ↦ d + s n (n·d) with s = 0.22·e^(−7t)·cos 22t (a damped wobble), and flashes it. Hits lose a little
+  speed, so each pearl's speed eases back to `drift` over about 3 s and they never run down.
 
 Try: base Kali Silk for big soft bubbles; chaos 1 on Tangle for a wilder tangle to catch rings in;
 roundness 0.4 for lots of pearls; hold 0 and vanish 10 for pearls that start shrinking at once;
-swirl 1.5 for whirlpools; glass 1 and contact 3 for pearls that glow through the tangle.
+swirl 1.5 for whirlpools; glass 1 and contact 3 for pearls that glow through the tangle;
+pearls 6, roundness 0.4, drift 0.5 and hold 20 for a table of marbles.
 
 ---
 

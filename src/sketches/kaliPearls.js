@@ -10,7 +10,7 @@ import { TAU, smooth } from '../lib/motion.js';
 // rings of their own, which the pearls catch.
 //
 // Twice a second the picture is scanned for rings. For each point c and radius
-// r (0.07·1.4^j, j = 0..6) the blurred picture L is sampled on the circle
+// r (0.07·1.4^j, j = 0..5) the blurred picture L is sampled on the circle
 // |z − c| = r (24 angles, each the brightest of 5 radii within ±12 %), inside
 // it (½r) and outside it (1.5r). With μ the mean round the circle and
 // b = max(μ_in, ½(μ_in + μ_out)) the background (the middle must be dark,
@@ -115,7 +115,7 @@ const SCAN_FRAG = `
   void main() {
     vec2 c = (vUv - 0.5) * uUv2Z;
     float best = 0.0, bestJ = 0.0;
-    for (int j = 0; j < 7; j++) {
+    for (int j = 0; j < 6; j++) {
       float r = 0.07 * pow(1.4, float(j));
       float b[24];
       float s = 0.0, sin_ = 0.0, sout = 0.0;
@@ -136,7 +136,7 @@ const SCAN_FRAG = `
       float sc = smoothstep(0.02, 0.08, mu - bg) * smoothstep(1.1, 1.7, mu / max(bg, 1e-3)) * pow(closed / 24.0, 2.0);
       if (sc > best) { best = sc; bestJ = float(j); }
     }
-    gl_FragColor = vec4(best, bestJ / 6.0, 0.0, 1.0);
+    gl_FragColor = vec4(best, bestJ / 5.0, 0.0, 1.0);
   }
 `;
 
@@ -459,7 +459,8 @@ export default {
     '\\begin{aligned}' +
     baseLatex[m.base](params, hl, m) +
     `\\text{pearl} &\\Leftarrow \\big[S(\\mu - b)\\,S(\\mu / b)\\,f^2 \\ge ${hl(params.roundness, 2)}\\big],\\ \\ |z' - c_k|^2 = |z - c_k|^2 - R_k^2,\\ \\ \\arg \\mathrel{+}= ${hl(params.swirl, 2)}\\,a_k\\tfrac{R_k^2}{|z - c_k|^2} \\\\` +
-    `R_k &= R_{k,0}\\,\\big(1 - \\text{smooth}\\tfrac{a_k - ${hl(params.hold, 1)}}{${hl(params.vanish, 1)}}\\big),\\quad c_k(t) = R_{\\theta} P_k / \\text{zoom} - \\text{pan}(t)\\ \\ (\\text{ride } ${hl(params.ride, 2)}) \\\\` +
+    `R_k &= R_{k,0}\\,\\big(1 - \\text{smooth}\\tfrac{a_k - ${hl(params.hold, 1)}}{${hl(params.vanish, 1)}}\\big),\\quad c_k(t) = R_{\\theta} P_k / \\text{zoom} - \\text{pan}(t)\\ \\ (\\text{ride } ${hl(params.ride, 2)}) + v_k t \\\\` +
+    `j &= -\\frac{(1 + ${hl(params.bounce, 2)})\\,(v_b - v_a)\\cdot n}{1/m_a + 1/m_b},\\quad m \\propto R^2,\\quad |v_0| = ${hl(params.drift, 2)} \\\\` +
     `\\text{ink} &\\mathrel{+}= ${hl(params.contact, 2)}\\,\\text{edge}_k\\,\\big[1 < \\tfrac{|z - c_k|}{R_k} < 1.7\\big],\\quad \\text{inside} = \\text{snap}_k \\vee ${hl(params.glass, 2)}\\,\\text{ink}\\big(c_k + d(0.55 + 0.25|d/R_k|^2)\\big) \\\\` +
     `\\text{out} &= 1 - (1 - I)\\,e^{-L},\\ \\ L = ${hl(params.optics, 2)}\\big(${hl(params.bloom, 2)}\\,G\\!*\\!B + ${hl(params.spikes, 2)}\\,\\text{PSF}_{6}\\!*\\!B + ${hl(params.streak, 2)}\\,S_x\\!*\\!B + ${hl(params.ghosts, 2)}\\textstyle\\sum_k B\\big(c + \\kappa_k(c - z)\\big) + \\dots\\big)` +
     '\\end{aligned}',
@@ -484,6 +485,8 @@ export default {
     contact: { value: 1, min: 0, max: 3, step: 0.05 },
     glass: { value: 0.35, min: 0, max: 1, step: 0.01 },
     ride: { value: 1, min: 0, max: 1, step: 0.01 },
+    drift: { value: 0.2, min: 0, max: 1, step: 0.01 },
+    bounce: { value: 0.9, min: 0, max: 1, step: 0.01 },
     iterations: { value: 12, min: 4, max: 20, step: 1 },
     glow: { value: 1, min: 0, max: 2.5, step: 0.05 },
     saturation: { value: 1, min: 0, max: 1.5, step: 0.05 },
@@ -526,6 +529,7 @@ export default {
     uniform vec4 uQ[6];           // pearls: opacity, twist τ·age, atlas slot, flash
     uniform sampler2D uAtlas;     // six 256² snapshots side by side
     uniform float uSpin[6];       // how far each pearl has turned since it was caught (riding)
+    uniform vec3 uSquash[6];      // impact direction n and squash s: d ↦ d + s n (n·d)
     uniform float uGlass;
     uniform float uContact;
     varying vec2 vUv;
@@ -758,6 +762,7 @@ export default {
         float R = uP[k].z;
         if (R <= 0.0) continue;
         vec2 d = (z - uP[k].xy) / R;
+        d += uSquash[k].z * uSquash[k].xy * dot(uSquash[k].xy, d);   // squashed along n, for a moment
         float r = length(d);
         if (r >= 1.0) continue;
         vec3 snap = snapAt(uQ[k].z, uSpin[k], d) * (1.0 + uQ[k].w);
@@ -798,6 +803,7 @@ export default {
       uChaos: { value: 0.6 },
       uWarp: { value: 0.35 },
       uSpin: { value: new Float32Array(6) },
+      uSquash: { value: new Float32Array(18) },
       uGlass: { value: 0.35 },
       uContact: { value: 1 },
       uP: { value: new Float32Array(24) },
@@ -839,35 +845,96 @@ export default {
     // Pearls age on the motion clock, so they keep pace with `speed` and with
     // smooth recording. Going back in time (a reset) drops them all.
     if (m.clock < L.clock - 1e-3) L.pearls.length = 0;
+    const dt = Math.min(0.1, Math.max(0, m.clock - L.clock));
     L.clock = m.clock;
     L.roundness = p.roundness;
+    L.drift = p.drift;
     L.max = p.pearls;
-    // Riding: a pearl keeps its point P = zoom·R_{−θ}(z + pan) of the fractal's
-    // own plane, so it is carried (moved, turned, scaled) the way the strands
-    // around it are: z(t) = R_θ P / zoom − pan(t).
+    // Riding: each step, a pearl is carried the way the strands around it are.
+    // The base maps the screen into its fractal's plane as P = zoom·R_{−θ}(z + pan),
+    // so the point under the pearl last frame is now at R_θ P / zoom − pan.
+    const f0 = L.frame;
     const f = (L.frame = baseFrame(m));
-    for (const q of L.pearls) {
-      const zoom = f.zoom / q.zoom0;
-      const c = Math.cos(f.th), s = Math.sin(f.th);
-      const x = (c * q.P[0] - s * q.P[1]) / f.zoom - f.pan[0];
-      const y = (s * q.P[0] + c * q.P[1]) / f.zoom - f.pan[1];
-      q.x = q.x0 + p.ride * (x - q.x0);
-      q.y = q.y0 + p.ride * (y - q.y0);
-      q.R = q.R0 * (1 + p.ride * (Math.min(1.4, Math.max(0.6, 1 / zoom)) - 1)); // scales with the zoom, within reason
-      q.spin = p.ride * (f.th - q.th0);
-    }
     const [hx, hy] = L.half;
-    L.pearls = L.pearls.filter((q) => m.clock - q.born < p.hold + p.vanish && Math.abs(q.x) - q.R < hx && Math.abs(q.y) - q.R < hy);
+    const live = (q) => q.R * (1 - smooth((m.clock - q.born - p.hold) / p.vanish)); // the radius as shown
+    for (const q of L.pearls) {
+      const c0 = Math.cos(f0.th), s0 = Math.sin(f0.th);
+      const vx = q.x + f0.pan[0], vy = q.y + f0.pan[1];
+      const P = [f0.zoom * (c0 * vx + s0 * vy), f0.zoom * (-s0 * vx + c0 * vy)];
+      const c = Math.cos(f.th), s = Math.sin(f.th);
+      q.x += p.ride * ((c * P[0] - s * P[1]) / f.zoom - f.pan[0] - q.x);
+      q.y += p.ride * ((s * P[0] + c * P[1]) / f.zoom - f.pan[1] - q.y);
+      q.R = Math.min(1.4 * q.R0, Math.max(0.6 * q.R0, q.R * (1 + p.ride * (f0.zoom / f.zoom - 1)))); // scales with the zoom, within reason
+      q.spin += p.ride * (f.th - f0.th);
+      // ...and it glides on its own velocity v on top of that, whose speed eases
+      // back to `drift` (over ~3 s) so the pearls never run down after bounces
+      const sp = Math.hypot(q.v[0], q.v[1]);
+      const k = sp > 1e-4 ? 1 + (p.drift / sp - 1) * (1 - Math.exp(-dt / 3)) : 0;
+      q.v = sp > 1e-4 ? [q.v[0] * k, q.v[1] * k] : [p.drift, 0];
+      q.x += q.v[0] * dt;
+      q.y += q.v[1] * dt;
+    }
+
+    // Bouncing: pearls are discs with mass ∝ R². Where two overlap they are
+    // pushed apart (in inverse proportion to mass) and, if they are closing,
+    // exchange the impulse j = −(1 + e)(v_rel·n) / (1/m₁ + 1/m₂) along the line
+    // of centres n, e = `bounce`. The screen edges bounce them back too.
+    for (const q of L.pearls) {
+      const R = live(q);
+      for (const [axis, h] of [[0, hx], [1, hy]]) {
+        const x = axis === 0 ? q.x : q.y;
+        if (Math.abs(x) + R <= h || R >= h) continue;
+        const side = Math.sign(x);
+        if (axis === 0) q.x = side * (h - R); else q.y = side * (h - R);
+        if (q.v[axis] * side > 0) {
+          q.blow = Math.min(1, Math.abs(q.v[axis]) / 0.3);
+          q.v[axis] *= -p.bounce;
+          q.hit = m.clock;
+          q.n = axis === 0 ? [-side, 0] : [0, -side];
+        }
+      }
+    }
+    for (let i = 0; i < L.pearls.length; i++) {
+      const a = L.pearls[i], Ra = live(a), ma = Ra * Ra;
+      for (let j = i + 1; j < L.pearls.length; j++) {
+        const b = L.pearls[j], Rb = live(b), mb = Rb * Rb;
+        const dx = b.x - a.x, dy = b.y - a.y, dist = Math.hypot(dx, dy);
+        const gap = dist - (Ra + Rb);
+        if (gap >= 0 || dist < 1e-6 || ma + mb <= 0) continue;
+        const nx = dx / dist, ny = dy / dist;
+        a.x += (gap * nx * mb) / (ma + mb);
+        a.y += (gap * ny * mb) / (ma + mb);
+        b.x -= (gap * nx * ma) / (ma + mb);
+        b.y -= (gap * ny * ma) / (ma + mb);
+        const vn = (b.v[0] - a.v[0]) * nx + (b.v[1] - a.v[1]) * ny;
+        if (vn >= 0) continue;
+        const J = (-(1 + p.bounce) * vn) / (1 / Math.max(ma, 1e-4) + 1 / Math.max(mb, 1e-4));
+        a.v[0] -= (J / Math.max(ma, 1e-4)) * nx;
+        a.v[1] -= (J / Math.max(ma, 1e-4)) * ny;
+        b.v[0] += (J / Math.max(mb, 1e-4)) * nx;
+        b.v[1] += (J / Math.max(mb, 1e-4)) * ny;
+        a.hit = b.hit = m.clock;
+        a.n = [nx, ny];
+        b.n = [-nx, -ny];
+        a.blow = b.blow = Math.min(1, -vn / 0.3);
+      }
+    }
+    L.pearls = L.pearls.filter((q) => m.clock - q.born < p.hold + p.vanish);
     u.uP.value.fill(0);
     u.uQ.value.fill(0);
     u.uSpin.value.fill(0);
+    u.uSquash.value.fill(0);
     L.pearls.forEach((q, k) => {
       const age = m.clock - q.born;
       const ph = Math.max(0, (age - p.hold) / p.vanish);
       const R = q.R * (1 - smooth(ph));
       u.uP.value.set([q.x, q.y, R, R * smooth(age / 0.8)], 4 * k);
-      u.uQ.value.set([1 - smooth(2 * ph - 1), p.swirl * age, q.slot, 0.6 * Math.exp(-3 * age)], 4 * k);
+      // a bounce squashes the pearl along the line of impact, then it wobbles back
+      const since = m.clock - q.hit;
+      const squash = q.blow * 0.22 * Math.exp(-7 * since) * Math.cos(22 * since);
+      u.uQ.value.set([1 - smooth(2 * ph - 1), p.swirl * age, q.slot, 0.6 * Math.exp(-3 * age) + 0.35 * q.blow * Math.exp(-6 * since)], 4 * k);
       u.uSpin.value[k] = q.spin;
+      u.uSquash.value.set([q.n[0], q.n[1], squash], 3 * k);
     });
     u.uAtlas.value = L.atlas;
     u.uGlass.value = p.glass;
@@ -971,7 +1038,7 @@ export default {
         if (score < lens.roundness || (best && score <= best.score)) continue;
         const px = (i / 4) % W;
         const py = Math.floor(i / 4 / W);
-        const R = 1.3 * 0.07 * 1.4 ** Math.round((6 * scanBuf[i + 1]) / 255);
+        const R = 1.3 * 0.07 * 1.4 ** Math.round((5 * scanBuf[i + 1]) / 255);
         const x = ((px + 0.5) / W - 0.5) * ax;
         const y = ((py + 0.5) / scanRT.height - 0.5) * ay;
         if (Math.abs(x) + R > ax / 2 || Math.abs(y) + R > ay / 2) continue;
@@ -984,12 +1051,10 @@ export default {
       atlas.viewport.set(256 * slot, 0, 256, 256);
       atlas.scissor.copy(atlas.viewport); // the clear before a render ignores the viewport: keep it to this slot
       pass(r, captureMat, atlas);
-      const f = lens.frame;
-      const c = Math.cos(f.th), s = Math.sin(f.th);
-      const vx = best.x + f.pan[0], vy = best.y + f.pan[1];
+      const a = TAU * ((Math.sin(lens.clock * 91.7 + slot * 7.3) * 43758.5453) % 1);
       lens.pearls.push({
-        x: best.x, y: best.y, R: best.R, x0: best.x, y0: best.y, R0: best.R, spin: 0, slot, born: lens.clock,
-        P: [f.zoom * (c * vx + s * vy), f.zoom * (-s * vx + c * vy)], zoom0: f.zoom, th0: f.th,
+        x: best.x, y: best.y, R: best.R, R0: best.R, spin: 0, slot, born: lens.clock,
+        v: [lens.drift * Math.cos(a), lens.drift * Math.sin(a)], hit: -1e9, n: [1, 0], blow: 0,
       });
     };
 
