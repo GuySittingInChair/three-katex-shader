@@ -1,14 +1,21 @@
 import * as THREE from 'three';
 import { TAU, smooth } from '../lib/motion.js';
 
-// Kali Pearls: Kali Ink, but a stroke that closes into too round a ring is frozen.
+// Kali Pearls: a Kali fractal where a stroke that closes into too round a ring is frozen.
+//
+// The fractal underneath is chosen with `base`: Kali Tangle (the default),
+// Kali Ink, Kali Drift or Kali Silk, each with its own step, traps, colours and
+// drift clocks exactly as in its own sketch (`chaos` is Tangle's dial, `warp`
+// Silk's, and jitter … blend are Ink's). Tangle's random circle traps throw up
+// rings of their own, which the pearls catch.
 //
 // Twice a second the picture is scanned for rings. For each point c and radius
 // r (0.07·1.4^j, j = 0..6) the blurred picture L is sampled on the circle
 // |z − c| = r (24 angles, each the brightest of 5 radii within ±12 %), inside
 // it (½r) and outside it (1.5r). With μ the mean round the circle and
-// b = max(μ_in, μ_out) the background,
-//   score = S(μ − b; 0.02..0.08) · S(μ/b; 1.2..2.2) · f²,
+// b = max(μ_in, ½(μ_in + μ_out)) the background (the middle must be dark,
+// busy surroundings count half),
+//   score = S(μ − b; 0.02..0.08) · S(μ/b; 1.1..1.7) · f²,
 // S a smoothstep and f the share of the 24 angles that are clearly ink (above b + 0.4(μ − b)):
 // high only for a bright, closed ring standing out from what is around it. When the
 // best score passes `roundness`, that disc (1.3r) is copied out of the picture
@@ -23,7 +30,7 @@ import { TAU, smooth } from '../lib/motion.js';
 // wind around it. After `hold` seconds the pearl shrinks to nothing over
 // `vanish` seconds and the flow closes up behind it.
 //
-// Below is the Kali Ink description, unchanged.
+// Below is the Kali Ink description (base 1), unchanged.
 //
 // Kali Ink: Kali Scribble drawn by a nervous hand on breathing paper, in ink that bleeds.
 //
@@ -122,11 +129,11 @@ const SCAN_FRAG = `
         sout += L(c + e * 1.5);
       }
       float mu = s / 24.0;
-      float bg = max(sin_, sout) / 24.0;
+      float bg = max(sin_, 0.5 * (sin_ + sout)) / 24.0;   // the middle must be dark; busy surroundings count half
       // closed: the share of the circle that is clearly ink, not a gap
       float closed = 0.0;
       for (int k = 0; k < 24; k++) closed += step(bg + 0.4 * (mu - bg), b[k]);
-      float sc = smoothstep(0.02, 0.08, mu - bg) * smoothstep(1.2, 2.2, mu / max(bg, 1e-3)) * pow(closed / 24.0, 2.0);
+      float sc = smoothstep(0.02, 0.08, mu - bg) * smoothstep(1.1, 1.7, mu / max(bg, 1e-3)) * pow(closed / 24.0, 2.0);
       if (sc > best) { best = sc; bestJ = float(j); }
     }
     gl_FragColor = vec4(best, bestJ / 6.0, 0.0, 1.0);
@@ -331,10 +338,80 @@ const R2 = Math.SQRT2;
 const R3 = Math.sqrt(3);
 const W = TAU / 61;
 
+// The fractal underneath, each as in its own sketch (same step, traps, colours
+// and drift clocks): pick it with `base`.
+const BASES = ['Kali Tangle', 'Kali Ink', 'Kali Drift', 'Kali Silk'];
+const baseMotion = [
+  (t) => { // Kali Tangle
+    const w = TAU / 53, s = (k, ph = 0) => Math.sin(w * k * t + ph);
+    return {
+      cx: 0.78 + 0.22 * s(1, 0.4) + 0.08 * s(R3, 1.1),
+      cy: 0.6 + 0.16 * s(PHI, 2.3) + 0.06 * s(R2 * PHI, 0.9),
+      alpha: 2.05 + 0.4 * s(R2, 1.7) + 0.12 * s(PHI * R3, 0.2),
+      theta: 0.8 * s(1 / PHI, 0.6),
+      zoom: Math.exp(0.4 + 0.45 * s(1 / R3, 2.0)),
+      hue: ((t * w * 0.7) / TAU) % 1,
+    };
+  },
+  (t) => { // Kali Ink
+    const s = (k, ph = 0) => Math.sin(W * k * t + ph);
+    return {
+      cx: 0.8 + 0.2 * s(1, 2.7) + 0.07 * s(R3, 1.5),
+      cy: 0.6 + 0.15 * s(PHI, 0.1) + 0.06 * s(R2 * PHI, 1.8),
+      alpha: 2.05 + 0.35 * s(R2, 0.4) + 0.1 * s(PHI * R3, 2.6),
+      theta: 0.6 * s(1 / PHI, 0.9),
+      zoom: Math.exp(0.4 + 0.35 * s(1 / R3, 1.2)),
+      hue: 0,
+    };
+  },
+  (t) => { // Kali Drift
+    const w = TAU / 47, s = (k, ph = 0) => Math.sin(w * k * t + ph);
+    return {
+      cx: 0.8 + 0.28 * s(1) + 0.1 * s(R3, 2.1),
+      cy: 0.62 + 0.18 * s(PHI, 1.3) + 0.08 * s(R2 * PHI, 0.4),
+      alpha: 2.15 + 0.5 * s(R2, 0.7) + 0.15 * s(PHI * R3, 2.9),
+      theta: 0.6 * s(1 / PHI, 2.6) + 0.25 * s(R3 / PHI, 1.1),
+      zoom: Math.exp(0.35 + 0.6 * s(1 / R3, 4.0) + 0.15 * s(R2 * R3, 0.9)),
+      hue: ((t * w * 0.6) / TAU) % 1,
+    };
+  },
+  (t) => { // Kali Silk
+    const w = TAU / 59, s = (k, ph = 0) => Math.sin(w * k * t + ph);
+    return {
+      cx: 0.8 + 0.2 * s(1, 1.9) + 0.07 * s(R3, 0.3),
+      cy: 0.6 + 0.14 * s(PHI, 0.5) + 0.06 * s(R2 * PHI, 2.2),
+      alpha: 2.1 + 0.3 * s(R2, 2.4) + 0.1 * s(PHI * R3, 1.4),
+      theta: 0.7 * s(1 / PHI, 1.6),
+      zoom: Math.exp(0.35 + 0.4 * s(1 / R3, 0.8)),
+      hue: ((t * w * 0.8) / TAU) % 1,
+    };
+  },
+];
+
+const kaliLine = (num, m, hl) =>
+  `p &\\mapsto \\frac{${num}}{|p|^{\\alpha}} - c,\\quad \\alpha = ${hl(m.alpha, 2)},\\quad c = (${hl(m.cx, 2)},\\ ${hl(m.cy, 2)}) \\\\`;
+const baseLatex = [
+  (params, hl, m) =>
+    kaliLine('|R_{a_i} p + s_i|', m, hl) +
+    `a_i(t) &= ${hl(params.chaos, 2)}\\,\\big(2\\pi\\,h(i) + \\omega_i t\\big),\\quad d_i = \\min\\big(|p_i\\cdot n_{b_i} - o_i|,\\ \\big||p_i - q_i| - \\rho_i\\big|\\big)\\,(1 + 0.7\\,i) \\\\` +
+    '\\text{colour} &= \\textstyle\\sum_i \\text{rainbow}(h_i)\\,\\Big(\\frac{w}{d_i + w}\\Big)^2 e^{-0.12 i} \\\\',
+  (params, hl, m) =>
+    kaliLine('|R_{a_i} p + s_i|', m, hl) +
+    `(a_i, s_i, h_i) &= \\text{CR}\\big(\\text{rand}_{${m.k}-1\\,..\\,${m.k}+2}(i),\\ u = ${hl(m.u, 2)}\\big)\\ \\text{step } ${hl(m.amp, 2)} \\\\` +
+    `d_i &= \\big|\\,p_i\\cdot n_i - o_i + ${hl(params.jitter, 2)}\\,(1 + 0.15\\,i)\\,(\\text{fbm}_3(18p_i) - \\tfrac12) + \\beta_{rgb}\\big| \\\\` +
+    '\\text{ink} &= \\textstyle\\sum_i \\text{rainbow}(h_i)\\,\\Big(\\frac{w}{d_i(1+0.6i) + w}\\Big)^2\\,[\\text{noise}(4p_i) > \\tfrac12] \\\\',
+  (params, hl, m) =>
+    kaliLine('|p|', m, hl) +
+    `d &= \\min_i\\ \\min\\big(|x_i|,\\ |y_i|,\\ \\big||p_i| - 1\\big|\\big)\\,(1 + 0.8\\,i),\\quad \\text{hue} = ${hl(m.hue, 2)} + 0.14\\,i^* \\\\`,
+  (params, hl, m) =>
+    `p &\\mapsto \\frac{|p|}{|p|^{\\alpha(z)}} - c(z),\\quad c(z) = (${hl(m.cx, 2)},\\ ${hl(m.cy, 2)}) + ${hl(params.warp, 2)}\\,\\big(n(z) - \\tfrac12\\big) \\\\` +
+    `\\alpha(z) &= ${hl(m.alpha, 2)} + 1.5\\cdot${hl(params.warp, 2)}\\,\\big(n_1(z) - n_2(z)\\big),\\quad \\text{glow} = \\textstyle\\sum_i \\Big(\\frac{w}{|p_i \\cdot u_i|(1+0.6i) + w}\\Big)^2 \\\\`,
+];
+
 export default {
   name: 'Kali Pearls',
   description:
-    'Kali Ink, but any stroke that closes into too round a ring is frozen into a pearl: it keeps its shape while ' +
+    'Kali Tangle, Ink, Drift or Silk underneath, and any stroke that closes into too round a ring is frozen into a pearl: it keeps its shape while ' +
     'the ink flows around it like an incompressible fluid (|z′ − c|² = |z − c|² − R²), winding as it ages, until ' +
     'the pearl shrinks away and the flow closes up behind it.',
   tags: ['fractal', '2d', 'glsl', 'kaliset', 'inversion', 'noise', 'fbm', 'orbit trap', 'random', 'hand-drawn', 'flow', 'circle detection'],
@@ -343,7 +420,7 @@ export default {
   shaderLang: 'glsl',
 
   motion(t, params = {}) {
-    const s = (k, ph = 0) => Math.sin(W * k * t + ph);
+    const base = Math.min(BASES.length - 1, Math.max(0, Math.round(params.base ?? 0)));
     const period = params.reseed ?? 9;
     const x = t / period;
     const k = Math.floor(x);
@@ -354,11 +431,8 @@ export default {
     const seeds = (j) => [j - 1, j, j + 1, j + 2].map((v) => ((v % 997) + 997) % 997);
     const ks = Math.floor(t / 9);
     return {
-      cx: 0.8 + 0.2 * s(1, 2.7) + 0.07 * s(R3, 1.5),
-      cy: 0.6 + 0.15 * s(PHI, 0.1) + 0.06 * s(R2 * PHI, 1.8),
-      alpha: 2.05 + 0.35 * s(R2, 0.4) + 0.1 * s(PHI * R3, 2.6),
-      theta: 0.6 * s(1 / PHI, 0.9),
-      zoom: Math.exp(0.4 + 0.35 * s(1 / R3, 1.2)),
+      ...baseMotion[base](t),
+      base,
       k: k % 997,
       seeds: seeds(k),
       u,
@@ -372,10 +446,7 @@ export default {
 
   latex: (params, hl, m) =>
     '\\begin{aligned}' +
-    `p &\\mapsto \\frac{|R_{a_i} p + s_i|}{|p|^{\\alpha}} - c,\\quad \\alpha = ${hl(m.alpha, 2)},\\quad c = (${hl(m.cx, 2)},\\ ${hl(m.cy, 2)}) \\\\` +
-    `(a_i, s_i, h_i) &= \\text{CR}\\big(\\text{rand}_{${m.k}-1\\,..\\,${m.k}+2}(i),\\ u = ${hl(m.u, 2)}\\big)\\ \\text{step } ${hl(m.amp, 2)} \\\\` +
-    `d_i &= \\big|\\,p_i\\cdot n_i - o_i + ${hl(params.jitter, 2)}\\,(1 + 0.15\\,i)\\,(\\text{fbm}_3(18p_i) - \\tfrac12) + \\beta_{rgb}\\big| \\\\` +
-    '\\text{ink} &= \\textstyle\\sum_i \\text{rainbow}(h_i)\\,\\Big(\\frac{w}{d_i(1+0.6i) + w}\\Big)^2\\,[\\text{noise}(4p_i) > \\tfrac12] \\\\' +
+    baseLatex[m.base](params, hl, m) +
     `\\text{pearl} &\\Leftarrow \\big[S(\\mu - b)\\,S(\\mu / b)\\,f^2 \\ge ${hl(params.roundness, 2)}\\big],\\ \\ |z' - c_k|^2 = |z - c_k|^2 - R_k^2,\\ \\ \\arg \\mathrel{+}= ${hl(params.swirl, 2)}\\,a_k\\tfrac{R_k^2}{|z - c_k|^2} \\\\` +
     `R_k &= R_{k,0}\\,\\big(1 - \\text{smooth}\\tfrac{a_k - ${hl(params.hold, 1)}}{${hl(params.vanish, 1)}}\\big) \\\\` +
     `\\text{out} &= 1 - (1 - I)\\,e^{-L},\\ \\ L = ${hl(params.optics, 2)}\\big(${hl(params.bloom, 2)}\\,G\\!*\\!B + ${hl(params.spikes, 2)}\\,\\text{PSF}_{6}\\!*\\!B + ${hl(params.streak, 2)}\\,S_x\\!*\\!B + ${hl(params.ghosts, 2)}\\textstyle\\sum_k B\\big(c + \\kappa_k(c - z)\\big) + \\dots\\big)` +
@@ -383,6 +454,9 @@ export default {
 
   params: {
     speed: { value: 1, min: 0, max: 3, step: 0.05 },
+    base: { value: 0, min: 0, max: BASES.length - 1, step: 1, options: BASES },
+    chaos: { value: 0.6, min: 0, max: 1, step: 0.01 },
+    warp: { value: 0.35, min: 0, max: 1, step: 0.01 },
     reseed: { value: 9, min: 0.1, max: 300, step: 0.05 },
     blend: { value: 2.25, min: 0.05, max: 60, step: 0.05 },
     jitter: { value: 0.5, min: 0, max: 1.5, step: 0.01 },
@@ -429,6 +503,10 @@ export default {
     uniform float uIterations;
     uniform float uGlow;
     uniform float uSat;
+    uniform float uBase;          // 0 Tangle, 1 Ink, 2 Drift, 3 Silk
+    uniform float uHue;
+    uniform float uChaos;
+    uniform float uWarp;
     uniform vec4 uP[6];           // pearls: c, shown radius, flow radius (0 = none)
     uniform vec4 uQ[6];           // pearls: opacity, twist τ·age, atlas slot, flash
     uniform sampler2D uAtlas;     // six 256² snapshots side by side
@@ -478,11 +556,11 @@ export default {
       return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
     }
 
+    float fbm(vec2 p) { return 0.5 * noise(p) + 0.3 * noise(p * 2.03 + 1.7) + 0.2 * noise(p * 4.01 + 3.1); }   // Silk's field
     // three octaves, for scratchy edges (centred on ½)
     float fbm3(vec2 p) { return 0.5 * noise(p) + 0.3 * noise(p * 2.13 + 5.1) + 0.2 * noise(p * 4.37 + 9.7); }
 
-    vec3 shade(vec2 z) {
-      z = flowAround(z);
+    vec3 shadeInk(vec2 z) {
       z += 0.3 * vec2(sin(uClock * 0.027), cos(uClock * 0.033 + 2.0));
       vec2 p = uZoom * (rot(uTheta) * z);
       vec3 col = vec3(0.0);
@@ -512,24 +590,113 @@ export default {
       return col * uGlow;
     }
 
+    // Kali Tangle: a random turn and an off-centre mirror every step, and every
+    // step its own random line and circle to glow against.
+    vec3 shadeTangle(vec2 z) {
+      z += 0.06 * uChaos * sin(z.yx * 3.1 + vec2(uClock * 0.21, uClock * 0.17));   // a slow wobble
+      z += 0.35 * vec2(sin(uClock * 0.031), cos(uClock * 0.023 + 1.0));   // pan
+      vec2 p = uZoom * (rot(uTheta) * z);
+      vec3 col = vec3(0.0);
+      float r1 = 0.0;
+      for (int i = 0; i < 24; i++) {
+        if (float(i) >= uIterations) break;
+        float fi = float(i);
+        p = rot(uChaos * (6.2831 * h(fi + 0.13) + uClock * 0.25 * (2.0 * h(fi + 0.71) - 1.0))) * p;
+        float r2 = max(dot(p, p), 1e-6);
+        vec2 sh = uChaos * 0.45 * (vec2(h(fi + 31.7), h(fi + 37.3)) - 0.5) * vec2(sin(uClock * 0.05 * (1.0 + h(fi + 41.0))), 1.0);
+        p = abs(p + sh) / pow(r2, 0.5 * uAlpha) - uC;
+        if (i == 0) r1 = length(p);
+        float b = 6.2831 * h(fi + 3.7) + uClock * 0.07 * (2.0 * h(fi + 5.1) - 1.0);
+        float dl = abs(dot(p, vec2(cos(b), sin(b))) - (h(fi + 9.2) - 0.5) * 1.2);
+        vec2 q = (vec2(h(fi + 11.3), h(fi + 13.9)) - 0.5) * 1.6;
+        float dc = abs(length(p - q) - 0.25 - 0.55 * h(fi + 17.1));
+        float d = min(dl, dc) * (1.0 + 0.7 * fi);
+        float w = 0.012 + 0.018 * h(fi + 21.0);
+        float hue = uHue + h(fi * 1.37 + (dl < dc ? 0.0 : 40.0));
+        float g = w / (d + w);
+        float ink = 0.55 + 0.45 * sin(dot(p, vec2(5.3, 3.1)) * (1.0 + h(fi + 45.0)) + fi);
+        col += rainbow(hue) * g * g * ink * exp(-0.12 * fi) * 2.4;
+      }
+      vec3 back = rainbow(uHue + 0.5 + 0.12 * log(r1 + 0.05)) * 0.12;
+      return back + uGlow * col;
+    }
+
+    // Kali Drift: the plain set, coloured by the depth of the closest pass to
+    // the mirror axes or the unit circle.
+    vec3 shadeDrift(vec2 z) {
+      vec2 p = uZoom * (rot(uTheta) * z);
+      float best = 1e9, bestI = 0.0, r1 = 0.0;
+      for (int i = 0; i < 24; i++) {
+        if (float(i) >= uIterations) break;
+        float r2 = max(dot(p, p), 1e-6);
+        p = abs(p) / pow(r2, 0.5 * uAlpha) - uC;
+        float r = length(p);
+        if (i == 0) r1 = r;
+        float d = min(min(abs(p.x), abs(p.y)), abs(r - 1.0)) * (1.0 + 0.8 * float(i));
+        if (d < best) { best = d; bestI = float(i); }
+      }
+      float g = 0.035 / (best + 0.035);
+      vec3 lines = rainbow(uHue + 0.14 * bestI + 0.05 * r1) * g * g * 1.6;
+      vec3 back = rainbow(uHue + 0.5 + 0.12 * log(r1 + 0.05)) * 0.14;
+      return back + uGlow * lines;
+    }
+
+    // Kali Silk: c and α picked per point by the noise field n.
+    vec3 shadeSilk(vec2 z, vec2 n) {
+      vec2 c = uC + uWarp * (n - 0.5);
+      float alpha = uAlpha + uWarp * 1.5 * (n.x - n.y);
+      vec2 p = uZoom * (rot(uTheta) * (z + uWarp * 0.8 * (n - 0.5)));
+      vec3 col = vec3(0.0);
+      float r1 = 0.0;
+      for (int i = 0; i < 24; i++) {
+        if (float(i) >= uIterations) break;
+        float fi = float(i);
+        float r2 = max(dot(p, p), 1e-6);
+        p = abs(p) / pow(r2, 0.5 * alpha) - c;
+        if (i == 0) r1 = length(p);
+        float a = 2.39996 * fi + uTheta * 2.0;
+        float d = min(abs(dot(p, vec2(cos(a), sin(a)))), abs(length(p) - 0.6 - 0.4 * n.x)) * (1.0 + 0.6 * fi);
+        float g = 0.014 / (d + 0.014);
+        col += rainbow(uHue + 0.9 * n.x - 0.6 * n.y + 0.17 * fi) * g * g * exp(-0.14 * fi) * 1.8;
+      }
+      vec3 back = rainbow(uHue + 0.5 + 1.2 * n.y + 0.1 * log(r1 + 0.05)) * 0.11;
+      return back + uGlow * col;
+    }
+
+    // Every base sees the plane after the ink has flowed around the pearls.
+    vec3 shade(vec2 z, vec2 n) {
+      z = flowAround(z);
+      if (uBase < 0.5) return shadeTangle(z);
+      if (uBase < 1.5) return shadeInk(z);
+      if (uBase < 2.5) return shadeDrift(z);
+      return shadeSilk(z, n);
+    }
+
     void main() {
       vec2 frag = vUv * uResolution;
       float px = 1.0 / (0.5 * min(uResolution.x, uResolution.y));
       vec2 z0 = (frag - 0.5 * uResolution) * px;
+      bool ink = uBase > 0.5 && uBase < 1.5;
+      // Silk's field (smooth, so once per pixel), carried round the pearls too
+      vec2 n = vec2(0.0);
+      if (uBase > 2.5) {
+        vec2 fz = flowAround(z0) * 1.3 + 0.3 * vec2(sin(uClock * 0.029), cos(uClock * 0.037));
+        n = vec2(fbm(fz + vec2(0.0, uClock * 0.045)), fbm(fz + vec2(5.2, 1.3) - uClock * 0.038));
+      }
       // the paper breathes: a slow, low-frequency warp (smooth, so once per pixel)
-      vec2 breathe = uBreathe * 0.05 * (vec2(fbm3(z0 * 1.1 + vec2(0.0, uClock * 0.06)), fbm3(z0 * 1.1 + vec2(4.3, 1.9) - uClock * 0.05)) - 0.5);
+      vec2 breathe = (ink ? uBreathe : 0.0) * 0.05 * (vec2(fbm3(z0 * 1.1 + vec2(0.0, uClock * 0.06)), fbm3(z0 * 1.1 + vec2(4.3, 1.9) - uClock * 0.05)) - 0.5);
       // line boil: a sub-pixel shudder, re-hashed 12 times a second
       float frame = floor(uClock * 12.0);
-      vec2 shudder = uShudder * 0.8 * px * (vec2(hash(vec2(frame, 3.1)), hash(vec2(frame, 7.7))) - 0.5);
+      vec2 shudder = (ink ? uShudder : 0.0) * 0.8 * px * (vec2(hash(vec2(frame, 3.1)), hash(vec2(frame, 7.7))) - 0.5);
       vec3 col = vec3(0.0);
       for (int j = 0; j < 4; j++) {            // 2×2 supersampling
         vec2 o = (vec2(float(j / 2), float(j - 2 * (j / 2))) - 0.25) * 0.5;
-        col += shade((frag + o - 0.5 * uResolution) * px + breathe + shudder);
+        col += shade((frag + o - 0.5 * uResolution) * px + breathe + shudder, n);
       }
       col *= 0.25;
       // dark paper with a faint grain
       vec2 z = (frag - 0.5 * uResolution) * px;
-      col += vec3(0.035, 0.02, 0.05) * (0.7 + 0.6 * noise(z * 60.0)) + vec3(0.02, 0.0, 0.04) * noise(z * 2.0 + uClock * 0.02);
+      if (ink) col += vec3(0.035, 0.02, 0.05) * (0.7 + 0.6 * noise(z * 60.0)) + vec3(0.02, 0.0, 0.04) * noise(z * 2.0 + uClock * 0.02);
 
       float lum = dot(col, vec3(0.299, 0.587, 0.114));
       col = max(mix(vec3(lum), col, uSat), 0.0);
@@ -577,6 +744,10 @@ export default {
       uIterations: { value: 12 },
       uGlow: { value: 1 },
       uSat: { value: 1 },
+      uBase: { value: 0 },
+      uHue: { value: 0 },
+      uChaos: { value: 0.6 },
+      uWarp: { value: 0.35 },
       uP: { value: new Float32Array(24) },
       uQ: { value: new Float32Array(24) },
       uAtlas: { value: null },
@@ -605,6 +776,10 @@ export default {
     u.uIterations.value = ctx.params.iterations;
     u.uGlow.value = ctx.params.glow;
     u.uSat.value = ctx.params.saturation;
+    u.uBase.value = m.base;
+    u.uHue.value = m.hue;
+    u.uChaos.value = ctx.params.chaos;
+    u.uWarp.value = ctx.params.warp;
 
     const p = ctx.params;
     const L = state.lens;
@@ -693,6 +868,7 @@ export default {
     const scanRT = new THREE.WebGLRenderTarget(...scanDims(ctx.size.width, ctx.size.height), { depthBuffer: false });
     let scanBuf = new Uint8Array(scanRT.width * scanRT.height * 4);
     const atlas = new THREE.WebGLRenderTarget(256 * 6, 256, { depthBuffer: false });
+    atlas.scissorTest = true;
     const scanMat = mat(SCAN_FRAG, { tSrc: { value: soft.texture }, uZ2Uv: { value: new THREE.Vector2() }, uUv2Z: { value: new THREE.Vector2() } });
     const captureMat = mat(CAPTURE_FRAG, { tSrc: { value: scene.texture }, uZ2Uv: scanMat.uniforms.uZ2Uv, uDisc: { value: new THREE.Vector3() } });
     const zUniforms = (w, h) => {
@@ -735,6 +911,7 @@ export default {
       const slot = [0, 1, 2, 3, 4, 5].find((s) => !lens.pearls.some((q) => q.slot === s));
       captureMat.uniforms.uDisc.value.set(best.x, best.y, best.R);
       atlas.viewport.set(256 * slot, 0, 256, 256);
+      atlas.scissor.copy(atlas.viewport); // the clear before a render ignores the viewport: keep it to this slot
       pass(r, captureMat, atlas);
       lens.pearls.push({ x: best.x, y: best.y, R: best.R, slot, born: lens.clock });
     };

@@ -1691,11 +1691,17 @@ greasy phone camera.
 
 File: `src/sketches/kaliPearls.js`
 
-Kali Ink (§44), but a stroke that closes into too round a ring gets caught and frozen into a **pearl**.
+A Kali fractal where a stroke that closes into too round a ring gets caught and frozen into a **pearl**.
+
+- **The base (`base`):** the fractal underneath is Kali Tangle (§39, the default), Kali Ink (§44), Kali Drift
+  or Kali Silk, each exactly as in its own sketch. Some dials only matter for one base: `chaos` for Tangle,
+  `warp` for Silk, and `reseed`, `blend`, `jitter`, `bleed`, `shudder`, `breathe`, `breaks` for Ink. Tangle's
+  random circle traps make rings of their own, so it throws up pearls readily.
 
 - **Finding rings:** twice a second the picture is blurred, and for every point c and seven radii r
   (0.07·1.4ʲ) it is sampled at 24 angles round the circle |z − c| = r, plus inside (½r) and outside (1.5r).
-  With μ the mean round the circle, b the brighter of inside/outside, and f the share of the 24 angles that
+  With μ the mean round the circle, b the background (the inside, or the inside/outside average if that
+  is brighter: the middle must be dark, busy surroundings count half), and f the share of the 24 angles that
   are clearly ink, the score is S(μ − b)·S(μ/b)·f² (S = smoothstep): a bright ring that stands out and has
   no gaps scores near 1. The best spot above `roundness` becomes a pearl: that disc of the picture is
   copied out and stays that shape while the ink keeps changing.
@@ -1708,7 +1714,8 @@ Kali Ink (§44), but a stroke that closes into too round a ring gets caught and 
   shrinks to 0 over `vanish` seconds (fading in the second half) and the flow closes up behind it.
 - **`pearls`:** how many can exist at once (0 turns it back into Kali Ink).
 
-Try: roundness 0.4 for lots of pearls; hold 0 and vanish 10 for pearls that start shrinking at once;
+Try: base Kali Silk for big soft bubbles; chaos 1 on Tangle for a wilder tangle to catch rings in;
+roundness 0.4 for lots of pearls; hold 0 and vanish 10 for pearls that start shrinking at once;
 swirl 1.5 for whirlpools.
 
 ---
