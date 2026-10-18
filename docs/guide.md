@@ -1737,7 +1737,45 @@ pearls 6, roundness 0.4, drift 0.5 and hold 20 for a table of marbles.
 
 ---
 
-## 46. My notes
+## 46. Kali Accretion, annotated
+
+File: `src/sketches/kaliAccretion.js`
+
+Kali Pearls (§45) under gravity: the same base, ring finder, flow, contact light, glass and riding, but the
+pearls fall together and **merge** instead of bouncing.
+
+- **Gravity (`gravity`, `attract`, `drag`):** every pearl is pulled toward the centre of the screen with a
+  softened pull of nearly constant strength, −g c/√(|c|² + 0.04), and toward every other pearl with
+  `attract` · m_j (c_j − c)/(|c_j − c|² + 0.01)^(3/2), with m = (R/0.2)² (so a middling pearl weighs 1). Drag
+  slows them by e^(−drag·t).
+- **Orbits (`drift`):** a new pearl is launched sideways at speed `drift` (clockwise or anticlockwise, hashed from
+  the time it was caught). It falls into a decaying orbit and spirals in.
+- **Merging:** only small rings are caught (r ≤ 0.19). When two pearls touch they become one, keeping
+  mass (R = √(R_a² + R_b²), up to 0.5), momentum (the centre and velocity are mass-weighted) and angular
+  momentum: with I = ½ m R² and L the pair's orbital angular momentum about the new centre, the merged
+  pearl spins at ω = (I_a ω_a + I_b ω_b + L)/I. A head-on hit barely turns it; a glancing one sets it spinning.
+- **What it swallowed:** both pictures, each as it was shown (spin and swirl included), are copied into one
+  new snapshot. Each point comes from whichever pearl it is nearer to, measured in that pearl's own radii,
+  and points outside both are folded back in through the nearer rim. After a few merges the core is a
+  mosaic of everything it has eaten. The merged pearl starts stretched along the line of impact, as long as
+  the pair was, then wobbles round (d ↦ d + s n (n·d), s = s₀ e^(−5t) cos 12t).
+- **Inner swirl (`churn`, `viscosity`):** besides its rigid spin ω, each pearl has an inner swirl Ω. The
+  snapshot at radius r (in pearl radii) is turned by φ(r) = ∫ω + (1 − r²)² ∫Ω, so the core turns further
+  than the rim and the picture inside winds into a spiral. A merge sets
+  Ω = Ω̄ + churn · (L/I + ω̄ − (I_a ω_a + I_b ω_b)/I): the parts' own swirl (mass-averaged), plus the hit,
+  plus the spin the parts brought in that the bigger whole dilutes. Viscosity damps Ω as e^(−t/viscosity),
+  and the spiral freezes in place.
+- **Frame dragging:** the ink around a pearl winds at `swirl` + 0.4 ω, so it is dragged round with the spin.
+- **Lifetime:** a merged pearl's age is the mass-weighted age of its parts, so a core that keeps feeding stays
+  young. After `hold` it shrinks away over `vanish` seconds, as in Kali Pearls.
+
+Try: gravity 0 and attract 0.5 for pearls that find each other wherever they are; drift 0.8 and drag 0.02
+for long orbits and glancing hits; churn 5 and viscosity 30 for cores that whirl and whirl; hold 40 for one
+big pearl that eats everything; base Kali Silk for soft marbled cores.
+
+---
+
+## 47. My notes
 
 Add your own findings, questions and discoveries here.
 
