@@ -1687,7 +1687,33 @@ greasy phone camera.
 
 ---
 
-## 45. My notes
+## 45. Kali Pearls, annotated
+
+File: `src/sketches/kaliPearls.js`
+
+Kali Ink (§44), but a stroke that closes into too round a ring gets caught and frozen into a **pearl**.
+
+- **Finding rings:** twice a second the picture is blurred, and for every point c and seven radii r
+  (0.07·1.4ʲ) it is sampled at 24 angles round the circle |z − c| = r, plus inside (½r) and outside (1.5r).
+  With μ the mean round the circle, b the brighter of inside/outside, and f the share of the 24 angles that
+  are clearly ink, the score is S(μ − b)·S(μ/b)·f² (S = smoothstep): a bright ring that stands out and has
+  no gaps scores near 1. The best spot above `roundness` becomes a pearl: that disc of the picture is
+  copied out and stays that shape while the ink keeps changing.
+- **Flowing around it:** the ink moves out of the way like an incompressible fluid,
+  |z′ − c|² = |z − c|² − R². That squeezes the outside of the disc onto the whole plane and keeps areas
+  equal (π r′² = π r² − π R²), so nothing disappears, it just bunches up at the rim.
+- **Winding (`swirl`):** the direction of z − c is also turned by `swirl` · age · R²/|z − c|², strongest
+  at the rim and growing as the pearl ages, so the strokes wrap round it.
+- **Going away (`hold`, `vanish`):** a pearl stays full size for `hold` seconds, then its radius
+  shrinks to 0 over `vanish` seconds (fading in the second half) and the flow closes up behind it.
+- **`pearls`:** how many can exist at once (0 turns it back into Kali Ink).
+
+Try: roundness 0.4 for lots of pearls; hold 0 and vanish 10 for pearls that start shrinking at once;
+swirl 1.5 for whirlpools.
+
+---
+
+## 46. My notes
 
 Add your own findings, questions and discoveries here.
 
