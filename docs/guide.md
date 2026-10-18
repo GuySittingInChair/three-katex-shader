@@ -1712,11 +1712,20 @@ A Kali fractal where a stroke that closes into too round a ring gets caught and 
   at the rim and growing as the pearl ages, so the strokes wrap round it.
 - **Going away (`hold`, `vanish`):** a pearl stays full size for `hold` seconds, then its radius
   shrinks to 0 over `vanish` seconds (fading in the second half) and the flow closes up behind it.
-- **`pearls`:** how many can exist at once (0 turns it back into Kali Ink).
+- **`pearls`:** how many can exist at once (0 turns it back into the plain base).
+- **Contact light (`contact`):** strands that pass close to a pearl (within 1.7 radii) light up in the colour
+  of the pearl's nearest edge, in ripples running outward, sin(60 s − 4t) with s the distance from the rim.
+  Only strands light up, not the backdrop, and the light is added as 1 − (1 − I)e^(−L) so it never clips.
+- **Glass (`glass`):** inside a pearl the strands behind it still show, magnified like a lens:
+  z′ = c + d (0.55 + 0.25 |d/R|²). `glass` 0 is the plain frozen snapshot; 1 lets every strand shine through.
+- **Riding (`ride`):** each base maps the screen into its fractal's plane as p = zoom · R₋θ (z + pan(t)). A pearl
+  remembers its point P in that plane, so it is carried along like the strands around it:
+  c(t) = R_θ P / zoom − pan(t), turning by θ − θ₀ and scaling with the zoom (kept within 0.6–1.4×).
+  A pearl carried off screen is dropped. `ride` 0 pins pearls to the screen.
 
 Try: base Kali Silk for big soft bubbles; chaos 1 on Tangle for a wilder tangle to catch rings in;
 roundness 0.4 for lots of pearls; hold 0 and vanish 10 for pearls that start shrinking at once;
-swirl 1.5 for whirlpools.
+swirl 1.5 for whirlpools; glass 1 and contact 3 for pearls that glow through the tangle.
 
 ---
 

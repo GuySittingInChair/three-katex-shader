@@ -388,6 +388,17 @@ const baseMotion = [
   },
 ];
 
+// How each base maps the screen into its fractal's plane, p = zoom·R_{−θ}(z + pan)
+// (as its shader does it), so a pearl can ride along.
+const baseFrame = (m) => {
+  const t = m.clock;
+  const pan =
+    m.base === 0 ? [0.35 * Math.sin(t * 0.031), 0.35 * Math.cos(t * 0.023 + 1)]
+    : m.base === 1 ? [0.3 * Math.sin(t * 0.027), 0.3 * Math.cos(t * 0.033 + 2)]
+    : [0, 0];
+  return { th: m.theta, zoom: m.zoom, pan };
+};
+
 const kaliLine = (num, m, hl) =>
   `p &\\mapsto \\frac{${num}}{|p|^{\\alpha}} - c,\\quad \\alpha = ${hl(m.alpha, 2)},\\quad c = (${hl(m.cx, 2)},\\ ${hl(m.cy, 2)}) \\\\`;
 const baseLatex = [
@@ -448,7 +459,8 @@ export default {
     '\\begin{aligned}' +
     baseLatex[m.base](params, hl, m) +
     `\\text{pearl} &\\Leftarrow \\big[S(\\mu - b)\\,S(\\mu / b)\\,f^2 \\ge ${hl(params.roundness, 2)}\\big],\\ \\ |z' - c_k|^2 = |z - c_k|^2 - R_k^2,\\ \\ \\arg \\mathrel{+}= ${hl(params.swirl, 2)}\\,a_k\\tfrac{R_k^2}{|z - c_k|^2} \\\\` +
-    `R_k &= R_{k,0}\\,\\big(1 - \\text{smooth}\\tfrac{a_k - ${hl(params.hold, 1)}}{${hl(params.vanish, 1)}}\\big) \\\\` +
+    `R_k &= R_{k,0}\\,\\big(1 - \\text{smooth}\\tfrac{a_k - ${hl(params.hold, 1)}}{${hl(params.vanish, 1)}}\\big),\\quad c_k(t) = R_{\\theta} P_k / \\text{zoom} - \\text{pan}(t)\\ \\ (\\text{ride } ${hl(params.ride, 2)}) \\\\` +
+    `\\text{ink} &\\mathrel{+}= ${hl(params.contact, 2)}\\,\\text{edge}_k\\,\\big[1 < \\tfrac{|z - c_k|}{R_k} < 1.7\\big],\\quad \\text{inside} = \\text{snap}_k \\vee ${hl(params.glass, 2)}\\,\\text{ink}\\big(c_k + d(0.55 + 0.25|d/R_k|^2)\\big) \\\\` +
     `\\text{out} &= 1 - (1 - I)\\,e^{-L},\\ \\ L = ${hl(params.optics, 2)}\\big(${hl(params.bloom, 2)}\\,G\\!*\\!B + ${hl(params.spikes, 2)}\\,\\text{PSF}_{6}\\!*\\!B + ${hl(params.streak, 2)}\\,S_x\\!*\\!B + ${hl(params.ghosts, 2)}\\textstyle\\sum_k B\\big(c + \\kappa_k(c - z)\\big) + \\dots\\big)` +
     '\\end{aligned}',
 
@@ -469,6 +481,9 @@ export default {
     vanish: { value: 4, min: 0.2, max: 30, step: 0.1 },
     swirl: { value: 0.25, min: 0, max: 1.5, step: 0.01 },
     pearls: { value: 4, min: 0, max: 6, step: 1 },
+    contact: { value: 1, min: 0, max: 3, step: 0.05 },
+    glass: { value: 0.35, min: 0, max: 1, step: 0.01 },
+    ride: { value: 1, min: 0, max: 1, step: 0.01 },
     iterations: { value: 12, min: 4, max: 20, step: 1 },
     glow: { value: 1, min: 0, max: 2.5, step: 0.05 },
     saturation: { value: 1, min: 0, max: 1.5, step: 0.05 },
@@ -510,10 +525,19 @@ export default {
     uniform vec4 uP[6];           // pearls: c, shown radius, flow radius (0 = none)
     uniform vec4 uQ[6];           // pearls: opacity, twist τ·age, atlas slot, flash
     uniform sampler2D uAtlas;     // six 256² snapshots side by side
+    uniform float uSpin[6];       // how far each pearl has turned since it was caught (riding)
+    uniform float uGlass;
+    uniform float uContact;
     varying vec2 vUv;
 
     // The ink flows around each pearl: |z' − c|² = |z − c|² − R², turned by τ R²/|z − c|².
+    // Inside a pearl the glass shows the strands behind it, magnified: z' = c + d(0.55 + 0.25|d/R|²).
     vec2 flowAround(vec2 z) {
+      for (int k = 0; k < 6; k++) {
+        vec2 d = z - uP[k].xy;
+        float R = uP[k].z;
+        if (R > 0.0 && dot(d, d) < R * R) return uP[k].xy + d * (0.55 + 0.25 * dot(d, d) / (R * R));
+      }
       for (int k = 0; k < 6; k++) {
         float R2 = uP[k].w * uP[k].w;
         if (R2 <= 0.0) continue;
@@ -672,6 +696,13 @@ export default {
       return shadeSilk(z, n);
     }
 
+    // A pearl's snapshot at d (in its own radii), turned back by how far it has ridden round.
+    vec3 snapAt(float slot, float spin, vec2 d) {
+      float c = cos(spin), s = sin(spin);
+      d = mat2(c, -s, s, c) * d;
+      return texture2D(uAtlas, vec2((slot + 0.5 + 0.49 * d.x) / 6.0, 0.5 + 0.49 * d.y)).rgb;
+    }
+
     void main() {
       vec2 frag = vUv * uResolution;
       float px = 1.0 / (0.5 * min(uResolution.x, uResolution.y));
@@ -703,17 +734,35 @@ export default {
       float m = max(max(col.r, col.g), col.b);
       col *= (1.0 - exp(-1.4 * m)) / max(m, 1e-4);
 
-      // the pearls, frozen as they were caught (already toned and graded)
+      // Strands that pass close to a pearl's rim catch its light: the colour of
+      // the nearest edge of the pearl, in ripples running outward. Only strands
+      // light up (the backdrop stays as it is), added as light so it never clips.
+      vec3 Lc = vec3(0.0);
+      float strand = smoothstep(0.12, 0.45, max(col.r, max(col.g, col.b)));
+      for (int k = 0; k < 6; k++) {
+        float R = uP[k].z;
+        if (R <= 0.0 || uContact <= 0.0) continue;
+        vec2 d = z - uP[k].xy;
+        float r = length(d) / R;
+        if (r < 0.97 || r > 1.7) continue;
+        vec3 edge = snapAt(uQ[k].z, uSpin[k], 0.8 * d / (r * R));
+        float band = smoothstep(0.97, 1.03, r) * (1.0 - smoothstep(1.03, 1.7, r));
+        float ripple = 0.65 + 0.35 * sin(60.0 * (r - 1.0) * R - 4.0 * uClock);
+        Lc += edge * band * ripple * uQ[k].x;
+      }
+      col = 1.0 - (1.0 - clamp(col, 0.0, 1.0)) * exp(-2.5 * uContact * strand * Lc);
+
+      // the pearls, frozen as they were caught (already toned and graded), with
+      // the live strands showing through the glass
       for (int k = 0; k < 6; k++) {
         float R = uP[k].z;
         if (R <= 0.0) continue;
         vec2 d = (z - uP[k].xy) / R;
         float r = length(d);
         if (r >= 1.0) continue;
-        vec2 a = vec2((uQ[k].z + 0.5 + 0.49 * d.x) / 6.0, 0.5 + 0.49 * d.y);
-        vec3 snap = texture2D(uAtlas, a).rgb * (1.0 + uQ[k].w);
+        vec3 snap = snapAt(uQ[k].z, uSpin[k], d) * (1.0 + uQ[k].w);
         float mask = (1.0 - smoothstep(0.82, 1.0, r)) * uQ[k].x;
-        col = mix(col, snap, mask);
+        col = mix(col, mix(snap, max(snap, col), uGlass), mask);
         col += snap * 0.5 * smoothstep(0.8, 0.92, r) * (1.0 - smoothstep(0.92, 1.0, r)) * uQ[k].x;   // a faint rim
       }
 
@@ -748,6 +797,9 @@ export default {
       uHue: { value: 0 },
       uChaos: { value: 0.6 },
       uWarp: { value: 0.35 },
+      uSpin: { value: new Float32Array(6) },
+      uGlass: { value: 0.35 },
+      uContact: { value: 1 },
       uP: { value: new Float32Array(24) },
       uQ: { value: new Float32Array(24) },
       uAtlas: { value: null },
@@ -790,17 +842,36 @@ export default {
     L.clock = m.clock;
     L.roundness = p.roundness;
     L.max = p.pearls;
-    L.pearls = L.pearls.filter((q) => m.clock - q.born < p.hold + p.vanish);
+    // Riding: a pearl keeps its point P = zoom·R_{−θ}(z + pan) of the fractal's
+    // own plane, so it is carried (moved, turned, scaled) the way the strands
+    // around it are: z(t) = R_θ P / zoom − pan(t).
+    const f = (L.frame = baseFrame(m));
+    for (const q of L.pearls) {
+      const zoom = f.zoom / q.zoom0;
+      const c = Math.cos(f.th), s = Math.sin(f.th);
+      const x = (c * q.P[0] - s * q.P[1]) / f.zoom - f.pan[0];
+      const y = (s * q.P[0] + c * q.P[1]) / f.zoom - f.pan[1];
+      q.x = q.x0 + p.ride * (x - q.x0);
+      q.y = q.y0 + p.ride * (y - q.y0);
+      q.R = q.R0 * (1 + p.ride * (Math.min(1.4, Math.max(0.6, 1 / zoom)) - 1)); // scales with the zoom, within reason
+      q.spin = p.ride * (f.th - q.th0);
+    }
+    const [hx, hy] = L.half;
+    L.pearls = L.pearls.filter((q) => m.clock - q.born < p.hold + p.vanish && Math.abs(q.x) - q.R < hx && Math.abs(q.y) - q.R < hy);
     u.uP.value.fill(0);
     u.uQ.value.fill(0);
+    u.uSpin.value.fill(0);
     L.pearls.forEach((q, k) => {
       const age = m.clock - q.born;
       const ph = Math.max(0, (age - p.hold) / p.vanish);
       const R = q.R * (1 - smooth(ph));
       u.uP.value.set([q.x, q.y, R, R * smooth(age / 0.8)], 4 * k);
       u.uQ.value.set([1 - smooth(2 * ph - 1), p.swirl * age, q.slot, 0.6 * Math.exp(-3 * age)], 4 * k);
+      u.uSpin.value[k] = q.spin;
     });
     u.uAtlas.value = L.atlas;
+    u.uGlass.value = p.glass;
+    u.uContact.value = p.contact;
     L.on = p.optics > 0;
     Object.assign(L.flare, { uStreak: p.streak, uRays: p.rays });
     Object.assign(L.comp, { uClock: m.clock, uSpikes: p.spikes, uOptics: p.optics, uBloom: p.bloom, uGhosts: p.ghosts, uDirt: p.dirt, uAberration: p.aberration });
@@ -913,11 +984,19 @@ export default {
       atlas.viewport.set(256 * slot, 0, 256, 256);
       atlas.scissor.copy(atlas.viewport); // the clear before a render ignores the viewport: keep it to this slot
       pass(r, captureMat, atlas);
-      lens.pearls.push({ x: best.x, y: best.y, R: best.R, slot, born: lens.clock });
+      const f = lens.frame;
+      const c = Math.cos(f.th), s = Math.sin(f.th);
+      const vx = best.x + f.pan[0], vy = best.y + f.pan[1];
+      lens.pearls.push({
+        x: best.x, y: best.y, R: best.R, x0: best.x, y0: best.y, R0: best.R, spin: 0, slot, born: lens.clock,
+        P: [f.zoom * (c * vx + s * vy), f.zoom * (-s * vx + c * vy)], zoom0: f.zoom, th0: f.th,
+      });
     };
 
     // update() writes plain numbers here; render() copies them into the materials.
     const lens = { on: true, flare: {}, comp: {}, pearls: [], clock: 0, lastScan: -1, roundness: 0.55, max: 4, atlas: atlas.texture };
+    lens.half = [ctx.size.width / Math.min(ctx.size.width, ctx.size.height), ctx.size.height / Math.min(ctx.size.width, ctx.size.height)];
+    lens.frame = { th: 0, zoom: 1, pan: [0, 0] };
     const apply = (material, values) => {
       for (const k in values) material.uniforms[k].value = values[k];
     };
@@ -964,6 +1043,7 @@ export default {
         scanRT.setSize(...scanDims(w, h));
         scanBuf = new Uint8Array(scanRT.width * scanRT.height * 4);
         zUniforms(w, h);
+        lens.half = [w / Math.min(w, h), h / Math.min(w, h)];
         lens.pearls.length = 0;
       },
     };
