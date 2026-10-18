@@ -1,36 +1,34 @@
 import * as THREE from 'three';
 import { TAU, smooth } from '../lib/motion.js';
 
-// Kali Accretion: Kali Pearls (same base, ring finder, flow and lens), but the
-// pearls fall together under gravity and merge when they touch.
+// Kali Accretion: a Kali fractal draining into a fixed core at the centre of the screen.
 //
-// Each pearl is a disc of mass m ∝ R². It is pulled toward the centre of the
-// screen with a softened pull of nearly constant strength g (`gravity`), and
-// toward every other pearl with a ∝ m_j / (r² + ε²) (`attract`), and loses a
-// little speed to drag (`drag`). A new pearl is launched sideways (`drift`), so
-// it falls into a decaying orbit and spirals in.
+// The base fractal (`base`) and the ring finder are those of Kali Pearls: any
+// stroke that closes into too round a ring (`roundness`) is caught.
 //
-// Only small rings are caught (r ≤ 0.19); pearls grow by merging, up to R = 0.5.
-// When two pearls touch they merge into one, keeping mass and momentum:
-//   R = √(R_a² + R_b²),   c = (m_a c_a + m_b c_b) / m,   v = (m_a v_a + m_b v_b) / m,
-// and angular momentum: with I = ½ m R² and L the orbital angular momentum of
-// the pair about c, the new spin is ω = (I_a ω_a + I_b ω_b + L) / I. So a
-// glancing hit sets the merged pearl turning.
+// The core never moves and never changes size (`core` is its radius R_c). Mass
+// only goes in:
+//   • The ink falls in. With q = R_c²/|z|² (1 at the rim, falling off like
+//     gravity), the picture at z is drawn from R_{q(1.5 + 1.2 pull·s)} e^{0.4 pull·q·s} z:
+//     wound into spiral arms, and scrolled outward as the phase s runs 0 → 1
+//     every 4 s, so what is seen keeps moving inward and round. Two copies half
+//     a cycle apart are cross-faded (each fades out before it jumps back), so
+//     the fall never stops.
+//   • A caught ring falls in on a spiral, ṙ = −0.1 pull (1 + R_c/r) and
+//     θ̇ = 0.45 √pull r^{−3/2} (faster as it nears, as an orbit does), and is
+//     stretched along its orbit by (r₀/r)^1.2 and thinned as much across it (so
+//     its area stays the same), into an arc, the way a tide pulls a body apart.
+//   • When it reaches the rim it is swallowed. The core's picture is pressed
+//     inward to make room and the newcomer is wrapped round the rim from where
+//     it came in, its area kept, so the oldest material ends up in the middle.
 //
-// What the pearls were is kept. On a merge both pictures (each as it was shown,
-// spin and inner swirl included) are copied into one new snapshot, each point
-// taken from whichever pearl it is nearer to in its own radii, so the merged pearl
-// is a mosaic of everything it has swallowed. It starts stretched along the
-// line of impact, as long as the pair was, and wobbles round.
-//
-// And it turns inside differently from its rim. Besides the rigid spin ω, each
-// pearl has an inner swirl Ω: the core turns by ∫Ω more than the rim, the
-// snapshot at radius r being rotated by φ(r) = ∫ω + (1 − r²)² ∫Ω. A merge stirs
-// it: Ω = mass-averaged Ω of the parts + churn · (L / I + ω̄ − (I_a ω_a + I_b ω_b) / I):
-// the hit itself, plus the spin the parts brought in that the bigger whole
-// dilutes, so what was inside the swallowed pearls goes on whirling in the core.
-// Viscosity damps Ω over `viscosity` seconds and the swirl freezes into a spiral.
-// The ink around a pearl winds at `swirl` plus 0.4 ω, dragged round by its spin.
+// Everything orbits the same way, and what falls in brings that turning with it.
+// The core spins at ω and swirls at Ω: its picture at ρ (in core radii) is turned
+// by φ(ρ) = ∫ω + (1 − ρ²)² ∫Ω, so the middle turns further than the rim and the
+// layers wind into a spiral. Each swallow adds Ω += 3·spin·R²/R_c² (R the ring's
+// radius: the more it brought, the harder it stirs) and a quarter of that to ω,
+// and both die away over `settle` seconds (ω three times more slowly), so the
+// spiral freezes until the next one lands.
 //
 // Below is the Kali Ink description (base 1), unchanged.
 //
@@ -117,7 +115,7 @@ const SCAN_FRAG = `
   void main() {
     vec2 c = (vUv - 0.5) * uUv2Z;
     float best = 0.0, bestJ = 0.0;
-    for (int j = 0; j < 4; j++) {           // small rings only (up to 0.19): the pearls grow by merging
+    for (int j = 0; j < 4; j++) {           // small rings only (up to 0.19)
       float r = 0.07 * pow(1.4, float(j));
       float b[24];
       float s = 0.0, sin_ = 0.0, sout = 0.0;
@@ -151,35 +149,33 @@ const CAPTURE_FRAG = `
   void main() { gl_FragColor = vec4(texture2D(tSrc, 0.5 + (uDisc.xy + (vUv * 2.0 - 1.0) * uDisc.z) * uZ2Uv).rgb, 1.0); }
 `;
 
-// Merges two pearls into one atlas slot. d is the new pearl's own coordinate;
-// it was stretched by 1 + E along the line of impact n when it was made, so the
-// point it shows is p = d + E n (n·d) (in new radii, from the new centre). Each
-// point is taken from whichever old pearl is nearer, in that pearl's own radii,
-// shown as it was (spin and inner swirl), and a point outside both is folded back
-// in through the nearer rim.
-const MERGE_FRAG = `
+// Swallowing: the core's picture (slot 0, as it was shown) is pressed inward
+// to radius a, and the newcomer (slot uSlot) is wrapped once round the band
+// a < ρ < 1, centred on the angle where it came in, in the same frame it fell in
+// (along the orbit, and across it).
+const FEED_FRAG = `
   uniform sampler2D uAtlas;
-  uniform vec2 uN;
-  uniform float uE;
-  uniform vec4 uA;              // the two pearls: centre and radius (in new radii, from the new centre), slot
-  uniform vec4 uB;
-  uniform vec2 uSA;             // their spin and inner swirl
-  uniform vec2 uSB;
+  uniform float uSlot;
+  uniform float uAng;
+  uniform float uA;
+  uniform vec2 uOld;            // the core's spin and swirl when it ate
   varying vec2 vUv;
   vec3 snapAt(float slot, vec2 sv, vec2 d) {
     float a = sv.x + sv.y * pow(max(0.0, 1.0 - dot(d, d)), 2.0);
     float c = cos(a), s = sin(a);
     d = mat2(c, -s, s, c) * d;
-    return texture2D(uAtlas, vec2((slot + 0.5 + 0.49 * d.x) / 8.0, 0.5 + 0.49 * d.y)).rgb;
+    return texture2D(uAtlas, vec2((slot + 0.5 + 0.49 * d.x) / 6.0, 0.5 + 0.49 * d.y)).rgb;
   }
   vec2 fold(vec2 u) { float r = length(u); return r > 1.0 ? u * max(0.0, 2.0 - r) / r : u; }
   void main() {
     vec2 d = vUv * 2.0 - 1.0;
-    vec2 p = d + uE * uN * dot(uN, d);
-    vec2 ua = (p - uA.xy) / uA.z, ub = (p - uB.xy) / uB.z;
-    float t = smoothstep(-0.06, 0.06, length(ua) - length(ub));
-    vec3 col = mix(snapAt(uA.w, uSA, fold(ua)), snapAt(uB.w, uSB, fold(ub)), t);
-    gl_FragColor = vec4(col, 1.0);
+    float rho = length(d);
+    vec3 old = snapAt(0.0, uOld, fold(d / uA));
+    float da = mod(atan(d.y, d.x) - uAng + 3.14159265, 6.2831853) - 3.14159265;
+    vec2 u = vec2(da / 3.14159265, (rho - 0.5 * (1.0 + uA)) / (0.5 * (1.0 - uA)));
+    vec2 t = vec2(-sin(uAng), cos(uAng)), r = vec2(cos(uAng), sin(uAng));
+    vec3 nw = snapAt(uSlot, vec2(0.0), fold(u.x * t + u.y * r));
+    gl_FragColor = vec4(mix(old, nw, smoothstep(uA - 0.03, uA + 0.03, rho)), 1.0);
   }
 `;
 
@@ -422,44 +418,16 @@ const baseMotion = [
   },
 ];
 
-// How each base maps the screen into its fractal's plane, p = zoom·R_{−θ}(z + pan)
-// (as its shader does it), so a pearl can ride along.
-const baseFrame = (m) => {
-  const t = m.clock;
-  const pan =
-    m.base === 0 ? [0.35 * Math.sin(t * 0.031), 0.35 * Math.cos(t * 0.023 + 1)]
-    : m.base === 1 ? [0.3 * Math.sin(t * 0.027), 0.3 * Math.cos(t * 0.033 + 2)]
-    : [0, 0];
-  return { th: m.theta, zoom: m.zoom, pan };
-};
-
 const kaliLine = (num, m, hl) =>
   `p &\\mapsto \\frac{${num}}{|p|^{\\alpha}} - c,\\quad \\alpha = ${hl(m.alpha, 2)},\\quad c = (${hl(m.cx, 2)},\\ ${hl(m.cy, 2)}) \\\\`;
-const baseLatex = [
-  (params, hl, m) =>
-    kaliLine('|R_{a_i} p + s_i|', m, hl) +
-    `a_i(t) &= ${hl(params.chaos, 2)}\\,\\big(2\\pi\\,h(i) + \\omega_i t\\big),\\quad d_i = \\min\\big(|p_i\\cdot n_{b_i} - o_i|,\\ \\big||p_i - q_i| - \\rho_i\\big|\\big)\\,(1 + 0.7\\,i) \\\\` +
-    '\\text{colour} &= \\textstyle\\sum_i \\text{rainbow}(h_i)\\,\\Big(\\frac{w}{d_i + w}\\Big)^2 e^{-0.12 i} \\\\',
-  (params, hl, m) =>
-    kaliLine('|R_{a_i} p + s_i|', m, hl) +
-    `(a_i, s_i, h_i) &= \\text{CR}\\big(\\text{rand}_{${m.k}-1\\,..\\,${m.k}+2}(i),\\ u = ${hl(m.u, 2)}\\big)\\ \\text{step } ${hl(m.amp, 2)} \\\\` +
-    `d_i &= \\big|\\,p_i\\cdot n_i - o_i + ${hl(params.jitter, 2)}\\,(1 + 0.15\\,i)\\,(\\text{fbm}_3(18p_i) - \\tfrac12) + \\beta_{rgb}\\big| \\\\` +
-    '\\text{ink} &= \\textstyle\\sum_i \\text{rainbow}(h_i)\\,\\Big(\\frac{w}{d_i(1+0.6i) + w}\\Big)^2\\,[\\text{noise}(4p_i) > \\tfrac12] \\\\',
-  (params, hl, m) =>
-    kaliLine('|p|', m, hl) +
-    `d &= \\min_i\\ \\min\\big(|x_i|,\\ |y_i|,\\ \\big||p_i| - 1\\big|\\big)\\,(1 + 0.8\\,i),\\quad \\text{hue} = ${hl(m.hue, 2)} + 0.14\\,i^* \\\\`,
-  (params, hl, m) =>
-    `p &\\mapsto \\frac{|p|}{|p|^{\\alpha(z)}} - c(z),\\quad c(z) = (${hl(m.cx, 2)},\\ ${hl(m.cy, 2)}) + ${hl(params.warp, 2)}\\,\\big(n(z) - \\tfrac12\\big) \\\\` +
-    `\\alpha(z) &= ${hl(m.alpha, 2)} + 1.5\\cdot${hl(params.warp, 2)}\\,\\big(n_1(z) - n_2(z)\\big),\\quad \\text{glow} = \\textstyle\\sum_i \\Big(\\frac{w}{|p_i \\cdot u_i|(1+0.6i) + w}\\Big)^2 \\\\`,
-];
+const NUMER = ['|R_{a_i} p + s_i|', '|R_{a_i} p + s_i|', '|p|', '|p|'];
 
 export default {
   name: 'Kali Accretion',
   description:
-    'Kali Pearls under gravity: the frozen rings fall toward the centre and toward each other, and merge when they touch, keeping ' +
-    'mass, momentum and angular momentum. The merged pearl is a mosaic of what it swallowed, and its core whirls on with the ' +
-    'spin the parts brought in (φ(r) = ∫ω + (1 − r²)²∫Ω) until viscosity freezes it into a spiral.',
-  tags: ['fractal', '2d', 'glsl', 'kaliset', 'inversion', 'noise', 'fbm', 'orbit trap', 'random', 'flow', 'circle detection', 'gravity', 'physics', 'angular momentum'],
+    'A Kali fractal draining into a fixed core: the ink spirals in, rings caught from it are pulled into arcs as they fall, ' +
+    'and each one swallowed is wrapped round the rim and stirs the core, which winds its layers into a spiral before it settles.',
+  tags: ['fractal', '2d', 'glsl', 'kaliset', 'inversion', 'noise', 'fbm', 'orbit trap', 'random', 'flow', 'circle detection', 'gravity', 'accretion', 'spiral'],
   category: 'Fractals',
   mode: 'shader',
   shaderLang: 'glsl',
@@ -488,21 +456,22 @@ export default {
       clock: t,
     };
   },
-
   latex: (params, hl, m) =>
     '\\begin{aligned}' +
-    baseLatex[m.base](params, hl, m) +
-    `\\text{pearl} &\\Leftarrow \\big[S(\\mu - b)\\,S(\\mu / b)\\,f^2 \\ge ${hl(params.roundness, 2)}\\big],\\ \\ |z' - c_k|^2 = |z - c_k|^2 - R_k^2,\\ \\ \\arg \\mathrel{+}= ${hl(params.swirl, 2)}\\,a_k\\tfrac{R_k^2}{|z - c_k|^2} \\\\` +
-    `R_k &= R_{k,0}\\,\\big(1 - \\text{smooth}\\tfrac{a_k - ${hl(params.hold, 1)}}{${hl(params.vanish, 1)}}\\big),\\quad c_k(t) = R_{\\theta} P_k / \\text{zoom} - \\text{pan}(t)\\ \\ (\\text{ride } ${hl(params.ride, 2)}) \\\\` +
-    `\\ddot c_k &= -${hl(params.gravity, 2)}\\,\\frac{c_k}{\\sqrt{|c_k|^2 + 0.04}} + ${hl(params.attract, 2)}\\textstyle\\sum_j m_j \\frac{c_j - c_k}{(|c_j - c_k|^2 + 0.01)^{3/2}} - ${hl(params.drag, 2)}\\,\\dot c_k,\\quad m \\propto R^2,\\quad |\\dot c_0| = ${hl(params.drift, 2)} \\\\` +
-    `R &= \\sqrt{R_a^2 + R_b^2},\\ \\ \\omega = \\frac{I_a\\omega_a + I_b\\omega_b + L}{I},\\ \\ \\Omega = \\bar\\Omega + ${hl(params.churn, 2)}\\big(\\tfrac{L}{I} + \\bar\\omega - \\tfrac{I_a\\omega_a + I_b\\omega_b}{I}\\big),\\ \\ \\dot\\Omega = -\\tfrac{\\Omega}{${hl(params.viscosity, 1)}},\\ \\ \\phi(r) = \\textstyle\\int\\omega + (1 - r^2)^2\\!\\int\\Omega \\\\` +
-    `\\text{ink} &\\mathrel{+}= ${hl(params.contact, 2)}\\,\\text{edge}_k\\,\\big[1 < \\tfrac{|z - c_k|}{R_k} < 1.7\\big],\\quad \\text{inside} = \\text{snap}_k \\vee ${hl(params.glass, 2)}\\,\\text{ink}\\big(c_k + d(0.55 + 0.25|d/R_k|^2)\\big) \\\\` +
-    `\\text{out} &= 1 - (1 - I)\\,e^{-L},\\ \\ L = ${hl(params.optics, 2)}\\big(${hl(params.bloom, 2)}\\,G\\!*\\!B + ${hl(params.spikes, 2)}\\,\\text{PSF}_{6}\\!*\\!B + ${hl(params.streak, 2)}\\,S_x\\!*\\!B + ${hl(params.ghosts, 2)}\\textstyle\\sum_k B\\big(c + \\kappa_k(c - z)\\big) + \\dots\\big)` +
+    kaliLine(NUMER[m.base], m, hl) +
+    `z &\\mapsto R_{q(1.5 + 1.2\\cdot${hl(params.pull, 2)}\\,s)}\\, e^{0.4\\cdot${hl(params.pull, 2)}\\,q s} z,\\quad q = \\tfrac{R_c^2}{|z|^2},\\ \\ R_c = ${hl(params.core, 2)} \\\\` +
+    `\\dot r &= -0.1\\cdot${hl(params.pull, 2)}\\,\\big(1 + \\tfrac{R_c}{r}\\big),\\quad \\dot\\theta \\propto r^{-3/2},\\quad \\text{stretch } (r_0/r)^{1.2} \\\\` +
+    `\\phi(\\rho) &= \\textstyle\\int\\omega + (1 - \\rho^2)^2\\!\\int\\Omega,\\quad \\Delta\\Omega = 3\\cdot${hl(params.spin, 2)}\\,\\tfrac{R^2}{R_c^2},\\quad \\dot\\Omega = -\\tfrac{\\Omega}{${hl(params.settle, 1)}}` +
     '\\end{aligned}',
 
   params: {
     speed: { value: 1, min: 0, max: 3, step: 0.05 },
     base: { value: 0, min: 0, max: BASES.length - 1, step: 1, options: BASES },
+    pull: { value: 1, min: 0, max: 3, step: 0.05 },
+    spin: { value: 1, min: 0, max: 3, step: 0.05 },
+    settle: { value: 8, min: 0.5, max: 60, step: 0.5 },
+    core: { value: 0.25, min: 0.1, max: 0.5, step: 0.01 },
+    roundness: { value: 0.45, min: 0.3, max: 0.98, step: 0.01 },
     chaos: { value: 0.6, min: 0, max: 1, step: 0.01 },
     warp: { value: 0.35, min: 0, max: 1, step: 0.01 },
     reseed: { value: 9, min: 0.1, max: 300, step: 0.05 },
@@ -512,20 +481,6 @@ export default {
     shudder: { value: 1, min: 0, max: 4, step: 0.05 },
     breathe: { value: 1, min: 0, max: 3, step: 0.05 },
     breaks: { value: 0.5, min: 0, max: 1, step: 0.01 },
-    roundness: { value: 0.45, min: 0.3, max: 0.98, step: 0.01 },
-    hold: { value: 14, min: 0, max: 60, step: 0.5 },
-    vanish: { value: 4, min: 0.2, max: 30, step: 0.1 },
-    swirl: { value: 0.25, min: 0, max: 1.5, step: 0.01 },
-    pearls: { value: 6, min: 0, max: 6, step: 1 },
-    contact: { value: 1, min: 0, max: 3, step: 0.05 },
-    glass: { value: 0.35, min: 0, max: 1, step: 0.01 },
-    ride: { value: 0.3, min: 0, max: 1, step: 0.01 },
-    drift: { value: 0.4, min: 0, max: 1, step: 0.01 },
-    gravity: { value: 0.25, min: 0, max: 1.5, step: 0.01 },
-    attract: { value: 0.1, min: 0, max: 1, step: 0.01 },
-    drag: { value: 0.15, min: 0, max: 2, step: 0.01 },
-    churn: { value: 3, min: 0, max: 5, step: 0.05 },
-    viscosity: { value: 8, min: 0.2, max: 60, step: 0.1 },
     iterations: { value: 12, min: 4, max: 20, step: 1 },
     glow: { value: 1, min: 0, max: 2.5, step: 0.05 },
     saturation: { value: 1, min: 0, max: 1.5, step: 0.05 },
@@ -564,37 +519,23 @@ export default {
     uniform float uHue;
     uniform float uChaos;
     uniform float uWarp;
-    uniform vec4 uP[6];           // pearls: c, shown radius, flow radius (0 = none)
-    uniform vec4 uQ[6];           // pearls: opacity, twist (wound by swirl and spin), atlas slot, flash
-    uniform sampler2D uAtlas;     // eight 256² snapshots side by side
-    uniform vec2 uSpin[6];        // each pearl's turn since its snapshot (rigid spin, riding) and inner swirl
-    uniform vec3 uSquash[6];      // impact direction n and squash s: d ↦ d + s n (n·d)
-    uniform float uGlass;
-    uniform float uContact;
+    uniform vec4 uCore;           // radius, fall phase s, turning direction, flash
+    uniform vec2 uCoreSpin;       // the core's spin and swirl since its picture was last made
+    uniform float uCoreOn;
+    uniform float uPull;
+    uniform vec4 uB[5];           // falling rings: r, θ, radius, opacity (0 = none)
+    uniform vec4 uBQ[5];          // stretch, atlas slot, flash
+    uniform sampler2D uAtlas;     // six 256² snapshots: the core, then the falling rings
     varying vec2 vUv;
 
-    // The ink flows around each pearl: |z' − c|² = |z − c|² − R², turned by τ R²/|z − c|².
-    // Inside a pearl the glass shows the strands behind it, magnified: z' = c + d(0.55 + 0.25|d/R|²).
-    vec2 flowAround(vec2 z) {
-      for (int k = 0; k < 6; k++) {
-        vec2 d = z - uP[k].xy;
-        float R = uP[k].z;
-        if (R > 0.0 && dot(d, d) < R * R) return uP[k].xy + d * (0.55 + 0.25 * dot(d, d) / (R * R));
-      }
-      for (int k = 0; k < 6; k++) {
-        float R2 = uP[k].w * uP[k].w;
-        if (R2 <= 0.0) continue;
-        vec2 d = z - uP[k].xy;
-        float r2 = max(dot(d, d), R2 + 1e-6);
-        float q = R2 / r2;
-        float a = uQ[k].y * q;
-        z = uP[k].xy + mat2(cos(a), sin(a), -sin(a), cos(a)) * d * sqrt(1.0 - q);
-      }
-      return z;
+    mat2 rot(float a) { float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }
+    // The ink falls in: wound into arms near the core and scrolled outward as s runs 0 → 1.
+    vec2 flowIn(vec2 z, float s) {
+      float q = min(1.0, uCore.x * uCore.x / max(dot(z, z), 1e-4));
+      return rot(uCore.z * q * (1.5 + 1.2 * uPull * s)) * z * exp(0.4 * uPull * q * s);
     }
 
     vec3 rainbow(float t) { return 0.5 + 0.5 * cos(6.2831 * (t + vec3(0.0, 0.333, 0.667))); }
-    mat2 rot(float a) { float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }
     float h(float n) { return fract(sin(n * 127.1 + 4.7) * 43758.5453); }
     // Catmull-Rom through four values: passes through b at u = 0 and c at u = 1, smooth across.
     float cr(float a, float b, float c, float d, float u) {
@@ -730,22 +671,28 @@ export default {
       return back + uGlow * col;
     }
 
-    // Every base sees the plane after the ink has flowed around the pearls.
     vec3 shade(vec2 z, vec2 n) {
-      z = flowAround(z);
       if (uBase < 0.5) return shadeTangle(z);
       if (uBase < 1.5) return shadeInk(z);
       if (uBase < 2.5) return shadeDrift(z);
       return shadeSilk(z, n);
     }
+    // Silk's field, carried along with the ink
+    vec2 silkN(vec2 z) {
+      vec2 fz = z * 1.3 + 0.3 * vec2(sin(uClock * 0.029), cos(uClock * 0.037));
+      return vec2(fbm(fz + vec2(0.0, uClock * 0.045)), fbm(fz + vec2(5.2, 1.3) - uClock * 0.038));
+    }
+    vec3 fallen(vec2 z, float s) {
+      z = flowIn(z, s);
+      return shade(z, uBase > 2.5 ? silkN(z) : vec2(0.0));
+    }
 
-    // A pearl's snapshot at d (in its own radii), turned back by its spin, and the
-    // core by its inner swirl as well: φ(r) = spin + swirl (1 − r²)².
+    // A snapshot at d (in its own radii), turned by spin, and the middle by the swirl too: φ(ρ) = spin + swirl (1 − ρ²)².
     vec3 snapAt(float slot, vec2 sv, vec2 d) {
       float a = sv.x + sv.y * pow(max(0.0, 1.0 - dot(d, d)), 2.0);
       float c = cos(a), s = sin(a);
       d = mat2(c, -s, s, c) * d;
-      return texture2D(uAtlas, vec2((slot + 0.5 + 0.49 * d.x) / 8.0, 0.5 + 0.49 * d.y)).rgb;
+      return texture2D(uAtlas, vec2((slot + 0.5 + 0.49 * d.x) / 6.0, 0.5 + 0.49 * d.y)).rgb;
     }
 
     void main() {
@@ -753,25 +700,22 @@ export default {
       float px = 1.0 / (0.5 * min(uResolution.x, uResolution.y));
       vec2 z0 = (frag - 0.5 * uResolution) * px;
       bool ink = uBase > 0.5 && uBase < 1.5;
-      // Silk's field (smooth, so once per pixel), carried round the pearls too
-      vec2 n = vec2(0.0);
-      if (uBase > 2.5) {
-        vec2 fz = flowAround(z0) * 1.3 + 0.3 * vec2(sin(uClock * 0.029), cos(uClock * 0.037));
-        n = vec2(fbm(fz + vec2(0.0, uClock * 0.045)), fbm(fz + vec2(5.2, 1.3) - uClock * 0.038));
-      }
       // the paper breathes: a slow, low-frequency warp (smooth, so once per pixel)
       vec2 breathe = (ink ? uBreathe : 0.0) * 0.05 * (vec2(fbm3(z0 * 1.1 + vec2(0.0, uClock * 0.06)), fbm3(z0 * 1.1 + vec2(4.3, 1.9) - uClock * 0.05)) - 0.5);
       // line boil: a sub-pixel shudder, re-hashed 12 times a second
       float frame = floor(uClock * 12.0);
       vec2 shudder = (ink ? uShudder : 0.0) * 0.8 * px * (vec2(hash(vec2(frame, 3.1)), hash(vec2(frame, 7.7))) - 0.5);
+      // two copies of the fall, half a cycle apart, each faded out before it jumps back
+      float s1 = uCore.y, s2 = fract(uCore.y + 0.5);
+      float w1 = uPull > 1e-3 ? 1.0 - abs(2.0 * s1 - 1.0) : 1.0;
       vec3 col = vec3(0.0);
-      for (int j = 0; j < 4; j++) {            // 2×2 supersampling
-        vec2 o = (vec2(float(j / 2), float(j - 2 * (j / 2))) - 0.25) * 0.5;
-        col += shade((frag + o - 0.5 * uResolution) * px + breathe + shudder, n);
+      for (int j = 0; j < 2; j++) {            // 2 samples, diagonally
+        vec2 zz = (frag + vec2(j == 0 ? -0.25 : 0.25) - 0.5 * uResolution) * px + breathe + shudder;
+        col += w1 * fallen(zz, s1);
+        if (w1 < 0.999) col += (1.0 - w1) * fallen(zz, s2);
       }
-      col *= 0.25;
-      // dark paper with a faint grain
-      vec2 z = (frag - 0.5 * uResolution) * px;
+      col *= 0.5;
+      vec2 z = z0;
       if (ink) col += vec3(0.035, 0.02, 0.05) * (0.7 + 0.6 * noise(z * 60.0)) + vec3(0.02, 0.0, 0.04) * noise(z * 2.0 + uClock * 0.02);
 
       float lum = dot(col, vec3(0.299, 0.587, 0.114));
@@ -779,37 +723,31 @@ export default {
       float m = max(max(col.r, col.g), col.b);
       col *= (1.0 - exp(-1.4 * m)) / max(m, 1e-4);
 
-      // Strands that pass close to a pearl's rim catch its light: the colour of
-      // the nearest edge of the pearl, in ripples running outward. Only strands
-      // light up (the backdrop stays as it is), added as light so it never clips.
-      vec3 Lc = vec3(0.0);
-      float strand = smoothstep(0.12, 0.45, max(col.r, max(col.g, col.b)));
-      for (int k = 0; k < 6; k++) {
-        float R = uP[k].z;
-        if (R <= 0.0 || uContact <= 0.0) continue;
-        vec2 d = z - uP[k].xy;
-        float r = length(d) / R;
-        if (r < 0.97 || r > 1.7) continue;
-        vec3 edge = snapAt(uQ[k].z, uSpin[k], 0.8 * d / (r * R));
-        float band = smoothstep(0.97, 1.03, r) * (1.0 - smoothstep(1.03, 1.7, r));
-        float ripple = 0.65 + 0.35 * sin(60.0 * (r - 1.0) * R - 4.0 * uClock);
-        Lc += edge * band * ripple * uQ[k].x;
-      }
-      col = 1.0 - (1.0 - clamp(col, 0.0, 1.0)) * exp(-2.5 * uContact * strand * Lc);
+      float Rc = uCore.x, rp = length(z);
+      col *= 1.0 - 0.45 * (1.0 - smoothstep(Rc, 1.7 * Rc, rp));   // the ink thins as it goes in
 
-      // the pearls, frozen as they were caught (already toned and graded), with
-      // the live strands showing through the glass
-      for (int k = 0; k < 6; k++) {
-        float R = uP[k].z;
-        if (R <= 0.0) continue;
-        vec2 d = (z - uP[k].xy) / R;
-        d += uSquash[k].z * uSquash[k].xy * dot(uSquash[k].xy, d);   // squashed along n, for a moment
-        float r = length(d);
+      // the caught rings, drawn out along their orbits as they fall
+      for (int k = 0; k < 5; k++) {
+        vec4 B = uB[k];
+        if (B.w <= 0.0) continue;
+        float e = uBQ[k].x;
+        float da = mod(atan(z.y, z.x) - B.y + 3.14159265, 6.2831853) - 3.14159265;
+        vec2 uv = vec2(da * B.x / (B.z * e), (rp - B.x) * e / B.z);   // along the orbit, across it
+        float r = length(uv);
         if (r >= 1.0) continue;
-        vec3 snap = snapAt(uQ[k].z, uSpin[k], d) * (1.0 + uQ[k].w);
-        float mask = (1.0 - smoothstep(0.82, 1.0, r)) * uQ[k].x;
-        col = mix(col, mix(snap, max(snap, col), uGlass), mask);
-        col += snap * 0.5 * smoothstep(0.8, 0.92, r) * (1.0 - smoothstep(0.92, 1.0, r)) * uQ[k].x;   // a faint rim
+        vec2 t = vec2(-sin(B.y), cos(B.y)), rr = vec2(cos(B.y), sin(B.y));
+        vec3 snap = snapAt(uBQ[k].y, vec2(0.0), uv.x * t + uv.y * rr) * (1.0 + uBQ[k].z);
+        col = mix(col, snap, (1.0 - smoothstep(0.75, 1.0, r)) * B.w);
+      }
+
+      // the core: everything it has eaten, the oldest in the middle, wound by its spin and swirl
+      if (uCoreOn > 0.5) {
+        vec2 d = z / Rc;
+        float r = length(d);
+        vec3 core = snapAt(0.0, uCoreSpin, d * min(1.0, 0.999 / max(r, 1e-4))) * (1.0 + 0.6 * uCore.w);
+        col = mix(col, core, 1.0 - smoothstep(0.95, 1.0, r));
+        // the rim glows in the colour beneath it, brighter for a moment when it eats
+        col += core * (0.3 + 1.2 * uCore.w) * exp(-pow((r - 1.0) * 12.0, 2.0));
       }
 
       vec2 v = vUv - 0.5;
@@ -843,12 +781,12 @@ export default {
       uHue: { value: 0 },
       uChaos: { value: 0.6 },
       uWarp: { value: 0.35 },
-      uSpin: { value: new Float32Array(12) },
-      uSquash: { value: new Float32Array(18) },
-      uGlass: { value: 0.35 },
-      uContact: { value: 1 },
-      uP: { value: new Float32Array(24) },
-      uQ: { value: new Float32Array(24) },
+      uCore: { value: [0.25, 0, 1, 0] },
+      uCoreSpin: { value: [0, 0] },
+      uCoreOn: { value: 0 },
+      uPull: { value: 1 },
+      uB: { value: new Float32Array(20) },
+      uBQ: { value: new Float32Array(20) },
       uAtlas: { value: null },
     };
   },
@@ -882,143 +820,59 @@ export default {
 
     const p = ctx.params;
     const L = state.lens;
+    const C = L.core;
+    const Rc = p.core;
 
-    // Pearls age on the motion clock, so they keep pace with `speed` and with
-    // smooth recording. Going back in time (a reset) drops them all.
-    if (m.clock < L.clock - 1e-3) L.pearls.length = L.merges.length = 0;
+    // Everything runs on the motion clock, so it keeps pace with `speed` and with
+    // smooth recording. Going back in time (a reset) starts the core afresh.
+    if (m.clock < L.clock - 1e-3) {
+      L.rings.length = L.feeds.length = 0;
+      Object.assign(C, { spin: 0, swirl: 0, w: 0, W: 0, flash: 0 });
+      L.coreReady = false;
+    }
     const dt = Math.min(0.1, Math.max(0, m.clock - L.clock));
     L.clock = m.clock;
     L.roundness = p.roundness;
-    L.drift = p.drift;
-    L.max = p.pearls;
-    // Riding: each step, a pearl is carried the way the strands around it are.
-    // The base maps the screen into its fractal's plane as P = zoom·R_{−θ}(z + pan),
-    // so the point under the pearl last frame is now at R_θ P / zoom − pan.
-    const f0 = L.frame;
-    const f = (L.frame = baseFrame(m));
-    const [hx, hy] = L.half;
-    const live = (q) => q.R * (1 - smooth((m.clock - q.born - p.hold) / p.vanish)); // the radius as shown
-    for (const q of L.pearls) {
-      const c0 = Math.cos(f0.th), s0 = Math.sin(f0.th);
-      const vx = q.x + f0.pan[0], vy = q.y + f0.pan[1];
-      const P = [f0.zoom * (c0 * vx + s0 * vy), f0.zoom * (-s0 * vx + c0 * vy)];
-      const c = Math.cos(f.th), s = Math.sin(f.th);
-      q.x += p.ride * ((c * P[0] - s * P[1]) / f.zoom - f.pan[0] - q.x);
-      q.y += p.ride * ((s * P[0] + c * P[1]) / f.zoom - f.pan[1] - q.y);
-      q.R = Math.min(0.55, 1.4 * q.R0, Math.max(0.6 * q.R0, q.R * (1 + p.ride * (f0.zoom / f.zoom - 1)))); // scales with the zoom, within reason
-      q.spin += p.ride * (f.th - f0.th);
-    }
+    L.Rc = Rc;
 
-    // Gravity: a softened pull of strength `gravity` toward the centre, and
-    // `attract` m_j / (r² + ε²) toward every other pearl (m = (R / 0.2)², so a
-    // middling pearl weighs 1), less drag. Speeds are kept under 1.5.
-    const mass = (q) => (live(q) / 0.2) ** 2;
-    const acc = L.pearls.map((q) => {
-      const r = Math.hypot(q.x, q.y);
-      let ax = (-p.gravity * q.x) / Math.sqrt(r * r + 0.04), ay = (-p.gravity * q.y) / Math.sqrt(r * r + 0.04);
-      for (const o of L.pearls) {
-        if (o === q) continue;
-        const dx = o.x - q.x, dy = o.y - q.y, d2 = dx * dx + dy * dy + 0.01;
-        const g = (p.attract * mass(o)) / (d2 * Math.sqrt(d2));
-        ax += g * dx;
-        ay += g * dy;
-      }
-      return [ax, ay];
-    });
-    L.pearls.forEach((q, k) => {
-      const damp = Math.exp(-p.drag * dt);
-      q.v[0] = (q.v[0] + acc[k][0] * dt) * damp;
-      q.v[1] = (q.v[1] + acc[k][1] * dt) * damp;
-      const sp = Math.hypot(q.v[0], q.v[1]);
-      if (sp > 1.5) { q.v[0] *= 1.5 / sp; q.v[1] *= 1.5 / sp; }
-      q.x += q.v[0] * dt;
-      q.y += q.v[1] * dt;
-      // the rigid spin and the inner swirl turn the snapshot; viscosity damps the swirl
-      q.spin += q.w * dt;
-      q.swirl += q.W * dt;
-      q.W *= Math.exp(-dt / p.viscosity);
-      q.wind += (p.swirl + 0.4 * q.w) * dt; // the ink around winds at swirl, dragged round by the spin
-    });
-    // The screen edges bounce them back (rarely needed: gravity holds them in).
-    for (const q of L.pearls) {
-      const R = live(q);
-      for (const [axis, h] of [[0, hx], [1, hy]]) {
-        const x = axis === 0 ? q.x : q.y;
-        if (Math.abs(x) + R <= h || R >= h) continue;
-        const side = Math.sign(x);
-        if (axis === 0) q.x = side * (h - R); else q.y = side * (h - R);
-        if (q.v[axis] * side > 0) {
-          q.s0 = 0.22 * Math.min(1, Math.abs(q.v[axis]) / 0.3);
-          q.v[axis] *= -0.7;
-          q.hit = m.clock;
-          q.n = axis === 0 ? [-side, 0] : [0, -side];
-        }
-      }
-    }
+    // the core turns and swirls, and settles
+    C.spin += C.w * dt;
+    C.swirl += C.W * dt;
+    C.w *= Math.exp(-dt / (3 * p.settle));
+    C.W *= Math.exp(-dt / p.settle);
+    C.flash *= Math.exp(-3 * dt);
 
-    // Merging: two pearls that touch become one, keeping mass, momentum and
-    // angular momentum (I = ½ m R², L the pair's orbital angular momentum about
-    // the new centre). Both pictures are copied into a new snapshot (in render,
-    // in order), stretched along the line of impact as long as the pair was.
-    for (let merged = true; merged; ) {
-      merged = false;
-      for (let i = 0; i < L.pearls.length && !merged; i++) {
-        for (let j = i + 1; j < L.pearls.length && !merged; j++) {
-          const a = L.pearls[i], b = L.pearls[j];
-          const Ra = live(a), Rb = live(b);
-          const dx = b.x - a.x, dy = b.y - a.y, dist = Math.hypot(dx, dy);
-          if (dist >= Ra + Rb || Ra < 0.01 || Rb < 0.01) continue;
-          const slot = [0, 1, 2, 3, 4, 5, 6, 7].find((s) => !L.pearls.some((q) => q.slot === s));
-          const ma = Ra * Ra, mb = Rb * Rb, M = ma + mb;
-          const x = (ma * a.x + mb * b.x) / M, y = (ma * a.y + mb * b.y) / M;
-          const v = [(ma * a.v[0] + mb * b.v[0]) / M, (ma * a.v[1] + mb * b.v[1]) / M];
-          const R = Math.min(0.5, Math.sqrt(M));
-          const Lorb = [a, b].reduce((s, q, k) => s + [ma, mb][k] * ((q.x - x) * (q.v[1] - v[1]) - (q.y - y) * (q.v[0] - v[0])), 0);
-          const I = 0.5 * M * R * R, Ia = 0.5 * ma * Ra * Ra, Ib = 0.5 * mb * Rb * Rb;
-          const w = Math.max(-4, Math.min(4, (Ia * a.w + Ib * b.w + Lorb) / I));
-          // the inner swirl: what the parts were already swirling, plus the hit (L / I)
-          // and the spin the parts brought in that the bigger whole dilutes
-          const wBar = (ma * a.w + mb * b.w) / M, wOwn = (Ia * a.w + Ib * b.w) / I;
-          const W = Math.max(-6, Math.min(6, (ma * a.W + mb * b.W) / M + p.churn * (Lorb / I + wBar - wOwn)));
-          const n = dist > 1e-6 ? [dx / dist, dy / dist] : [1, 0];
-          const along = (q, Rq) => Math.abs((q.x - x) * n[0] + (q.y - y) * n[1]) + Rq;
-          const Renc = Math.max(R, along(a, Ra), along(b, Rb));
-          const rel = (q, Rq) => [(q.x - x) / R, (q.y - y) / R, Rq / R, q.slot];
-          L.merges.push({ slot, n, E: Renc / R - 1, A: rel(a, Ra), B: rel(b, Rb), SA: [a.spin, a.swirl], SB: [b.spin, b.swirl] });
-          const c = {
-            x, y, R, R0: R, v, slot, spin: 0, swirl: 0, w, W,
-            born: (ma * a.born + mb * b.born) / M, caught: Math.min(a.caught, b.caught),
-            wind: (ma * a.wind + mb * b.wind) / M, hit: m.clock, n, s0: R / Renc - 1,
-          };
-          L.pearls.splice(j, 1);
-          L.pearls.splice(i, 1, c);
-          L.mergeCount = (L.mergeCount ?? 0) + 1;
-          merged = true;
-        }
-      }
+    // the rings fall in on a spiral, after a moment to be seen
+    for (const b of L.rings) {
+      if (m.clock - b.caught < 0.6) continue;
+      b.r -= 0.1 * p.pull * (1 + Rc / b.r) * dt;
+      b.th += L.dir * Math.min(4, 0.45 * Math.sqrt(p.pull) * b.r ** -1.5) * dt;
     }
-    L.pearls = L.pearls.filter((q) => m.clock - q.born < p.hold + p.vanish);
-    u.uP.value.fill(0);
-    u.uQ.value.fill(0);
-    u.uSpin.value.fill(0);
-    u.uSquash.value.fill(0);
-    L.pearls.forEach((q, k) => {
-      const age = m.clock - q.born;
-      const ph = Math.max(0, (age - p.hold) / p.vanish);
-      const R = q.R * (1 - smooth(ph));
-      u.uP.value.set([q.x, q.y, R, R * smooth((m.clock - q.caught) / 0.8)], 4 * k);
-      // a merge leaves the pearl stretched along the line of impact (a bounce
-      // squashes it), and it wobbles back round
-      const since = m.clock - q.hit;
-      const squash = q.s0 * Math.exp(-5 * since) * Math.cos(12 * since);
-      const flash = 0.6 * Math.exp(-3 * (m.clock - q.caught)) + Math.min(0.5, 1.5 * Math.abs(q.s0)) * Math.exp(-5 * since);
-      u.uQ.value.set([1 - smooth(2 * ph - 1), q.wind, q.slot, flash], 4 * k);
-      u.uSpin.value.set([q.spin, q.swirl], 2 * k);
-      u.uSquash.value.set([q.n[0], q.n[1], squash], 3 * k);
+    // and are swallowed at the rim: wrapped round it (in render, in order), and they stir the core
+    L.rings = L.rings.filter((b) => {
+      if (b.r > Rc) return true;
+      const share = Math.min(0.6, (b.R / Rc) ** 2); // its area, as a share of the core's
+      L.feeds.push({ slot: b.slot, ang: b.th, a: Math.sqrt(1 - share), old: [C.spin, C.swirl] });
+      C.spin = C.swirl = 0; // baked into the new picture
+      C.W += L.dir * 3 * p.spin * share;
+      C.w += L.dir * 0.75 * p.spin * share;
+      C.flash = 1;
+      L.eaten++;
+      return false;
     });
+
+    u.uB.value.fill(0);
+    u.uBQ.value.fill(0);
+    L.rings.forEach((b, k) => {
+      const e = Math.max(1, Math.min((b.r0 / b.r) ** 1.2, (2.5 * b.r) / b.R)); // pulled out along the orbit
+      u.uB.value.set([b.r, b.th, b.R, smooth((m.clock - b.caught) / 0.4)], 4 * k);
+      u.uBQ.value.set([e, b.slot, 0.6 * Math.exp(-3 * (m.clock - b.caught)), 0], 4 * k);
+    });
+    u.uCore.value = [Rc, (m.clock / 4) % 1, L.dir, C.flash];
+    u.uCoreSpin.value = [C.spin, C.swirl];
+    u.uCoreOn.value = L.coreReady ? 1 : 0;
+    u.uPull.value = p.pull;
     u.uAtlas.value = L.atlas;
-    u.uGlass.value = p.glass;
-    u.uContact.value = p.contact;
     L.on = p.optics > 0;
     Object.assign(L.flare, { uStreak: p.streak, uRays: p.rays });
     Object.assign(L.comp, { uClock: m.clock, uSpikes: p.spikes, uOptics: p.optics, uBloom: p.bloom, uGhosts: p.ghosts, uDirt: p.dirt, uAberration: p.aberration });
@@ -1077,42 +931,39 @@ export default {
       r.setRenderTarget(target);
       r.render(quadScene, quadCam);
     };
-    // The pearl machinery: the picture blurred at 1/4 → ring score at a short
-    // side of 72 → read back → the best ring is copied into an atlas slot.
+    // The ring finder: the picture blurred at 1/4 → ring score at a short side
+    // of 72 → read back → the best ring is copied into an atlas slot (1..5; slot
+    // 0 is the core).
     const soft = rt(4);
     const softB = rt(4);
     const scanH = 72;
     const scanDims = (w, h) => [Math.round((scanH * w) / Math.min(w, h)), Math.round((scanH * h) / Math.min(w, h))];
     const scanRT = new THREE.WebGLRenderTarget(...scanDims(ctx.size.width, ctx.size.height), { depthBuffer: false });
     let scanBuf = new Uint8Array(scanRT.width * scanRT.height * 4);
-    const atlas = new THREE.WebGLRenderTarget(256 * 8, 256, { depthBuffer: false });
+    const atlas = new THREE.WebGLRenderTarget(256 * 6, 256, { depthBuffer: false });
     atlas.scissorTest = true;
-    const mergeRT = new THREE.WebGLRenderTarget(256, 256, { depthBuffer: false }); // the atlas can't be read while drawn into
-    const mergeMat = mat(MERGE_FRAG, {
+    const feedRT = new THREE.WebGLRenderTarget(256, 256, { depthBuffer: false }); // the atlas can't be read while drawn into
+    const feedMat = mat(FEED_FRAG, {
       uAtlas: { value: atlas.texture },
-      uN: { value: new THREE.Vector2() },
-      uE: { value: 0 },
-      uA: { value: new THREE.Vector4() },
-      uB: { value: new THREE.Vector4() },
-      uSA: { value: new THREE.Vector2() },
-      uSB: { value: new THREE.Vector2() },
+      uSlot: { value: 1 },
+      uAng: { value: 0 },
+      uA: { value: 0.8 },
+      uOld: { value: new THREE.Vector2() },
     });
     const toSlot = (r, material, slot) => {
       atlas.viewport.set(256 * slot, 0, 256, 256);
       atlas.scissor.copy(atlas.viewport); // the clear before a render ignores the viewport: keep it to this slot
       pass(r, material, atlas);
     };
-    const merge = (r, g) => {
-      const U = mergeMat.uniforms;
-      U.uN.value.set(...g.n);
-      U.uE.value = g.E;
-      U.uA.value.set(...g.A);
-      U.uB.value.set(...g.B);
-      U.uSA.value.set(...g.SA);
-      U.uSB.value.set(...g.SB);
-      pass(r, mergeMat, mergeRT);
-      copyMat.uniforms.tSrc.value = mergeRT.texture;
-      toSlot(r, copyMat, g.slot);
+    const feed = (r, g) => {
+      const U = feedMat.uniforms;
+      U.uSlot.value = g.slot;
+      U.uAng.value = g.ang;
+      U.uA.value = g.a;
+      U.uOld.value.set(...g.old);
+      pass(r, feedMat, feedRT);
+      copyMat.uniforms.tSrc.value = feedRT.texture;
+      toSlot(r, copyMat, 0);
     };
     const scanMat = mat(SCAN_FRAG, { tSrc: { value: soft.texture }, uZ2Uv: { value: new THREE.Vector2() }, uUv2Z: { value: new THREE.Vector2() } });
     const captureMat = mat(CAPTURE_FRAG, { tSrc: { value: scene.texture }, uZ2Uv: scanMat.uniforms.uZ2Uv, uDisc: { value: new THREE.Vector3() } });
@@ -1149,39 +1000,40 @@ export default {
         const x = ((px + 0.5) / W - 0.5) * ax;
         const y = ((py + 0.5) / scanRT.height - 0.5) * ay;
         if (Math.abs(x) + R > ax / 2 || Math.abs(y) + R > ay / 2) continue;
-        if (lens.pearls.some((q) => Math.hypot(x - q.x, y - q.y) < R + q.R + 0.03)) continue;
+        if (Math.hypot(x, y) < lens.Rc + R + 0.05) continue; // not in or touching the core
+        if (lens.rings.some((b) => Math.hypot(x - b.r * Math.cos(b.th), y - b.r * Math.sin(b.th)) < R + 2 * b.R + 0.03)) continue;
         best = { score, x, y, R };
       }
       if (!best) return;
-      const slot = [0, 1, 2, 3, 4, 5, 6, 7].find((s) => !lens.pearls.some((q) => q.slot === s));
+      const slot = [1, 2, 3, 4, 5].find((s) => !lens.rings.some((b) => b.slot === s));
       captureMat.uniforms.uDisc.value.set(best.x, best.y, best.R);
       toSlot(r, captureMat, slot);
-      // launched sideways (either way round, hashed from the time it was caught), so it falls into an orbit
-      const h = (Math.sin(lens.clock * 91.7 + slot * 7.3) * 43758.5453) % 1;
       const r0 = Math.hypot(best.x, best.y);
-      const [tx, ty] = r0 > 1e-3 ? [-best.y / r0, best.x / r0] : [1, 0];
-      const sense = Math.abs(h) < 0.5 ? 1 : -1;
-      lens.pearls.push({
-        x: best.x, y: best.y, R: best.R, R0: best.R, slot, born: lens.clock, caught: lens.clock,
-        v: [sense * lens.drift * tx, sense * lens.drift * ty],
-        spin: 0, swirl: 0, w: 0, W: 0, wind: 0, hit: -1e9, n: [1, 0], s0: 0,
-      });
+      lens.rings.push({ r: r0, r0, th: Math.atan2(best.y, best.x), R: best.R, slot, caught: lens.clock });
     };
 
     // update() writes plain numbers here; render() copies them into the materials.
-    const lens = { on: true, flare: {}, comp: {}, pearls: [], merges: [], clock: 0, lastScan: -1, roundness: 0.55, max: 4, atlas: atlas.texture };
-    lens.half = [ctx.size.width / Math.min(ctx.size.width, ctx.size.height), ctx.size.height / Math.min(ctx.size.width, ctx.size.height)];
-    lens.frame = { th: 0, zoom: 1, pan: [0, 0] };
+    const lens = { on: true, flare: {}, comp: {}, rings: [], feeds: [], clock: 0, lastScan: -1, roundness: 0.45, Rc: 0.25, atlas: atlas.texture };
+    lens.core = { spin: 0, swirl: 0, w: 0, W: 0, flash: 0 };
+    lens.dir = 1; // everything turns the same way (anticlockwise)
+    lens.eaten = 0;
+    lens.coreReady = false;
     const apply = (material, values) => {
       for (const k in values) material.uniforms[k].value = values[k];
     };
 
     ctx.pipeline = {
       render(r, sceneToDraw, camera, target) {
-        for (const g of lens.merges.splice(0)) merge(r, g); // in order: a merge may read the slot an earlier one wrote
+        for (const g of lens.feeds.splice(0)) feed(r, g); // in order: each one builds on the core the last one made
         r.setRenderTarget(scene);
         r.render(sceneToDraw, camera);
-        if (lens.pearls.length < Math.min(6, lens.max) && Math.abs(lens.clock - lens.lastScan) >= 0.5) {
+        if (!lens.coreReady) {
+          // the core starts as whatever was at the centre
+          captureMat.uniforms.uDisc.value.set(0, 0, lens.Rc);
+          toSlot(r, captureMat, 0);
+          lens.coreReady = true;
+        }
+        if (lens.rings.length < 5 && Math.abs(lens.clock - lens.lastScan) >= 0.5) {
           lens.lastScan = lens.clock;
           scan(r);
         }
@@ -1219,16 +1071,14 @@ export default {
         scanRT.setSize(...scanDims(w, h));
         scanBuf = new Uint8Array(scanRT.width * scanRT.height * 4);
         zUniforms(w, h);
-        lens.half = [w / Math.min(w, h), h / Math.min(w, h)];
-        lens.pearls.length = 0;
-        lens.merges.length = 0;
+        lens.rings.length = 0;
       },
     };
 
     lens.dispose = () => {
       delete ctx.pipeline;
-      for (const t of [scene, bright, flareRT, soft, softB, scanRT, atlas, mergeRT, ...levels.flatMap((lv) => [lv.a, lv.b])]) t.dispose();
-      for (const m of [brightMat, copyMat, blurMat, flareMat, compMat, scanMat, captureMat, mergeMat]) m.dispose();
+      for (const t of [scene, bright, flareRT, soft, softB, scanRT, atlas, feedRT, ...levels.flatMap((lv) => [lv.a, lv.b])]) t.dispose();
+      for (const m of [brightMat, copyMat, blurMat, flareMat, compMat, scanMat, captureMat, feedMat]) m.dispose();
       quad.geometry.dispose();
     };
     return { lens };
