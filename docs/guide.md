@@ -1911,8 +1911,9 @@ physics. Mart and Run walk through it in 3D.
   vertex. → *Kaleidoscopic IFS* (§53).
 - **Kleinian limit sets** (Mumford, Series & Wright, *Indra's Pearls*, 2002): the fractal curve where the
   orbits of a group of Möbius maps pile up. → *Kleinian Necklace* (§54).
-- Also out there, not built yet: pseudo-Kleinian 3D sets, hybrids that alternate formulas per step, and
-  path-traced lighting.
+- **Hybrids** (Mandelbulber, Mandelbulb 3D, from about 2011): alternate two formulas step by step.
+  → *Hybrid Fractal* (§55).
+- Also out there, not built yet: pseudo-Kleinian 3D sets and path-traced lighting.
 
 ---
 
@@ -2021,7 +2022,32 @@ Try: palette Ember for a gold necklace.
 
 ---
 
-## 55. My notes
+## 55. Hybrid Fractal, annotated
+
+File: `src/sketches/hybridFractal.js`
+
+- **The idea:** instead of repeating one formula, alternate two by a word. B is a Mandelbox step (box fold,
+  sphere fold, p ↦ s·p + c); M is a Menger-sponge step (fold into the wedge |x| ≥ |y| ≥ |z|, scale 3 from a
+  corner). The orbit is p_{n+1} = W_{n mod L}(p_n). The word W = BBM means two Mandelbox steps, then one Menger.
+- **Distance estimate:** both steps are isometries plus uniform scaling, so the running derivative is just
+  multiplied by each step's scale (k·|s| + 1 for B, 3 for M) and DE = |p|/|dr| still works, but it is no
+  longer exact.
+- **Measured, not assumed:** a ray may step by DE/L where L is the DE's Lipschitz constant. Sampling 60 000
+  nearby pairs gave L ≈ 1.4 (B), 1.4 (BBM), 1.5 (BM), 1.7 (BMM), so the march steps 0.55·DE (1/1.7 ≈ 0.59).
+  The textbook Menger step "if z < −1 then z += 2" jumps, and gives L ≈ 72 in the hybrid: rays would tunnel
+  straight through walls. So the M step *folds* z at 1 instead, which keeps the map continuous.
+- **The loop:** B (plain Mandelbox, for reference), BBM, BM, BMM, 14 s each, cross-faded. The Mandelbox
+  scale breathes between −2.3 and −2.6; every word's set stays in |x| ≤ 2 (escape-tested).
+- **Ownership colour:** each kind of step keeps its own orbit trap (closest approach of its outputs to the
+  origin). ln(t_B/t_M) decides copper (Mandelbox owns this part) or steel blue (Menger owns it).
+- **Readout:** |dr| grows at least |s|^(number of B) · 3^(number of M) per pass through the word.
+- **The joke:** the caption is a custody schedule: how many steps each formula gets per word ("week").
+
+Try: palette Night for glowing seams where the two formulas meet.
+
+---
+
+## 56. My notes
 
 Add your own findings, questions and discoveries here.
 
