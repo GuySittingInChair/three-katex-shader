@@ -1803,7 +1803,42 @@ Try: slices 24 to see how thin the far slices get; speed 0.3 to watch the planet
 
 ---
 
-## 48. My notes
+## 48. Brusselator Dish, annotated
+
+File: `src/sketches/brusselatorDish.js`
+
+The Brusselator is a made-up but legal chemistry (four reactions, from Prigogine and Lefever in Brussels,
+1968). It is the smallest one that can both draw a pattern and keep time:
+
+    ∂ₜu = a − (b + 1)u + u²v + D_u ∇²u        (u: activator)
+    ∂ₜv = b u − u²v + D_v ∇²v                 (v: inhibitor)
+
+- **Two thresholds, both exact:** the well-mixed state u = a, v = b/a starts oscillating (Hopf) when
+  b > b_H = 1 + a², and grows a stationary pattern (Turing) when b > b_T = (1 + a/√d)², with d = D_v/D_u.
+  Turing needs the inhibitor to spread faster than the activator (d large): at d = 8, b_T = 2.91; at d = 1,
+  b_T = 9 and only the oscillation is possible.
+- **The predicted spacing:** linearise about the steady state with a wave e^{ikx + σt}. `fastest()` scans k for
+  the largest growth rate Re σ, and the readout shows 2π/k_max. Near onset it is λ_c = 2π/√(a/√(D_u D_v)).
+- **The measured spacing (`measure`):** twice a second the middle 128 × 128 cells are read back from the GPU,
+  multiplied by a Hann window (so the square's edges don't add fake frequencies), Fourier-transformed with a
+  small radix-2 FFT, and the power is summed in rings of equal |k|. The peak ring gives λ. Theory and dish
+  agree to within a few percent (7.1 vs 7.0 at b = 3.6, 6.8 vs 6.7 at b = 4.6).
+- **Molecular noise:** every step adds η√dt of random noise to u. Without it, the stirring at the start decays
+  below float precision long before b crosses b_T, and patterns could only creep in from the wall.
+- **Pacemakers:** three specks where b is 0.6 lower. In the oscillating dish they cycle faster (period 3.7
+  against 5.1), so their neighbours follow them, and rings spread outward. When d goes back up, the Turing
+  pattern grows through the rings and freezes them in place.
+- **Numerics:** explicit Euler, dx = 0.5, dt = 0.006 (diffusion is stable up to dx²/(4 D_v) = 0.0078),
+  no-flux circular wall, float32 textures ping-ponged on the GPU, like Belousov–Zhabotinsky.
+- **The lighting:** u is drawn as a height field: normals from its gradient, a diffuse light and a specular
+  highlight, so the spots look like glossy beads.
+
+Try: palette Ink for a printed look; speed 0.3 during the d → 8 ramp (around 6–8 s into the loop) to watch the
+rings freeze.
+
+---
+
+## 49. My notes
 
 Add your own findings, questions and discoveries here.
 
