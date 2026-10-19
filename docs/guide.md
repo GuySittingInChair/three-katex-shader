@@ -1838,7 +1838,37 @@ rings freeze.
 
 ---
 
-## 49. My notes
+## 49. Earworm SIR, annotated
+
+File: `src/sketches/earwormSir.js`
+
+The SIR epidemic model (Kermack and McKendrick, 1927), with a song instead of a germ. s, i, r are the shares of
+the crowd who haven't heard it, are humming it, and are sick of it (immune). Time is in units of 1/γ, the
+average humming spell:
+
+    ṡ = −R₀ s i,    i̇ = R₀ s i − i,    ṙ = i
+
+- **The peak:** i̇ = i(R₀ s − 1), which is zero exactly when s = 1/R₀. So the humming peaks when the share still
+  unexposed drops to 1/R₀, the herd-immunity threshold. The tick inside the ring marks that moment on the ODE.
+- **The final size:** divide ṡ by ṙ to get ds/dr = −R₀ s, so s = s₀ e^{−R₀ r}. At the end i = 0, so r = 1 − s_∞
+  and ln(s₀/s_∞) = R₀(1 − s_∞). `finalSize` solves that with Newton's method. Below R₀ = 1 the only
+  solution is the trivial one: no outbreak.
+- **The crowd is not the ODE:** `outbreak()` runs Gillespie's algorithm. Total rate = R₀ S I/N (passing it on)
+  + I (getting sick of it); the time to the next event is exponential with that rate, and which event happens
+  is picked in proportion. Anyone can meet anyone (well mixed), as the equations assume, so the arcs jump
+  across the crowd. With 3000 people the final size lands within a few hundredths of the formula, and the s at
+  the peak scatters around 1/R₀ by a few hundredths.
+- **The ring:** the outbreak's timeline, clockwise from the top. The gold band is the crowd's i(t), the white
+  line is the ODE (RK4). The long tail of stragglers is cut off (see `shownDays`) so the interesting part fills
+  the ring.
+- **The joke (bit.js):** total humming, ∫ I dt days × 3 hours a day, in Eurovision finals (4 hours each). The
+  caption reads the sign of di/dt with `mood()`.
+
+Try: watch the R₀ = 0.9 outbreak: the ten seeds start short chains, and every chain dies out.
+
+---
+
+## 50. My notes
 
 Add your own findings, questions and discoveries here.
 
