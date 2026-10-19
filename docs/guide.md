@@ -1775,7 +1775,35 @@ big pearl that eats everything; base Kali Silk for soft marbled cores.
 
 ---
 
-## 47. My notes
+## 47. Kepler's Pizza, annotated
+
+File: `src/sketches/keplersPizza.js`
+
+A planet orbits a star, and each orbit is cut into K slices, one per equal stretch of time. Kepler's second
+law says every slice has the same area, πab/K, however long and thin or short and fat it looks.
+
+- **Where the planet is:** the mean anomaly M = 2πt/T grows evenly with time. Kepler's equation
+  M = E − e sin E gives the eccentric anomaly E; there is no formula for E, so `solveE` runs Newton's method,
+  E ← E − (E − e sin E − M)/(1 − e cos E), which converges in a handful of steps. Then x = a(cos E − e),
+  y = b sin E (the star sits at the origin, the focus), and r = a(1 − e cos E).
+- **Why equal M means equal area:** the area swept from perihelion is (ab/2)·M, a straight line in M. So the
+  cuts at M = 2πk/K split the ellipse into equal slices. Checked numerically: 12 slices agree with πab/12 to 6
+  digits for e = 0, 0.3, 0.55 and 0.75.
+- **The slices on the GPU:** each vertex carries (k, u, rim). The vertex shader solves Kepler's equation for
+  M = 2π(k + u)/K itself, so changing e or a only changes two uniforms. The fragment shader fills slices whose
+  k + u is less than `uSwept` = KM/2π.
+- **The flight plan:** units are the Sun's (AU, years), where Kepler's third law is T² = a³. Each orbit starts
+  at perihelion q = 1 AU, where the engine fires along the motion. That keeps q and changes e; the speed there
+  is v_p = 29.78 √(1 + e) km/s, and Δv is the difference. a = q/(1 − e), so the e = 0.75 orbit has a = 4 and
+  takes T = 8 years. Retro burns bring it back to a circle, so the loop is a flight you could actually fly.
+- **The joke (bit.js):** the area of each slice in large (14-inch) pizzas: 1 AU² = 2.25 × 10²³ of them.
+  The caption reads the sign of ṙ = e sin ν √(GM/p) with `mood()`.
+
+Try: slices 24 to see how thin the far slices get; speed 0.3 to watch the planet whip round perihelion.
+
+---
+
+## 48. My notes
 
 Add your own findings, questions and discoveries here.
 
