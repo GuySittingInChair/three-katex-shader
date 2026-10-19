@@ -1909,8 +1909,10 @@ physics. Mart and Run walk through it in 3D.
   30+ decades deep. → *Perturbation Dive* (§51).
 - **Kaleidoscopic IFS** (Knighty 2010): fold into one wedge of a symmetry group, turn, scale toward a
   vertex. → *Kaleidoscopic IFS* (§53).
-- Also out there, not built yet: pseudo-Kleinian and true Kleinian limit sets (Möbius groups, Indra's
-  Pearls), hybrids that alternate formulas per step, and path-traced lighting.
+- **Kleinian limit sets** (Mumford, Series & Wright, *Indra's Pearls*, 2002): the fractal curve where the
+  orbits of a group of Möbius maps pile up. → *Kleinian Necklace* (§54).
+- Also out there, not built yet: pseudo-Kleinian 3D sets, hybrids that alternate formulas per step, and
+  path-traced lighting.
 
 ---
 
@@ -1991,7 +1993,35 @@ Try: palette Ice; speed 0.3 on the icosahedron flake to see the 12 copies turn.
 
 ---
 
-## 54. My notes
+## 54. Kleinian Necklace, annotated
+
+File: `src/sketches/kleinianNecklace.js`
+
+- **Möbius maps:** z ↦ (αz + β)/(γz + δ), stored as 2×2 complex matrices with determinant 1; composing maps is
+  multiplying matrices. Two of them, a and b, and their inverses A, B generate a group: every word like abAAb
+  is a member.
+- **The limit set Λ:** for a discrete group, the orbit of any point piles up on the same set. Here it is a
+  closed fractal curve (a quasicircle).
+- **Grandma's recipe:** choose the traces t_a = tr a and t_b = tr b; then t_ab comes from
+  t_ab² − t_a t_b t_ab + t_a² + t_b² = 0, and the recipe writes down a and b so that the commutator abAB has
+  trace −2 (parabolic), which makes the curve close up. The readout recomputes tr(abAB) from the matrices.
+- **Drawing it by depth-first search:** a branch is a word w ending in a letter g. Apply w to the fixed points
+  of three special words ending in g (the two cyclic commutators that end in g, and g itself). When the
+  three image points are within ε, draw them as two segments and stop. Children are visited in cyclic order,
+  so the segments come out in order along the curve, and the colour runs along it. The search keeps its
+  matrices in one typed array (no allocation per word): about 5 ms for 65 000 segments.
+- **Staying discrete:** most choices of traces give a non-discrete group and a meaningless picture. The loop
+  moves t_a on a closed path with t_b = conj(t_a), checked in advance: t_a = t_b = 2 gives exactly the
+  Apollonian gasket, and along the whole path the search converges and the curve stays bounded.
+- **What you see:** near the edge of the discrete region (t_a ≈ 1.87 + 0.1i) the curve coils into double
+  spirals; deep inside (≈ 2.1 + 0.3i) it relaxes into a wobbly circle. The second half is the mirror image.
+  On wide screens the curve is turned on its side.
+
+Try: palette Ember for a gold necklace.
+
+---
+
+## 55. My notes
 
 Add your own findings, questions and discoveries here.
 
