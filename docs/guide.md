@@ -1868,7 +1868,104 @@ Try: watch the R₀ = 0.9 outbreak: the ten seeds start short chains, and every 
 
 ---
 
-## 50. My notes
+## 50. The fractal family on aiship, and the modern branch
+
+Almost every fractal here is the same idea: **repeat one simple step many times, and colour each point by
+how its orbit behaves.** They differ in what the step is and in what "behaves" means.
+
+**1. Escape-time sets (2D).** Iterate z ↦ f(z) + c and ask whether z runs off to infinity.
+- *Mandelbrot / Julia* (`radian628Julia`, the Life-Warped and Polar variants): f(z) = z². Colour is the
+  smooth escape count ν = n + 1 − log₂ log|z|.
+- *Newton Fractal*: here the step is Newton's method on z³ − 1, and the question is *which root* the orbit
+  falls into. The boundaries between the three basins are fractal because every boundary point touches
+  all three basins.
+
+**2. Fold-and-scale sets (the "Radian628" family).** The step is a mirror fold |p| followed by shift, scale
+and turn: p ↦ s·R_θ(|p| − c), plus a small warp by an integral of sin. Mirrors make symmetry; the scale
+makes it repeat at every size. Variations swap the straight mirror for a curved one (Shape Mirror), a
+prism of mirrors (Prism Mirror), log-polar coordinates (Log Spiral), or several frequencies (Multi-Freq).
+*Menger Sponge* and the old *Radian628 — Raymarched* are the 3D version: fold, sort the axes, scale.
+
+**3. Fold-and-invert sets (the Kali family).** Kali's set adds an inversion: p ↦ |p|/|p|^α − c. The
+inversion pulls the outside in and throws the inside out, which is where the lace and the jewels come from.
+Its orbits never escape, so instead of an escape count the colour comes from *orbit traps*: how close the
+orbit came to some curve, and at which step. Kali Drift moves c, α, θ and zoom quasi-periodically (never
+repeating). Tangle randomises the mirror per step, Silk makes c and α fields over the screen, Scribble/Ink
+draw it as a hand would, Drape weaves it into cloth, and Pearls/Accretion catch round rings and give them
+physics. Mart and Run walk through it in 3D.
+
+**4. Power sets in 3D.** The *Mandelbulb* raises a 3D point to a power in spherical coordinates
+(z ↦ z^p + c) and ray-marches it with a distance estimate. Lovely, but it was the 2009 state of the art.
+
+**What "modern" means in this scene (2010–2021), and the two new sketches:**
+- **Distance estimates everywhere.** Instead of only asking "in or out?", carry the derivative along the
+  orbit and get the distance to the set. It gives sharp filaments in 2D and makes ray marching, soft
+  shadows and ambient occlusion possible in 3D.
+- **Box and sphere folds** (the Mandelbox, Tglad 2010) replaced the power formula. They are made from
+  conformal folds, so the distance estimate is exact in the limit and the shapes look architectural.
+  → *Mandelbox* (§52).
+- **Perturbation deep zoom** (SuperFractalThing 2013, Kalles Fraktaler, rebasing by Zhuoran 2021). One
+  exact reference orbit, and every pixel only tracks its difference from it, so a GPU's 7-digit floats go
+  30+ decades deep. → *Perturbation Dive* (§51).
+- Also out there, not built yet: kaleidoscopic IFS (Knighty 2010: plane folds + rotation per step),
+  pseudo-Kleinian and true Kleinian limit sets (Möbius groups, Indra's Pearls), hybrids that alternate
+  formulas per step, and path-traced lighting.
+
+---
+
+## 51. Perturbation Dive, annotated
+
+File: `src/sketches/perturbationDive.js`
+
+- **Why ordinary deep zooms die:** a float32 has about 7 significant digits. At width 10⁻⁵ neighbouring
+  pixels have the same c and the picture turns to blocks. float64 lasts to about 10⁻¹³.
+- **Perturbation:** for a reference point c₀ with orbit Zₙ and a pixel c = c₀ + δc, subtract the two
+  recurrences: δ_{n+1} = 2Zₙδₙ + δₙ² + δc. Exact. δ is as small as the screen (10⁻³⁰ at the bottom), and
+  float32 stores small numbers fine: its *range* goes to 10⁻³⁸ even though its *precision* is 7 digits.
+- **Rebasing:** if |zₙ| < |δₙ| the orbit has come near 0, where the reference is a bad guide. Restart the
+  reference at Z₀ = 0 with δ := zₙ (one line in the shader).
+- **A Misiurewicz point as the reference:** c₀ = M₅,₂ is a point whose critical orbit becomes periodic
+  after 5 steps: Z₇ = Z₅. So the reference is 7 numbers, computed in JavaScript by Newton's method on
+  (Z₇ − Z₅)/(Z₆ − Z₄) (dividing by the lower-preperiod version removes the roots we don't want), and the
+  index wraps 7 → 5 forever.
+- **Self-similarity (Tan Lei, 1990):** near a Misiurewicz point, the set looks like itself scaled by the
+  cycle's multiplier λ = (f²)'(Z₅) = 2Z₅·2Z₆ ≈ 1.906 e^{122°i}. Zoom ×1.906 and turn 122°: same picture.
+  With `co-rotate` on, the camera turns by arg λ / ln|λ| per e-fold of zoom, and deep down the picture
+  stands still.
+- **Iterations needed:** a pixel at distance w from c₀ escapes after about k + p·ln(1/w)/ln|λ| steps, so
+  10⁻³⁰ needs only ~300. That's why it runs on a phone.
+- **Shading:** smooth escape count through a palette; distance estimate |z| ln|z| / |dz/dc| for the glowing
+  filaments; the "normal map" light from the direction of z/(dz/dc). The derivative is carried pre-scaled,
+  D = width·dz/dc, so it never overflows float32.
+- **The joke:** if the whole set were as wide as the observable universe (8.8 × 10²⁶ m), the screen at the
+  bottom is under a millimetre wide.
+
+Try: co-rotate on, then watch from about 20 s in: the star stops turning.
+
+---
+
+## 52. Mandelbox, annotated
+
+File: `src/sketches/mandelbox.js`
+
+- **The step:** box fold (each coordinate past ±1 is mirrored back: x ↦ 2 clamp(x, −1, 1) − x), sphere fold
+  (inside r_min = 0.5 scale up by 4; between 0.5 and 1 invert, p ↦ p/|p|²), then p ↦ s·p + c.
+- **Distance estimate:** both folds scale space locally by a known factor, so carry it: dr ↦ k·dr for the
+  sphere fold, dr ↦ |s|·dr + 1 for the scale. DE = |p|/|dr|. A ray can safely step forward by DE.
+- **The bound shown live:** for |s| > 1 the set is guaranteed to sit inside |x| ≤ 2(|s|+1)/(|s|−1). It is
+  a loose bound: for the sweep used here the set fills the cube |x| ≤ 2 (checked by escape along the axes
+  and diagonals), which is what the camera frames.
+- **The loop:** s = −2.4 − 0.5 cos(2πt/T), from crystalline (−2.9) to open chambers (−1.9), while the
+  camera circles and swings in to the faces.
+- **Lighting:** normals from four DE taps (a tetrahedron), soft shadows (march toward the sun and keep the
+  smallest 10·d/t: a near miss gives a penumbra), five-tap ambient occlusion along the normal, colour from
+  orbit traps (closest approach to the origin and to the axes), fog, ACES tone mapping.
+
+Try: palette Night for glowing seams; speed 0.3 to watch the chambers open.
+
+---
+
+## 53. My notes
 
 Add your own findings, questions and discoveries here.
 
