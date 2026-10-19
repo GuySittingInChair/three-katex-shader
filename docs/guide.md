@@ -1907,9 +1907,10 @@ physics. Mart and Run walk through it in 3D.
 - **Perturbation deep zoom** (SuperFractalThing 2013, Kalles Fraktaler, rebasing by Zhuoran 2021). One
   exact reference orbit, and every pixel only tracks its difference from it, so a GPU's 7-digit floats go
   30+ decades deep. → *Perturbation Dive* (§51).
-- Also out there, not built yet: kaleidoscopic IFS (Knighty 2010: plane folds + rotation per step),
-  pseudo-Kleinian and true Kleinian limit sets (Möbius groups, Indra's Pearls), hybrids that alternate
-  formulas per step, and path-traced lighting.
+- **Kaleidoscopic IFS** (Knighty 2010): fold into one wedge of a symmetry group, turn, scale toward a
+  vertex. → *Kaleidoscopic IFS* (§53).
+- Also out there, not built yet: pseudo-Kleinian and true Kleinian limit sets (Möbius groups, Indra's
+  Pearls), hybrids that alternate formulas per step, and path-traced lighting.
 
 ---
 
@@ -1965,7 +1966,32 @@ Try: palette Night for glowing seams; speed 0.3 to watch the chambers open.
 
 ---
 
-## 53. My notes
+## 53. Kaleidoscopic IFS, annotated
+
+File: `src/sketches/kaleidoscopicIfs.js`
+
+- **The step:** p ↦ s·R_θ·F_G(p) − (s − 1)v. F_G folds space into one wedge (the fundamental domain) of a
+  polyhedron's mirror group G, R_θ turns it, and the scale pulls everything toward the corner v.
+- **The fold (Knighty's):** repeat k times: x ↦ |x|, y ↦ |y|, then reflect across the plane with normal
+  n = (−½, −cos(π/k), √(¾ − cos²(π/k))) if p is on its negative side. k = 3, 4, 5 gives the tetrahedral,
+  octahedral and icosahedral groups (24, 48, 120 elements, counting mirror images). Checked: it keeps |p|,
+  folding twice is the same as once, and the corners' orbits have the polyhedra's vertex counts
+  (4, 6, 12 vertices; 4, 8, 20 face centres).
+- **Why it's an IFS:** every vertex of the polyhedron folds onto v, and the step then shrinks toward v. So one
+  step makes N copies of the whole, one per vertex, without testing N maps.
+- **Symmetry for free:** F_G(g·p) = F_G(p) for every g in G, so the shape has the full symmetry whatever θ is.
+- **Dimension:** N copies at 1/s give D = ln N / ln s when they don't overlap (Moran's open set condition), and
+  at most that otherwise. The loop starts each flake where the copies just touch: Sierpinski tetrahedron
+  (N = 4, s = 2, D = 2), octahedron flake (6, 2, 2.585), icosahedron flake (12, 1 + φ, 2.582), dodecahedron
+  flake (20, 2 + φ, 2.330). Then θ swings out and back, and s grows 12% so the turning copies pull apart.
+- **Cross-fade:** at θ = 0 one flake turns into the next by blending the two distance estimates.
+- **Colour:** "Thin film" tints by viewing angle (like a soap bubble) plus the orbit trap.
+
+Try: palette Ice; speed 0.3 on the icosahedron flake to see the 12 copies turn.
+
+---
+
+## 54. My notes
 
 Add your own findings, questions and discoveries here.
 
