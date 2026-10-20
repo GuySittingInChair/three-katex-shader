@@ -1913,7 +1913,9 @@ physics. Mart and Run walk through it in 3D.
   orbits of a group of Möbius maps pile up. → *Kleinian Necklace* (§54).
 - **Hybrids** (Mandelbulber, Mandelbulb 3D, from about 2011): alternate two formulas step by step.
   → *Hybrid Fractal* (§55).
-- Also out there, not built yet: pseudo-Kleinian 3D sets and path-traced lighting.
+- **Pseudo-Kleinian sets** (Knighty 2011, after Jos Leys): the 3D cousin of the Kleinian limit sets, made
+  with folds instead of a search. → *Pseudo-Kleinian* (§56).
+- Also out there, not built yet: path-traced lighting.
 
 ---
 
@@ -2047,7 +2049,36 @@ Try: palette Night for glowing seams where the two formulas meet.
 
 ---
 
-## 56. My notes
+## 56. Pseudo-Kleinian, annotated
+
+File: `src/sketches/pseudoKleinian.js`
+
+- **The group:** reflections in the six faces of a box |x_j| = C_j, plus inversion in a sphere |p|² = S. These
+  are Möbius maps of 3D space, so they generate a Kleinian group, and its limit set is the lace you fly through.
+- **The lattice for free:** reflecting in x = C and then in x = −C is a translation by 4C. So the group contains
+  a whole lattice, and one jump p ↦ p − 4C⌊p/4C⌉ replaces any number of box folds (checked against 200 repeated
+  folds: same point to 3 × 10⁻¹⁵). That's why the structure is infinite.
+- **The fold:** repeat: reflect into the box (2 clamp(p, −C, C) − p), invert if inside the sphere
+  (p ↦ p·max(S/|p|², 1)). Then measure the folded point against a seed (a disc and its axis) and divide by the
+  product of the inversion factors.
+- **Why the DE is trustworthy:** inversion is conformal (it scales every direction by the same S/r², checked by
+  finite differences), so dividing by ∏k is exact bookkeeping. The DE's measured Lipschitz constant is 1.65, so
+  rays step 0.55·DE.
+- **Why "pseudo":** "invert if inside" is a fold, not a proof that the point reached the group's fundamental
+  domain. The picture has the group's exact symmetry but is a look-alike of the true limit set.
+- **The flight:** the camera moves exactly one lattice period 4C_x per 40 s loop, so the end looks identical to the
+  start and the loop is seamless. The corridor y = C_y, z = C_z was found by searching for the parallel line
+  with the most clearance. The camera weaves around it and keeps DE ≥ 0.57 (checked at 2000 points). The DE at
+  the camera is computed live in JavaScript.
+- **Rendering for density:** glowing filaments where the orbit skimmed the box planes (orbit traps), glow
+  accumulated along each ray, hue that shifts with depth so each wall of rings has its own colour, a headlamp,
+  rim light and ambient occlusion.
+
+Try: palette Abyss for silver-and-gold lace, Ember for bronze.
+
+---
+
+## 57. My notes
 
 Add your own findings, questions and discoveries here.
 
