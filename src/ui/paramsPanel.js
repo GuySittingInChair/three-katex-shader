@@ -3,6 +3,11 @@
 // this for free. Sliders write straight through SketchManager.setParam, and
 // `refresh()` lets an external change (a voice command, "Reset") sync the
 // displayed positions without tearing down the DOM mid-drag.
+//
+// Optional per-param fields, for sketches with many dials:
+//   label  the name to show (default: the key, humanized)
+//   help   one plain-English sentence shown under the slider
+//   group  a section heading; a new heading starts whenever it changes
 
 function humanize(key) {
   return key
@@ -62,8 +67,16 @@ export function createParamsPanel(container, manager) {
       return;
     }
 
+    let group = null;
     for (const key of keys) {
       const def = schema[key];
+      if (def.group && def.group !== group) {
+        group = def.group;
+        const heading = document.createElement('div');
+        heading.className = 'params-panel-group';
+        heading.textContent = group;
+        listEl.appendChild(heading);
+      }
       const row = document.createElement('div');
       row.className = 'params-panel-row';
 
@@ -72,7 +85,7 @@ export function createParamsPanel(container, manager) {
 
       const label = document.createElement('label');
       label.className = 'params-panel-label';
-      label.textContent = humanize(key);
+      label.textContent = def.label || humanize(key);
       label.htmlFor = `param-${key}`;
 
       const readout = document.createElement('span');
@@ -103,6 +116,12 @@ export function createParamsPanel(container, manager) {
 
       row.appendChild(labelRow);
       row.appendChild(input);
+      if (def.help) {
+        const help = document.createElement('div');
+        help.className = 'params-panel-help';
+        help.textContent = def.help;
+        row.appendChild(help);
+      }
       listEl.appendChild(row);
       rows.set(key, { input, readout, def });
     }

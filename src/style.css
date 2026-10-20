@@ -583,6 +583,26 @@ body {
   width: 100%;
   accent-color: #7cc4ff;
 }
+.params-panel-help {
+  font-size: 0.74rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.5);
+}
+.params-panel-group {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7cc4ff;
+}
+.params-panel-group:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
 
 .params-panel-voice-status {
   flex: 0 0 auto;

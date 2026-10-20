@@ -35,6 +35,8 @@ export class SketchRunner {
       camera: new THREE.PerspectiveCamera(75, size.width / size.height, 0.01, 1000),
       controls: null,
       renderer,
+      // The canvas, for sketches that listen to taps and drags themselves.
+      domElement,
       target: this.target,
       size: { ...size },
       time: 0,

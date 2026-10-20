@@ -1916,6 +1916,7 @@ physics. Mart and Run walk through it in 3D.
 - **Pseudo-Kleinian sets** (Knighty 2011, after Jos Leys): the 3D cousin of the Kleinian limit sets, made
   with folds instead of a search. → *Pseudo-Kleinian* (§56).
 - Also out there, not built yet: path-traced lighting.
+- **Every 2D formula in one place, explained dial by dial:** → *Fractal Lab* (§57).
 
 ---
 
@@ -2078,7 +2079,87 @@ Try: palette Abyss for silver-and-gold lace, Ember for bronze.
 
 ---
 
-## 57. My notes
+## 57. Fractal Lab: every dial, in plain words
+
+File: `src/sketches/fractalLab.js`
+
+One fractal with as many controls as would fit, built to be understood. Open **Params**: the dials are in
+seven groups, and every one has a sentence under it saying what it does. The preset buttons at the top
+(Kali lace, Classic Mandelbrot, Julia spirals, Burning ship, Kaleidoscope, Surprise me) jump to good
+starting points.
+
+**The one idea behind all of it.** Every pixel is a starting point. A rule is applied to that point over
+and over, so it takes a journey: p₀ → p₁ → p₂ → … The pixel's colour is one fact about that journey.
+Points right next to each other can take completely different journeys, and that is where the endless
+detail comes from.
+
+**See a journey.** Tap anywhere on the picture. The white dot is where that point starts; each coloured dot
+is one more step of the rule, and the lines join them in order. The equation panel writes out the first
+steps as numbers (computed with the same rule as the picture) and says whether the point ran off to
+infinity ("escapes at step 7") or stayed. Drag to watch the journey change as the start moves.
+
+**1 · Shape: the rule**
+- *Formula*: which rule. **Kali**: take absolute values (a mirror that folds everything into one quarter),
+  divide by the length squared (which turns the plane inside out around the unit circle: near the centre
+  goes far away and far away comes near), subtract c. **Mandelbrot**: square (double the angle, square the
+  length), add the pixel. **Julia**: the same, but add a fixed c, and the pixel is where it starts.
+  **Burning Ship**: mirror first, then square. **Tricorn**: reflect across the x-axis, then square.
+  **Mandelbox 2D**: fold into a box, flip out of a small circle, scale, add the pixel.
+- *Power*: how strong the inside-out turn is (Kali), or the exponent (Mandelbrot family: 3 gives three arms).
+- *Constant c*: the shift used every step. The single most sensitive dial.
+- *Steps*: how many times the rule repeats. More steps, finer detail.
+- *Spin per step*: turn the point a little each step, which bends everything into spirals.
+- *Kaleidoscope*: cut one pie slice and repeat it around the centre, mirrored.
+- *Liquid warp*: ripple the plane before starting.
+
+**2 · Camera**: zoom (log scale: +2.3 is 10× closer), move, turn, drift (the camera wanders by itself),
+zoom pulse (breathing), edge smoothing (several samples per pixel, so thin lines stop shimmering).
+
+**3 · Colour: what a colour means**
+- *Colour means…*: **closest to axes & circle / a dot / a cross / a ring** colours each point by how close
+  its journey came to that shape, called an *orbit trap*. Bright means it passed very close, and the colour
+  says at which step. **Escape speed**: for points that run away, how quickly. **Stripes**: the average
+  direction the journey pointed. **Final direction**: where it pointed at the end.
+- *Depth fade*: later steps count for less, so the big, clean shapes from the first steps show instead of
+  fine grain.
+- *Backdrop*: a soft wash of colour behind the lines.
+- *Trap shape size*, *Line thickness*, *Palette*, *Hue shift*, *Colour spread*, *Colour cycling* (colours
+  flow through the shape), *Saturation*, *Brightness* (highlights roll off softly instead of clipping to
+  white), *Contrast*, *Invert*.
+
+**4 · Light & depth**
+- *Relief*: pretend brightness is height, like a landscape, and shine a light across it from the side.
+  Flat colour becomes carved, embossed metal. *Light direction* and *Shine* (glossy highlights) go with it.
+- *Glow*: a soft halo around the brightest lines, like neon tubes.
+- *Ink outline*: dark lines wherever colour changes sharply, like a comic.
+
+**5 · Lens tricks (just for looks: none of them change the maths)**
+- *Colour fringing*: red and blue land slightly apart, more toward the edges, as through a cheap lens or 3D
+  glasses. Photographers call this *chromatic aberration*: glass bends each colour by a slightly
+  different amount.
+- *Dark corners*: the corners are dimmed to pull the eye inward. Called *vignette*.
+- *Film grain*: fine flickering noise. *TV lines*: stripes like an old CRT screen.
+
+**6 · Teaching overlays**: *Show a journey* (and how many steps to draw), *Journey starts…* (wandering or
+where you tapped), *Show trap* (draws the dot, cross or ring that the colouring measures distance to),
+*Show axes & unit circle* (for Kali, points inside that circle get flung outside it).
+
+**7 · Motion**: *Speed* (0 freezes everything), *Auto tour* (c and the power move slowly by themselves).
+
+Small dictionary for the other fractal sketches:
+- **Orbit**: the journey of one point under the rule.
+- **Escape time**: how many steps until the orbit runs away. The classic Mandelbrot colouring.
+- **Orbit trap**: colour by how close the orbit came to a chosen shape.
+- **Bloom / halation**: bright areas leak soft light into their surroundings, as in a camera.
+- **Ghosts / flares**: faint copies of bright spots, from light bouncing between the lenses of a camera.
+- **Diffraction spikes**: the star points on bright lights, from the shape of the camera's aperture.
+- **Optics** (in Kali Ink): the master dial for all the camera-lens effects at once.
+
+Try: Classic Mandelbrot, then tap inside the black and outside it, and compare the journeys.
+
+---
+
+## 58. My notes
 
 Add your own findings, questions and discoveries here.
 
