@@ -36,32 +36,114 @@ function loadMathJax() {
 const CARD_BG = 'rgba(0, 0, 0, 0.45)';
 const INK = '#ffffff';
 
-// Lays out the card for a w × h frame: em size, margins, the widest the
+// Vertical clips (9:16): narrow, so the card uses the full width and the
+// equation gets reflowed onto more, shorter rows (see reflow()).
+const isTall = (w, h) => h > w * 1.3;
+
+// Lays out the card for a w × h frame: em size, margins, the largest the
 // equation may get.
 function layout(w, h) {
   const short = Math.min(w, h);
-  const em = Math.round(Math.max(14, short * 0.04));
-  const pad = Math.round(em * 0.6);
-  const margin = Math.round(short * 0.045);
-  return { em, pad, margin, maxW: w - 2 * margin - 2 * pad };
+  const tall = isTall(w, h);
+  const em = Math.round(Math.max(14, short * (tall ? 0.052 : 0.04)));
+  const pad = Math.round(em * (tall ? 0.45 : 0.6));
+  const margin = Math.round(short * (tall ? 0.03 : 0.045));
+  return { em, pad, margin, tall, maxW: w - 2 * margin - 2 * pad, maxH: h * (tall ? 0.36 : 0.45) };
+}
+
+// `s` split at every top-level match of `re` (outside {…} and nested environments).
+function splitTop(s, re) {
+  const parts = [];
+  let depth = 0;
+  let envDepth = 0;
+  let start = 0;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (c === '\\' && (s[i + 1] === '{' || s[i + 1] === '}')) { i++; continue; }
+    if (s.startsWith('\\begin{', i)) envDepth++; // rows of a nested cases/array stay whole
+    else if (s.startsWith('\\end{', i)) envDepth--;
+    if (c === '{') depth++;
+    else if (c === '}') depth--;
+    else if (depth === 0 && envDepth === 0) {
+      const m = re.exec(s.slice(i));
+      if (m && m.index === 0) {
+        parts.push(s.slice(start, i));
+        i += m[0].length - 1;
+        start = i + 1;
+      }
+    }
+  }
+  parts.push(s.slice(start));
+  return parts;
+}
+
+// A grey bit.js caption longer than ~34 characters becomes several caption rows.
+const CAPTION = /^(\s*&?\s*)(\\textcolor\{[^}]*\}\{\\small\\textit\{)([^{}]*)(\}\})\s*$/;
+function wrapCaption(row) {
+  const m = row.match(CAPTION);
+  if (!m || m[3].length <= 34) return [row];
+  const lines = [];
+  let line = '';
+  for (const word of m[3].split(' ')) {
+    if (line && (line + ' ' + word).length > 34) {
+      lines.push(line);
+      line = word;
+    } else line = line ? `${line} ${word}` : word;
+  }
+  if (line) lines.push(line);
+  return lines.map((l) => `& ${m[2]}${l}${m[4]}`);
+}
+
+// The same equation on narrower rows: each row breaks at its top-level \quad
+// (or `,\ \ `) gaps (the continuation indented under the right-hand side), and long
+// captions wrap. Works on a top-level aligned block or a single line.
+export function reflow(tex) {
+  const env = tex.match(/^\s*\\begin\{aligned\}([\s\S]*)\\end\{aligned\}\s*$/);
+  const rows = env ? splitTop(env[1], /^\\\\/) : [tex];
+  const out = [];
+  for (const row of rows) {
+    if (!row.trim()) continue;
+    if (CAPTION.test(row)) {
+      out.push(...wrapCaption(row));
+      continue;
+    }
+    const pieces = splitTop(row, /^(?:,?\s*\\q?quad(?![a-zA-Z])|,\s*\\ \\ )/).filter((p) => p.trim());
+    pieces.forEach((p, i) => {
+      if (i === 0) out.push(env ? p : `& ${p}`);
+      else out.push(`& \\quad ${p.replace(/&/g, '')}`);
+    });
+  }
+  return `\\begin{aligned}${out.join(' \\\\ ')}\\end{aligned}`;
 }
 
 // One LaTeX string → a decoded <img> at exactly the pixel size it is drawn at.
-async function rasterise(toSvg, tex, em, maxW) {
-  let svg = toSvg(tex);
-  const vb = svg.match(/viewBox="([-\d.\s]+)"/);
-  if (!vb) return null;
-  const [, , vw, vh] = vb[1].trim().split(/\s+/).map(Number);
-  // viewBox units are 1/1000 em. Shrink to fit the frame (clipped is worse than small).
-  let k = em / 1000;
-  if (vw * k > maxW) k = Math.max((em / 1000) * 0.3, maxW / vw);
+// In vertical frames the reflowed version is tried too, and the bigger one wins.
+async function rasterise(toSvg, tex, { em, maxW, maxH, tall }) {
+  let best = null;
+  for (const source of tall ? [tex, reflow(tex)] : [tex]) {
+    let svg;
+    try {
+      svg = toSvg(source);
+    } catch {
+      continue;
+    }
+    if (/merror/.test(svg)) continue;
+    const vb = svg.match(/viewBox="([-\d.\s]+)"/);
+    if (!vb) continue;
+    const [, , vw, vh] = vb[1].trim().split(/\s+/).map(Number);
+    // viewBox units are 1/1000 em. Shrink to fit the frame (clipped is worse than small).
+    const k = Math.min(em / 1000, maxW / vw, maxH / vh);
+    if (!best || k > best.k * 1.02) best = { svg, vw, vh, k };
+  }
+  if (!best) return null; // LaTeX MathJax doesn't know: better no card than red error text
+  let { svg } = best;
+  const { vw, vh, k } = best;
   const width = Math.max(1, Math.round(vw * k));
   const height = Math.max(1, Math.round(vh * k));
   svg = svg
     .replace(/ width="[^"]*"/, ` width="${width}"`)
     .replace(/ height="[^"]*"/, ` height="${height}"`)
     .replace(/ style="[^"]*"/, ` style="color:${INK}"`);
-  if (/merror/.test(svg)) return null; // LaTeX MathJax doesn't know: better no card than red error text
   const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
   try {
     const img = new Image();
@@ -85,7 +167,7 @@ export function createEquationLayer() {
   let pending = null; // key being rendered
   let failed = false;
 
-  const keyOf = (tex, w, h) => `${layout(w, h).em}|${tex}`;
+  const keyOf = (tex, w, h) => `${w}x${h}|${tex}`;
 
   async function render(tex, w, h) {
     const key = keyOf(tex, w, h);
@@ -96,8 +178,7 @@ export function createEquationLayer() {
     }
     try {
       toSvg ??= await loadMathJax();
-      const { em, maxW } = layout(w, h);
-      const out = await rasterise(toSvg, tex, em, maxW);
+      const out = await rasterise(toSvg, tex, layout(w, h));
       current = out ? { key, ...out } : null;
     } catch (err) {
       if (!failed) console.warn('Equation layer: could not render the equation', err);
@@ -128,7 +209,7 @@ export function createEquationLayer() {
       const { em, pad, margin } = layout(w, h);
       // Vertical clips: keep clear of the strips that TikTok/Reels/Shorts cover
       // with their own buttons and caption.
-      const tall = h > w * 1.3;
+      const tall = isTall(w, h);
       const bottom = equation === 'bottom';
       const fs = Math.round(em * 0.6);
       const gap = Math.round(em * 0.6);
