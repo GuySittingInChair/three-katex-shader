@@ -1,11 +1,17 @@
-import { SIZE_PRESETS, pickMimeType } from '../core/recorder.js';
+import katex from 'katex';
+import { pickMimeType } from '../core/recorder.js';
 import { getUser, onAuthChange } from '../core/community.js';
 import { postClip, listClips, deleteClip, clipUrl, MAX_CLIP_BYTES } from '../core/clips.js';
 import { promptSignIn } from './signIn.js';
+import { icon } from './icons.js';
 
-// "Record a clip": the canvas plus the sketch's sound, saved as a video file,
-// then shared (phone share sheet: TikTok, Instagram, Photos …), saved, or
-// posted to aiship. A thin UI over core/recorder.js and core/clips.js.
+// "Record a clip": the canvas, the live equation and the sketch's sound, saved
+// as a video file, then shared (phone share sheet: TikTok, Instagram, Photos …),
+// saved, or posted to aiship. A thin UI over core/recorder.js and core/clips.js.
+//
+// Laid out like a camera app (preview on top, shape and length chips, one big
+// shutter button), except the shutter's ring is a polar rose that fills as the
+// clip renders, and the clock reads like a variable.
 
 const fmtTime = (s) => {
   if (!Number.isFinite(s)) return '0:00';
@@ -16,55 +22,106 @@ const fmtBytes = (b) => (b > 1e6 ? `${(b / 1e6).toFixed(1)} MB` : `${Math.round(
 
 function describeMime(mime) {
   if (!mime) return 'not supported in this browser';
-  return mime.startsWith('video/mp4') ? 'MP4 (H.264 + AAC)' : 'WebM (VP9/VP8 + Opus)';
+  return mime.startsWith('video/mp4') ? 'MP4' : 'WebM';
 }
 
 const touch = window.matchMedia('(pointer: coarse)').matches;
 
-export function createMediaPanel(container, { recorder, toast, getSketchId, getSketchName }) {
-  container.innerHTML = `
-    <div class="params-panel-header"><div class="params-panel-title">Record a clip</div></div>
+// Chip labels for the size presets (ids from core/recorder.js).
+const SHAPES = { window: 'Screen', vertical: '9:16', square: '1:1', 720: '16:9', 1080: '16:9 HD' };
+const SHAPE_ORDER = ['window', 'vertical', 'square', '720', '1080'];
+const LENGTHS = [5, 10, 15, 30, 60];
 
-    <div class="media-section">
-      <label class="media-field"><span>How</span>
-        <select data-role="mode">
-          <option value="smooth">Smooth: render frame by frame (no lag)</option>
-          <option value="live">Live: film the screen as it plays</option>
-        </select></label>
-      <label class="media-field" data-role="lengthField"><span>Length</span>
-        <select data-role="seconds">
-          <option value="5">5 s</option><option value="10" selected>10 s</option><option value="15">15 s</option>
-          <option value="30">30 s</option><option value="60">60 s</option>
-        </select></label>
-      <label class="media-field"><span>Size</span><select data-role="size"></select></label>
-      <label class="media-field"><span>Frame rate</span>
-        <select data-role="fps"><option value="30">30 fps</option><option value="60">60 fps</option></select></label>
-      <label class="media-field"><span>Quality</span>
-        <select data-role="mbps"><option value="6">Standard · 6 Mbps</option><option value="12" selected>High · 12 Mbps</option><option value="24">Max · 24 Mbps</option></select></label>
-      <label class="media-check"><input type="checkbox" data-role="audio" checked /> Include the sketch's sound</label>
-      <label class="media-check"><input type="checkbox" data-role="restart" checked /> Start the sound from the beginning</label>
-      <div class="media-row">
-        <button type="button" class="media-btn media-rec" data-role="record">● Record</button>
-        <span class="media-time" data-role="recTime"></span>
+// The shutter ring: r(θ) = R(1 + ε cos kθ), as an SVG path in a 100 × 100 box.
+const ROSE = { R: 44, eps: 0.045, k: 12 };
+const ROSE_TEX = `r(\\theta) = 1 + \\tfrac{1}{20}\\cos ${ROSE.k}\\theta`;
+function rosePath() {
+  const pts = [];
+  for (let i = 0; i <= 360; i++) {
+    const th = (i / 360) * 2 * Math.PI - Math.PI / 2; // start at 12 o'clock
+    const r = ROSE.R * (1 + ROSE.eps * Math.cos(ROSE.k * th));
+    pts.push(`${(50 + r * Math.cos(th)).toFixed(2)},${(50 + r * Math.sin(th)).toFixed(2)}`);
+  }
+  return `M${pts.join('L')}Z`;
+}
+
+// Panel choices are remembered per browser (a convenience; defaults if storage is blocked).
+const STORE_KEY = 'aiship.record';
+function loadPrefs() {
+  try {
+    return JSON.parse(localStorage.getItem(STORE_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+function savePrefs(prefs) {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(prefs));
+  } catch {
+    /* private mode: just don't remember */
+  }
+}
+
+const chips = (role, items) =>
+  `<div class="rec-chips" role="radiogroup" data-role="${role}">${items
+    .map(([value, label]) => `<button type="button" role="radio" class="rec-chip" data-value="${value}">${label}</button>`)
+    .join('')}</div>`;
+
+export function createMediaPanel(container, { recorder, toast, getSketchId, getSketchName }) {
+  const rose = rosePath();
+  container.innerHTML = `
+    <div class="params-panel-header rec-header">
+      <div class="params-panel-title">Record</div>
+      ${chips('mode', [['smooth', 'Smooth'], ['live', 'Live']]).replace('rec-chips', 'rec-chips rec-seg')}
+    </div>
+
+    <div class="rec-stage" data-role="stage">
+      <canvas data-role="previewCanvas"></canvas>
+      <div class="rec-pill" data-role="pill"><i></i><span data-role="pillText">Preview</span></div>
+    </div>
+
+    <div class="rec-controls">
+      ${chips('shape', SHAPE_ORDER.map((id) => [id, SHAPES[id]]))}
+      <div data-role="lengthRow">${chips('seconds', LENGTHS.map((n) => [n, `${n}s`]))}</div>
+      <div class="rec-live-note" data-role="liveNote">Records until you stop it.</div>
+      <div class="rec-layers">
+        <button type="button" class="rec-toggle" data-role="eqToggle" aria-pressed="true">${icon('sigma')}Equation</button>
+        <button type="button" class="rec-toggle" data-role="tagToggle" aria-pressed="true">${icon('tag')}Name tag</button>
+        <button type="button" class="rec-toggle" data-role="audioToggle" aria-pressed="true">${icon('volume')}Sound</button>
       </div>
-      <div class="media-progress" data-role="progress" hidden><div></div></div>
-      <div class="media-status" data-role="status"></div>
+    </div>
+
+    <div class="rec-shutter-row">
+      <button type="button" class="rec-side rec-last" data-role="last" title="Your last clip" disabled></button>
+      <button type="button" class="rec-shutter" data-role="record" aria-label="Record">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <path class="rec-ring-track" d="${rose}" />
+          <path class="rec-ring-fill" data-role="ring" d="${rose}" pathLength="1" />
+        </svg>
+        <span class="rec-core"></span>
+      </button>
+      <button type="button" class="rec-side" data-role="gear" title="More settings" aria-expanded="false">${icon('gear')}</button>
+    </div>
+    <div class="rec-clock" data-role="clock"></div>
+    <div class="media-status" data-role="status"></div>
+
+    <div class="rec-more" data-role="more" hidden>
+      <div class="rec-more-row"><span>Equation sits</span>${chips('eqPos', [['top', 'Top'], ['bottom', 'Bottom']])}</div>
+      <div class="rec-more-row"><span>Frame rate</span>${chips('fps', [['30', '30'], ['60', '60']])}</div>
+      <div class="rec-more-row"><span>Quality</span>${chips('mbps', [['6', 'Std'], ['12', 'High'], ['24', 'Max']])}</div>
+      <label class="media-check"><input type="checkbox" data-role="restart" checked /> Start the sound from the beginning</label>
       <div class="media-hint" data-role="modeHint"></div>
     </div>
 
-    <div class="media-section" data-role="result" hidden>
-      <div class="media-heading">Your clip</div>
+    <div class="rec-result" data-role="result" hidden>
       <video class="media-preview" data-role="preview" controls playsinline loop muted></video>
-      <div class="media-row media-wrap">
-        <button type="button" class="media-btn" data-role="share">Share…</button>
-        <button type="button" class="media-btn" data-role="save">Save</button>
+      <div class="rec-actions">
+        <button type="button" class="rec-action" data-role="share">${icon('share')}<span>Share</span></button>
+        <button type="button" class="rec-action" data-role="save">${icon('save')}<span>Save</span></button>
+        <button type="button" class="rec-action rec-action-post" data-role="post">${icon('send')}<span>Post</span></button>
       </div>
-      <label class="media-field media-caption"><span>Caption</span>
-        <input data-role="caption" maxlength="300" placeholder="Say something about it (optional)" /></label>
-      <div class="media-row">
-        <button type="button" class="media-btn media-post" data-role="post">Post to aiship</button>
-        <span class="media-time" data-role="postStatus"></span>
-      </div>
+      <input class="rec-caption" data-role="caption" maxlength="300" placeholder="Caption for aiship (optional)" />
+      <div class="media-time" data-role="postStatus"></div>
     </div>
 
     <div class="media-section" data-role="clipsSection">
@@ -75,52 +132,130 @@ export function createMediaPanel(container, { recorder, toast, getSketchId, getS
   container.classList.add('media-panel');
 
   const $ = (role) => container.querySelector(`[data-role="${role}"]`);
-  const sizeSel = $('size');
-  const modeSel = $('mode');
   const recordBtn = $('record');
-  const recTime = $('recTime');
   const statusEl = $('status');
-  const progress = $('progress');
   const preview = $('preview');
   const postBtn = $('post');
   const postStatus = $('postStatus');
+  const stage = $('stage');
+  const previewCanvas = $('previewCanvas');
+  const ring = $('ring');
+  const clock = $('clock');
 
-  SIZE_PRESETS.forEach((p) => sizeSel.add(new Option(p.label, p.id)));
-  // Phones: vertical by default; it's what the clip will be posted as anyway.
-  if (touch) sizeSel.value = window.innerHeight > window.innerWidth ? 'vertical' : '720';
-  if (!recorder.smoothSupported) {
-    modeSel.value = 'live';
-    modeSel.options[0].disabled = true;
+  // ---- settings state ----
+  const prefs = {
+    mode: recorder.smoothSupported ? 'smooth' : 'live',
+    // Phones: vertical by default; it's what the clip will be posted as anyway.
+    shape: touch ? (window.innerHeight > window.innerWidth ? 'vertical' : '720') : 'window',
+    seconds: '10',
+    fps: '30',
+    mbps: '12',
+    eqPos: 'top',
+    equation: true,
+    tag: true,
+    audio: true,
+    restart: true,
+    ...loadPrefs(),
+  };
+  if (!recorder.smoothSupported) prefs.mode = 'live';
+  if (!pickMimeType() && recorder.smoothSupported) prefs.mode = 'smooth';
+
+  const groups = ['mode', 'shape', 'seconds', 'fps', 'mbps', 'eqPos'];
+  const toggles = { eqToggle: 'equation', tagToggle: 'tag', audioToggle: 'audio' };
+
+  function render() {
+    for (const g of groups) {
+      for (const b of $(g).children) {
+        const on = b.dataset.value === String(prefs[g]);
+        b.classList.toggle('on', on);
+        b.setAttribute('aria-checked', on);
+      }
+    }
+    for (const [role, key] of Object.entries(toggles)) $(role).setAttribute('aria-pressed', prefs[key]);
+    $('restart').checked = prefs.restart;
+    const smooth = prefs.mode === 'smooth';
+    $('lengthRow').hidden = !smooth;
+    $('liveNote').hidden = smooth;
+    $('modeHint').innerHTML = smooth
+      ? 'Smooth renders one frame at a time, so the clip never stutters, even on a phone; slow devices just take longer. ' +
+        "Sound: the sketch's sound file (not live synth or your mic). You can't steer the sketch while it renders. MP4."
+      : `Live films the screen as it plays, so you can steer the sketch while recording. A busy phone may stutter. ${describeMime(pickMimeType(true))}.`;
+    $('modeHint').innerHTML += ' Press <b>R</b> to start or stop.';
+    sizeStage();
+    savePrefs(prefs);
   }
-  if (!pickMimeType()) modeSel.options[1].disabled = true;
+
+  for (const g of groups) {
+    $(g).addEventListener('click', (e) => {
+      const b = e.target.closest('.rec-chip');
+      if (!b || b.disabled || recorder.recording) return;
+      prefs[g] = b.dataset.value;
+      render();
+    });
+  }
+  for (const [role, key] of Object.entries(toggles)) {
+    $(role).addEventListener('click', () => {
+      if (recorder.recording) return;
+      prefs[key] = !prefs[key];
+      render();
+    });
+  }
+  $('restart').addEventListener('change', (e) => {
+    prefs.restart = e.target.checked;
+    render();
+  });
+  $('gear').addEventListener('click', () => {
+    const more = $('more');
+    more.hidden = !more.hidden;
+    $('gear').setAttribute('aria-expanded', !more.hidden);
+  });
+  if (!recorder.smoothSupported) $('mode').children[0].disabled = true;
+  if (!pickMimeType()) $('mode').children[1].disabled = true;
   if (!recorder.supported) {
     recordBtn.disabled = true;
     statusEl.textContent = "This browser can't record video.";
   }
 
-  function renderModeHint() {
-    const smooth = modeSel.value === 'smooth';
-    $('lengthField').hidden = !smooth;
-    $('modeHint').innerHTML = smooth
-      ? 'Smooth renders the animation one frame at a time, so the video never stutters, even on a phone. ' +
-        "Slow devices just take longer. It includes the sketch's sound file, but not sound a sketch makes live or your microphone, and you can't steer the sketch while it renders. Format: MP4."
-      : 'Live films the screen as it plays, so you can steer the sketch while recording. A busy phone may stutter. ' +
-        `Format: ${describeMime(pickMimeType(true))}.`;
-    $('modeHint').innerHTML += ' The equation and controls aren\'t in the video. Press <b>R</b> to start or stop.';
+  // ---- preview: the clip's shape, framing and overlay, live ----
+  // The stage takes the clip's shape at the largest size the panel allows.
+  function sizeStage() {
+    const { w, h } = recorder.outputSize(prefs.shape);
+    const avail = stage.parentElement.clientWidth || 300;
+    const maxH = Math.max(160, window.innerHeight * (touch ? 0.32 : 0.42));
+    const k = Math.min(avail / w, maxH / h);
+    const cw = Math.round(w * k);
+    const ch = Math.round(h * k);
+    stage.style.width = `${cw}px`;
+    stage.style.height = `${ch}px`;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const pw = Math.round(cw * dpr);
+    const ph = Math.round(ch * dpr);
+    if (previewCanvas.width !== pw || previewCanvas.height !== ph) {
+      previewCanvas.width = pw;
+      previewCanvas.height = ph;
+    }
   }
-  modeSel.addEventListener('change', renderModeHint);
-  renderModeHint();
+  const previewOptions = () => ({
+    sizeId: prefs.shape,
+    equation: prefs.equation ? prefs.eqPos : 'off',
+    tag: prefs.tag,
+  });
+  window.addEventListener('resize', () => {
+    if (!container.classList.contains('hidden')) sizeStage();
+  });
 
   // ---- recording ----
   function options() {
     return {
-      mode: modeSel.value,
-      seconds: Number($('seconds').value),
-      sizeId: sizeSel.value,
-      fps: Number($('fps').value),
-      mbps: Number($('mbps').value),
-      includeAudio: $('audio').checked,
-      restartMusic: $('restart').checked,
+      mode: prefs.mode,
+      seconds: Number(prefs.seconds),
+      sizeId: prefs.shape,
+      fps: Number(prefs.fps),
+      mbps: Number(prefs.mbps),
+      includeAudio: prefs.audio,
+      restartMusic: prefs.restart,
+      equation: prefs.equation ? prefs.eqPos : 'off',
+      tag: prefs.tag,
     };
   }
 
@@ -131,25 +266,58 @@ export function createMediaPanel(container, { recorder, toast, getSketchId, getS
     }
     try {
       recorder.start(options());
-      toast(modeSel.value === 'smooth' ? 'Rendering your clip…' : 'Recording…  press R to stop');
+      toast(prefs.mode === 'smooth' ? 'Rendering your clip…' : 'Recording…  press R to stop');
     } catch (err) {
       toast(err.message);
     }
   }
   recordBtn.addEventListener('click', toggleRecord);
 
-  function renderRecordState() {
+  // The clock under the shutter, typeset. Idle, it shows the ring's own equation.
+  let clockTex = null;
+  function setClock(tex) {
+    if (tex === clockTex) return;
+    clockTex = tex;
+    katex.render(tex, clock, { throwOnError: false });
+  }
+  function tick() {
     const rec = recorder.recording;
     const rendering = recorder.rendering;
-    recordBtn.textContent = rec ? (rendering ? '■ Stop here' : '■ Stop') : '● Record';
+    const t = recorder.elapsed;
+    let p = 0;
+    if (rendering) p = recorder.progress;
+    else if (rec) p = (t % 60) / 60; // live: a minute hand
+    ring.style.strokeDashoffset = String(1 - p);
+    if (rendering) {
+      setClock(`t = ${t.toFixed(1)}\\,\\text{s} \\;/\\; ${prefs.seconds}\\,\\text{s} \\quad ${Math.round(p * 100)}\\%`);
+      $('pillText').textContent = `Rendering ${fmtTime(t)}`;
+    } else if (rec) {
+      setClock(`t = ${t.toFixed(1)}\\,\\text{s}`);
+      $('pillText').textContent = `REC ${fmtTime(t)}`;
+    } else {
+      setClock(ROSE_TEX);
+    }
+  }
+  setInterval(() => {
+    if (recorder.recording) tick();
+  }, 100);
+
+  function renderRecordState() {
+    const rec = recorder.recording;
     recordBtn.classList.toggle('recording', rec);
-    for (const role of ['size', 'fps', 'mbps', 'mode', 'seconds']) $(role).disabled = rec;
-    recTime.textContent = rec ? fmtTime(recorder.elapsed) : '';
-    progress.hidden = !rendering;
+    recordBtn.setAttribute('aria-label', rec ? 'Stop' : 'Record');
+    container.classList.toggle('is-rec', rec);
+    for (const g of groups) for (const b of $(g).children) b.disabled = rec;
+    for (const role of Object.keys(toggles)) $(role).disabled = rec;
+    if (!rec) $('pillText').textContent = 'Preview';
+    if (!recorder.smoothSupported) $('mode').children[0].disabled = true;
+    if (!pickMimeType()) $('mode').children[1].disabled = true;
     const s = recorder.saved;
     $('result').hidden = !s || rec;
     if (!rec && s) statusEl.textContent = `${fmtTime(s.seconds)} · ${fmtBytes(s.blob.size)}`;
+    else if (rec) statusEl.textContent = '';
     document.body.classList.toggle('is-recording', rec);
+    tick();
   }
   recorder.subscribe(renderRecordState);
 
@@ -172,17 +340,19 @@ export function createMediaPanel(container, { recorder, toast, getSketchId, getS
       $('caption').value = '';
       postStatus.textContent = '';
       postBtn.disabled = false;
+      // The last-clip thumbnail beside the shutter, like a camera roll.
+      const last = $('last');
+      last.disabled = false;
+      last.innerHTML = '';
+      const thumb = document.createElement('video');
+      thumb.src = saved.url;
+      thumb.muted = true;
+      thumb.playsInline = true;
+      thumb.preload = 'metadata';
+      last.append(thumb);
     }
   });
-
-  // Live timer and render progress.
-  setInterval(() => {
-    if (!recorder.recording) return;
-    recTime.textContent = recorder.rendering
-      ? `${fmtTime(recorder.elapsed)} · ${Math.round(recorder.progress * 100)}%`
-      : fmtTime(recorder.elapsed);
-    progress.firstElementChild.style.width = `${recorder.progress * 100}%`;
-  }, 200);
+  $('last').addEventListener('click', () => $('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
 
   // ---- share / save ----
   const fileOf = (s) => new File([s.blob], s.filename, { type: s.blob.type });
@@ -218,7 +388,7 @@ export function createMediaPanel(container, { recorder, toast, getSketchId, getS
       return;
     }
     if (s.blob.size > MAX_CLIP_BYTES) {
-      postStatus.textContent = 'Over 50 MB: record it shorter, smaller or at Standard quality.';
+      postStatus.textContent = 'Over 50 MB: record it shorter, smaller or at Std quality.';
       return;
     }
     postBtn.disabled = true;
@@ -260,8 +430,22 @@ export function createMediaPanel(container, { recorder, toast, getSketchId, getS
     if (!container.classList.contains('hidden')) refreshClips();
   });
 
+  render();
   renderRecordState();
-  return { toggleRecord, refreshClips };
+  return {
+    toggleRecord,
+    refreshClips,
+    show() {
+      sizeStage();
+      document.body.classList.add('rec-panel-open');
+      recorder.setPreview(previewCanvas, previewOptions);
+      refreshClips();
+    },
+    hide() {
+      document.body.classList.remove('rec-panel-open');
+      recorder.setPreview(null);
+    },
+  };
 }
 
 // A clip in a list: the video (loads when played), who posted it, and a delete

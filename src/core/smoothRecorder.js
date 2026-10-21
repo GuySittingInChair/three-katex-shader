@@ -69,7 +69,9 @@ const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve))
 // Renders `seconds` of animation at `fps` into an MP4 Blob.
 // `canvas` must already be at the output size (even width and height).
 // `shouldStop()` ends the clip early (what's rendered so far is kept).
-export async function renderSmooth({ canvas, timeline, seconds, fps, mbps, includeAudio, onProgress, shouldStop }) {
+// `compose` (optional) decorates each frame: copy(canvas) runs straight after
+// the draw, then `await finish()`, and compose.canvas is what gets encoded.
+export async function renderSmooth({ canvas, timeline, seconds, fps, mbps, includeAudio, onProgress, shouldStop, compose }) {
   const w = canvas.width;
   const h = canvas.height;
   const picked = await pickVideoConfig(w, h, fps, Math.round(mbps * 1e6));
@@ -116,7 +118,13 @@ export async function renderSmooth({ canvas, timeline, seconds, fps, mbps, inclu
       if (shouldStop?.()) break;
       timeline.step(t0 + n * dt, dt); // draws the frame into the canvas
       // Read the canvas in the same task it was drawn in (no preserveDrawingBuffer).
-      const frame = new VideoFrame(canvas, { timestamp: Math.round((n * 1e6) / fps), duration: Math.round(1e6 / fps) });
+      let source = canvas;
+      if (compose) {
+        compose.copy(canvas);
+        await compose.finish();
+        source = compose.canvas;
+      }
+      const frame = new VideoFrame(source, { timestamp: Math.round((n * 1e6) / fps), duration: Math.round(1e6 / fps) });
       encoder.encode(frame, { keyFrame: n % keyEvery === 0 });
       frame.close();
       onProgress?.(n + 1, total);

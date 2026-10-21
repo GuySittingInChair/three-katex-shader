@@ -95,7 +95,15 @@ const timeline = {
     manager.update(t, delta);
   },
 };
-const recorder = createRecorder({ renderer, manager, size, timeline, getName: () => manager.getCurrent().id });
+const recorder = createRecorder({
+  renderer,
+  manager,
+  size,
+  timeline,
+  getName: () => manager.getCurrent().id,
+  getTitle: () => manager.getCurrent().name,
+  getLatex: () => resolveLatex(manager.getCurrent(), manager.getParamValues(), manager.getMotion()),
+});
 if (import.meta.env.DEV) Object.assign(window, { __recorder: recorder, __manager: manager }); // for tools/ tests
 
 // --- Equation ---
@@ -319,7 +327,11 @@ const mediaApi = createMediaPanel($('media-panel'), {
   getSketchId: () => manager.getCurrent().id,
   getSketchName: () => manager.getCurrent().name,
 });
-registerPanel('media', $('media-panel'), { button: $('media-toggle'), onShow: () => mediaApi.refreshClips() });
+registerPanel('media', $('media-panel'), {
+  button: $('media-toggle'),
+  onShow: () => mediaApi.show(),
+  onHide: () => mediaApi.hide(),
+});
 manager.onChange(() => {
   if (!$('media-panel').classList.contains('hidden')) mediaApi.refreshClips();
 });

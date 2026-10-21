@@ -1,5 +1,6 @@
 import { getRecordingAudioStream, getMusic } from './audioEngine.js';
 import { renderSmooth, smoothSupported } from './smoothRecorder.js';
+import { createEquationLayer } from './equationLayer.js';
 
 // Records the visualisation (and whatever is audible) to a video file.
 //
@@ -22,8 +23,14 @@ import { renderSmooth, smoothSupported } from './smoothRecorder.js';
 // film the screen at all: see smoothRecorder.js. Live mode is kept for sketches
 // that react to sound or to your fingers while you record.
 //
-// What is *not* in the file: the equation overlay and any panels are HTML on
-// top of the canvas, so they are not part of the canvas pixels.
+// The equation: the on-screen overlay is HTML, so it isn't in the canvas
+// pixels. Instead every recorded frame is copied into a 2D canvas and the live
+// equation (plus an optional name tag) is drawn on top: see equationLayer.js.
+// Panels and buttons are never in the file.
+//
+// Preview: while the record panel is open, setPreview() gets a small canvas
+// that shows the framing and overlay of the clip about to be recorded (and the
+// frames themselves while a smooth clip renders).
 
 export const SIZE_PRESETS = [
   { id: 'window', label: 'Match window', w: 0, h: 0 },
@@ -74,7 +81,7 @@ function timestamp() {
 const MAX_SIDE = 1920;
 const even = (n) => Math.max(2, Math.round(n / 2) * 2);
 
-export function createRecorder({ renderer, manager, size, getName, timeline }) {
+export function createRecorder({ renderer, manager, size, getName, getLatex = () => '', getTitle = getName, timeline }) {
   let mediaRecorder = null;
   let chunks = [];
   let recCanvas = null;
@@ -89,6 +96,55 @@ export function createRecorder({ renderer, manager, size, getName, timeline }) {
   let musicEndedHandler = null;
   let smooth = null; // { stop, progress } while a smooth clip is rendering
   const listeners = new Set();
+  const layer = createEquationLayer(); // drawn into the clip
+  const previewLayer = createEquationLayer(); // drawn into the panel's preview (other sizes, own cache)
+  let overlay = null; // { equation, tag } while recording
+  let preview = null; // { canvas, ctx, getOptions } while the panel shows it
+  let lastPreviewAt = 0;
+
+  const tagText = () => `${getTitle()} · aiship.lol`;
+  const overlayOf = (opts) => ({
+    equation: opts.equation ?? 'top',
+    tag: opts.tag ? tagText() : null,
+  });
+  const overlayOn = (o) => o.equation !== 'off' || o.tag;
+
+  // Output size for a preset ("Match window": the canvas, capped at MAX_SIDE).
+  function outputSize(sizeId) {
+    const preset = SIZE_PRESETS.find((p) => p.id === sizeId) || SIZE_PRESETS[0];
+    if (preset.w) return { w: preset.w, h: preset.h };
+    const cw = renderer.domElement.width;
+    const ch = renderer.domElement.height;
+    const k = Math.min(1, MAX_SIDE / Math.max(cw, ch));
+    return { w: even(cw * k), h: even(ch * k) };
+  }
+
+  // Draws `src` (the canvas, or a finished frame) into the preview, cropped to
+  // the clip's shape, with the overlay laid out as it will be in the file.
+  function drawPreview(src, outW, outH, o, force = false) {
+    if (!preview) return;
+    const now = performance.now();
+    if (!force && now - lastPreviewAt < 80) return;
+    lastPreviewAt = now;
+    const { canvas, ctx } = preview;
+    const pw = canvas.width;
+    const ph = canvas.height;
+    if (!pw || !ph) return;
+    const sw = src.width;
+    const sh = src.height;
+    const k = Math.max(pw / sw, ph / sh); // cover
+    const dw = sw * k;
+    const dh = sh * k;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, pw, ph);
+    ctx.drawImage(src, (pw - dw) / 2, (ph - dh) / 2, dw, dh);
+    if (!overlayOn(o)) return;
+    if (o.equation !== 'off') previewLayer.request(getLatex(), outW, outH);
+    ctx.save();
+    ctx.scale(pw / outW, ph / outH);
+    previewLayer.draw(ctx, outW, outH, o);
+    ctx.restore();
+  }
 
   const emit = () => listeners.forEach((fn) => fn(api));
 
@@ -121,12 +177,23 @@ export function createRecorder({ renderer, manager, size, getName, timeline }) {
     get saved() { return saved; },
     get mime() { return mime; },
     supported: pickMimeType() !== null || smoothSupported(),
+    outputSize,
+
+    // canvas: the panel's preview (null to stop). getOptions() -> the panel's
+    // current { sizeId, equation, tag }. The panel sizes the canvas itself.
+    setPreview(canvas, getOptions) {
+      preview = canvas ? { canvas, ctx: canvas.getContext('2d', { alpha: false }), getOptions } : null;
+      lastPreviewAt = 0;
+    },
     smoothSupported: smoothSupported(),
     subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); },
 
-    // opts: { mode: 'smooth'|'live', seconds, sizeId, fps, mbps, includeAudio, restartMusic, stopAtMusicEnd }
+    // opts: { mode: 'smooth'|'live', seconds, sizeId, fps, mbps, includeAudio, restartMusic, stopAtMusicEnd,
+    //         equation: 'top'|'bottom'|'off', tag: boolean }
     start(opts = {}) {
       if (api.recording) return;
+      overlay = overlayOf(opts);
+      if (overlay.equation !== 'off') layer.warm().catch(() => {});
       if (opts.mode !== 'live' && smoothSupported()) {
         startSmooth(opts);
         return;
@@ -189,11 +256,25 @@ export function createRecorder({ renderer, manager, size, getName, timeline }) {
 
     // Called by the render loop right after each frame is drawn.
     captureFrame() {
-      if (!api.recording || !recCtx) return;
+      if (!api.recording || !recCtx) {
+        if (preview && !api.recording) {
+          const o = preview.getOptions();
+          const { w, h } = outputSize(o.sizeId);
+          drawPreview(renderer.domElement, w, h, overlayOf(o));
+        }
+        return;
+      }
       const now = performance.now();
       if (now - lastFrameAt < frameInterval - 2) return;
       lastFrameAt = now;
-      recCtx.drawImage(renderer.domElement, 0, 0, recCanvas.width, recCanvas.height);
+      const w = recCanvas.width;
+      const h = recCanvas.height;
+      recCtx.drawImage(renderer.domElement, 0, 0, w, h);
+      if (overlayOn(overlay)) {
+        if (overlay.equation !== 'off') layer.request(getLatex(), w, h);
+        layer.draw(recCtx, w, h, overlay);
+      }
+      drawPreview(recCanvas, w, h, { equation: 'off', tag: null });
     },
 
     stop() {
@@ -247,16 +328,30 @@ export function createRecorder({ renderer, manager, size, getName, timeline }) {
     if (onEnded) onEnded(saved);
   }
 
+  // Smooth mode's per-frame overlay: copy the freshly drawn canvas (same task,
+  // see captureFrame), then wait for this frame's equation and draw it on.
+  function smoothComposer(w, h) {
+    const o = overlay;
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d', { alpha: false });
+    return {
+      canvas,
+      copy(src) { ctx.drawImage(src, 0, 0, w, h); },
+      async finish() {
+        if (overlayOn(o)) {
+          if (o.equation !== 'off') await layer.prepare(getLatex(), w, h);
+          layer.draw(ctx, w, h, o);
+        }
+        drawPreview(canvas, w, h, { equation: 'off', tag: null });
+      },
+    };
+  }
+
   async function startSmooth(opts) {
-    const preset = SIZE_PRESETS.find((p) => p.id === opts.sizeId) || SIZE_PRESETS[0];
-    let w = preset.w;
-    let h = preset.h;
-    if (!w) {
-      const k = Math.min(1, MAX_SIDE / Math.max(renderer.domElement.width, renderer.domElement.height));
-      w = renderer.domElement.width * k;
-      h = renderer.domElement.height * k;
-    }
-    lockSize(even(w), even(h));
+    const { w, h } = outputSize(opts.sizeId);
+    lockSize(w, h);
     smooth = { stop: false, progress: 0, seconds: 0 };
     const fps = opts.fps || 30;
     // The clip gets its own copy of the sound; the live one would only be out of step.
@@ -273,6 +368,7 @@ export function createRecorder({ renderer, manager, size, getName, timeline }) {
         fps,
         mbps: opts.mbps || 12,
         includeAudio: opts.includeAudio !== false,
+        compose: overlayOn(overlay) || preview ? smoothComposer(w, h) : null,
         shouldStop: () => smooth.stop,
         onProgress: (n, total) => {
           smooth.progress = n / total;
