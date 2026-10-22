@@ -48,6 +48,18 @@ import { caption, beat } from '../lib/bit.js';
 // Gram-negative rods (Bacteroides-like), purple Gram-positive cocci and rods
 // (Firmicutes), plus plant cell walls and food debris.
 //
+// Leaving. It comes out of an anus H cm above the floor at v = L/12 s (most
+// mammals take 12 ± 7 s, whatever their size: Yang et al., Soft Matter 2017),
+// as a simulated rope (see bakeExit) whose stiffness comes from its yield
+// stress τ_y. τ_y falls steeply with water content (assumed 66% for type 1 up
+// to 80% for type 5), so firmness is one number with three consequences:
+//   - it hangs until ρgΔy = √3 τ_y, i.e. Δy_max = √3 τ_y/(ρg), then tears;
+//   - a pile can't stand taller than h_max = 2τ_y/(ρg), so soft ones slump;
+//   - stiff ones topple like a rod, soft ones fold and stay folded.
+// The whole exit is simulated once when a specimen is made, recorded at 30 fps
+// and played back; the mesh rides on it (every vertex lives in a frame along
+// the log), and the final frame is the specimen you then examine.
+//
 // Tap a kernel to examine it, tap it again to pull it out; tap the stool for
 // the microscope; scroll or pinch to zoom (towards the cursor). Leave it alone
 // and it examines itself.
@@ -60,6 +72,17 @@ const BACT_PER_G = 0.9e11;
 const RHO_CORN = 1.1; // g/cm³
 const WORLD_POP = 8.1e9;
 const IDLE = 10; // s without a touch before the autopilot takes over
+const G = 981; // cm/s²
+const MU_S = 1.2; // static friction, stool on a floor (sticky)
+const MU_K = 0.9;
+const WATER = [0.66, 0.7, 0.73, 0.76, 0.8]; // assumed water fraction, types 1–5
+const TAU_REF = 1500; // Pa, yield stress at W_REF (model, see yieldStress)
+const W_REF = 0.76;
+const W_SCALE = 0.015; // τ_y falls by e for every 1.5% more water
+const T_EXIT = 12; // s
+const EXIT_FPS = 30;
+const EXIT_TILT = 0.26; // the canal points down and a little back
+const EXIT_DIR = [0, -Math.cos(EXIT_TILT), -Math.sin(EXIT_TILT)];
 const BRISTOL = [
   'separate hard lumps, like nuts',
   'sausage-shaped but lumpy',
@@ -197,20 +220,26 @@ vec3 bsBump(vec3 surfPos, vec3 n, float h, float faceDirection){
 // The stool's skin, added to MeshPhysicalMaterial: colour (stercobilin
 // browns, darker where drier, with fibre flecks and pale undigested bits),
 // a bump height in cm (grain, pits, gas pores), cracks and sockets from
-// vertex attributes. The clearcoat keeps the unbumped normal: a smooth
+// vertex attributes. Patterns are read at aRef, a point in the stool's own
+// coordinates, so they move with it instead of swimming over it. The clearcoat keeps the unbumped normal: a smooth
 // mucus film over a rough surface.
 function stoolMaterial(uniforms) {
-  const mat = new THREE.MeshPhysicalMaterial({ roughness: 0.5, clearcoat: 0.8, clearcoatRoughness: 0.22, sheen: 0.25, sheenRoughness: 0.6, sheenColor: new THREE.Color(0x5a3a20) });
+  const mat = new THREE.MeshPhysicalMaterial({ roughness: 0.8, clearcoat: 0.35, clearcoatRoughness: 0.5, sheen: 0.08, sheenRoughness: 0.8, sheenColor: new THREE.Color(0x3a2614) });
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aCrack;\nattribute float aCav;\nvarying vec3 vObj;\nvarying float vCrack;\nvarying float vCav;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvObj = position;\nvCrack = aCrack;\nvCav = aCav;');
+      .replace('#include <common>', '#include <common>\nattribute float aCrack;\nattribute float aCav;\nattribute vec3 aRef;\nvarying vec3 vObj;\nvarying float vCrack;\nvarying float vCav;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvObj = aRef;\nvCrack = aCrack;\nvCav = aCav;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;')
+      .replace('varying vec3 vObj;', 'varying vec3 vObj;\nvarying vec3 vWorld;');
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
         `#include <common>
         uniform float uType;
+        uniform float uWet;
+        uniform vec4 uClip;
+        varying vec3 vWorld;
         uniform float uGas;
         uniform float uSeed;
         varying vec3 vObj;
@@ -218,6 +247,12 @@ function stoolMaterial(uniforms) {
         varying float vCav;
         ${SNOISE}
         float bsFbm(vec3 p){ return 0.5*snoise(p)+0.25*snoise(p*2.03+7.1)+0.125*snoise(p*4.01+3.3); }`,
+      )
+      .replace(
+        '#include <clipping_planes_fragment>',
+        `#include <clipping_planes_fragment>
+        // Still inside the canal: not out yet.
+        if (dot(uClip.xyz, vWorld) > uClip.w) discard;`,
       )
       .replace(
         '#include <color_fragment>',
@@ -239,7 +274,7 @@ function stoolMaterial(uniforms) {
         col = mix(col, vec3(0.42, 0.30, 0.13), pale * 0.7);
         col *= mix(1.0, 0.32, vCrack);               // inside a crack
         col *= mix(1.0, 0.62, vCav);                 // a socket: wetter, darker
-        col *= mix(0.82, 1.0, smoothstep(0.0, 0.35, vObj.y)); // where it touches the floor
+        col *= mix(0.82, 1.0, smoothstep(0.0, 0.35, vWorld.y)); // where it touches the floor
         diffuseColor.rgb = col;`,
       )
       .replace(
@@ -250,9 +285,11 @@ function stoolMaterial(uniforms) {
         float pore = smoothstep(0.86 - uGas * 1.6, 0.97 - uGas * 1.2, snoise(sp * 6.0 + 5.0));
         bsH -= 0.05 * pore;
         bsH -= 0.03 * vCrack;
-        float dry = clamp(0.5 + 6.0 * bsH + 0.6 * vCrack - (uType - 3.0) * 0.18, 0.0, 1.0);
-        roughnessFactor = mix(0.2, 0.7, dry);
-        roughnessFactor = mix(roughnessFactor, 0.22, vCav);`,
+        // uWet: 0 for a hard dry type 1, 1 for a soft type 5. Wet stool is
+        // matte with a thin sheen, not glossy: the clearcoat stays weak.
+        float dry = clamp(0.55 + 6.0 * bsH + 0.6 * vCrack - (uWet - 0.5) * 0.5, 0.0, 1.0);
+        roughnessFactor = mix(0.5, 0.95, dry);
+        roughnessFactor = mix(roughnessFactor, 0.42, vCav);`,
       )
       .replace(
         '#include <normal_fragment_maps>',
@@ -263,7 +300,7 @@ function stoolMaterial(uniforms) {
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <lights_physical_fragment>',
       `#include <lights_physical_fragment>
-      material.clearcoat *= clamp((uType - 0.5) / 4.0, 0.15, 1.0) * (1.0 - vCrack);`,
+      material.clearcoat *= (0.05 + 0.6 * uWet * uWet) * (1.0 - vCrack) * (1.0 - 0.6 * smoothstep(0.0, 0.05, bsH));`,
     );
   };
   mat.customProgramCacheKey = () => 'bristolStool';
@@ -279,7 +316,7 @@ function kernelMaterial(hull, seed) {
     uKSeed: { value: seed },
     uHover: { value: 0 },
   };
-  const mat = new THREE.MeshPhysicalMaterial({ roughness: 0.3, clearcoat: 0.9, clearcoatRoughness: 0.12, sheen: 0.4, sheenColor: new THREE.Color(0xffd27a) });
+  const mat = new THREE.MeshPhysicalMaterial({ roughness: 0.45, clearcoat: 0.3, clearcoatRoughness: 0.35, sheen: 0.2, sheenColor: new THREE.Color(0xffd27a) });
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
@@ -312,7 +349,12 @@ function kernelMaterial(hull, seed) {
       .replace(
         '#include <roughnessmap_fragment>',
         `#include <roughnessmap_fragment>
-        roughnessFactor = mix(roughnessFactor, 0.4, coat);`,
+        roughnessFactor = mix(roughnessFactor, 0.85, coat);`,
+      )
+      .replace(
+        '#include <lights_physical_fragment>',
+        `#include <lights_physical_fragment>
+        material.clearcoat *= 1.0 - coat;`,
       )
       .replace(
         '#include <emissivemap_fragment>',
@@ -382,98 +424,436 @@ function kernelGeometry(hull) {
 }
 
 // Squash the part of a point below w up into a contact patch, and spread it
-// out sideways (the sag that flattens a soft thing on a floor).
-function sag(p, dir, w) {
-  if (p.y >= w) return;
-  const y = w * Math.exp((p.y - w) / w);
-  const spread = (y - p.y) * 0.9;
-  const hl = Math.hypot(dir.x, dir.z) || 1;
-  p.x += (dir.x / hl) * spread * Math.min(1, hl * 2);
-  p.z += (dir.z / hl) * spread * Math.min(1, hl * 2);
-  p.y = y;
+// out sideways (the sag that flattens a soft thing on a floor). Numbers in,
+// numbers out: this runs on every vertex every frame while it moves.
+function sagInto(out, i, dx, dz, w) {
+  const py = out[i + 1];
+  if (py >= w) return;
+  const y = w * Math.exp((py - w) / w);
+  const spread = (y - py) * 0.9;
+  const hl = Math.hypot(dx, dz) || 1;
+  const k = (spread * Math.min(1, hl * 2)) / hl;
+  out[i] += dx * k;
+  out[i + 2] += dz * k;
+  out[i + 1] = y;
 }
 
 function crackLine(n, width) {
   return smoothstep(width, 0, Math.abs(n));
 }
 
-// One log (types 2–4). Returns positions, outward directions, crack
-// strength, and which vertices may hold a kernel.
-function tubePiece(rng, noise, type, L, R, x0, z0, heading) {
-  const NS = Math.round(L * 26);
-  const M = 104;
-  const ds = L / NS;
-  const k0 = (rng() - 0.5) * 0.12;
-  const k1 = (0.05 + rng() * 0.11) * (rng() < 0.5 ? -1 : 1);
-  const fr = 0.6 + rng() * 0.8;
-  const ph = rng() * Math.PI * 2;
-  const line = [];
-  let x = x0;
-  let z = z0;
-  let ang = heading;
-  for (let i = 0; i <= NS; i++) {
-    line.push([x, z, ang]);
-    const s = i * ds;
-    ang += (k0 + k1 * Math.sin((2 * Math.PI * fr * s) / L + ph)) * ds;
-    x += Math.cos(ang) * ds;
-    z += Math.sin(ang) * ds;
+// ---------- firmness ----------
+// The yield stress τ_y: below it the stuff holds its shape like a solid,
+// above it it flows. It falls steeply with water content, as it does for
+// every faecal sludge measured; this exponential is a model pinned at
+// 1.5 kPa for type 4 (76% water), not a measurement.
+const yieldStress = (water) => TAU_REF * Math.exp(-(water - W_REF) / W_SCALE); // Pa
+const waterOf = (type, shift) => WATER[type - 1] + shift / 100;
+
+// Rotate u by the smallest rotation taking unit a to unit b (parallel transport).
+function transport(u, a, b, out) {
+  const kx = a[1] * b[2] - a[2] * b[1];
+  const ky = a[2] * b[0] - a[0] * b[2];
+  const kz = a[0] * b[1] - a[1] * b[0];
+  const c = a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const kd = (kx * u[0] + ky * u[1] + kz * u[2]) / Math.max(1 + c, 1e-6);
+  out[0] = u[0] * c + (ky * u[2] - kz * u[1]) + kx * kd;
+  out[1] = u[1] * c + (kz * u[0] - kx * u[2]) + ky * kd;
+  out[2] = u[2] * c + (kx * u[1] - ky * u[0]) + kz * kd;
+  return out;
+}
+
+// ---------- leaving: types 2–4 ----------
+// The log is a chain of nodes 0.4 cm apart, node 0 the front. Inside the canal
+// the nodes are carried out at v along the canal's axis e; past the anus they
+// are free. Position-based dynamics at 480 Hz: gravity, fixed segment lengths,
+// bending as distance constraints over 2, 4 and 8 segments (stiffness rising
+// with τ_y), and creep past the yield strain so a fold stays folded; contact
+// with itself and with the floor, where Coulomb friction stops sliding unless
+// the sideways push beats μ times the normal push. The part hanging from the
+// anus pulls on it with stress ρgΔy (Δy = how far below the anus its lowest
+// point is); past the tensile yield √3·τ_y (von Mises) it tears off. Where a
+// node rests on something, it slumps towards the tallest column a yield-stress
+// material can make, h_max = 2τ_y/(ρg).
+function bakeExit({ L, radius, v, tau, rho, H, seed }) {
+  const rng = mulberry32(seed ^ 0x2c1b3c6d);
+  const n = Math.max(8, Math.round(L / 0.4) + 1);
+  const h = L / (n - 1);
+  const rhoG = rho * G;
+  const tauC = tau * 10; // Pa → dyn/cm²
+  const Lbreak = (Math.sqrt(3) * tauC) / rhoG;
+  const hmax = (2 * tauC) / rhoG;
+  const e = EXIT_DIR;
+  // A person isn't a statue: the anus drifts a few mm while it happens.
+  const sw = [0.3 + rng() * 0.5, 0.4 + rng() * 0.6, rng() * 6.28, rng() * 6.28, 0.2 + rng() * 0.2, 0.15 + rng() * 0.2];
+  const anus = (t, out) => {
+    out[0] = sw[0] * Math.sin(sw[4] * t + sw[2]);
+    out[1] = H;
+    out[2] = sw[1] * Math.sin(sw[5] * t + sw[3]);
+    return out;
+  };
+  const x = new Float64Array(3 * n);
+  const xp = new Float64Array(3 * n);
+  const rc = new Float64Array(n);
+  const sy = new Float64Array(n).fill(1);
+  const syEq = new Float64Array(n);
+  const link = new Uint8Array(n).fill(1); // link i ↔ i+1
+  const free = new Uint8Array(n);
+  const touch = new Uint8Array(n);
+  const R = radius(L / 2);
+  for (let i = 0; i < n; i++) {
+    rc[i] = Math.max(radius(i * h), 0.35 * R);
+    syEq[i] = Math.min(1, Math.max(0.3, hmax / (2 * rc[i])));
   }
-  const cap = R * 0.95;
-  const tail = 2.2 + rng() * 1.6;
-  const lumpLen = 1.8 + rng() * 0.6;
-  const off = rng() * 100;
-  const lumpAmp = type === 2 ? 0.17 : type === 3 ? 0.05 : 0.025;
+  const SPANS = [2, 4, 8];
+  const bend = SPANS.map((m) => new Float64Array(n).fill(m * h));
+  const kb = 0.9 * (1 - Math.exp(-tau / 1200));
+  const epsY = Math.min(0.12, Math.max(0.004, 0.012 * Math.sqrt(tau / 1500)));
+  // Only parts further apart along the rope than they are thick can collide.
+  const gap = Math.ceil((2.2 * R) / h) + 1;
+  const dt = 1 / 480;
+  const iters = 6;
+  const A = [0, 0, 0];
+  const tEmit = L / v;
+  const breaks = [];
+  const rec = [];
+  let t = 0;
+  let quiet = 0;
+  let drop = 0;
+  let tTouch = -1;
+  const place = (i) => {
+    const d = i * h - v * t; // depth inside the canal
+    anus(t, A);
+    x[3 * i] = A[0] - e[0] * d;
+    x[3 * i + 1] = A[1] - e[1] * d;
+    x[3 * i + 2] = A[2] - e[2] * d;
+  };
+  for (let i = 0; i < n; i++) {
+    place(i);
+    xp[3 * i] = x[3 * i];
+    xp[3 * i + 1] = x[3 * i + 1];
+    xp[3 * i + 2] = x[3 * i + 2];
+  }
+  // Frames for the skin: tangent from linked neighbours; "up" carried along
+  // the rope from node 0, and node 0's carried from the last record, so the
+  // surface pattern doesn't spin.
+  const T = new Float64Array(3 * n);
+  let up0 = [1, 0, 0];
+  let T0prev = [-e[0], -e[1], -e[2]];
+  const tmp = [0, 0, 0];
+  const record = () => {
+    for (let i = 0; i < n; i++) {
+      const a = i > 0 && link[i - 1] ? i - 1 : i;
+      const b = i < n - 1 && link[i] ? i + 1 : i;
+      let tx = x[3 * b] - x[3 * a];
+      let ty = x[3 * b + 1] - x[3 * a + 1];
+      let tz = x[3 * b + 2] - x[3 * a + 2];
+      const l = Math.hypot(tx, ty, tz) || 1;
+      T[3 * i] = tx / l;
+      T[3 * i + 1] = ty / l;
+      T[3 * i + 2] = tz / l;
+    }
+    const up = new Float32Array(3 * n);
+    const T0 = [T[0], T[1], T[2]];
+    transport(up0, T0prev, T0, tmp);
+    up0 = [tmp[0], tmp[1], tmp[2]];
+    T0prev = T0;
+    let u = up0;
+    for (let i = 0; i < n; i++) {
+      const Ti = [T[3 * i], T[3 * i + 1], T[3 * i + 2]];
+      if (i > 0) u = transport(u, [T[3 * i - 3], T[3 * i - 2], T[3 * i - 1]], Ti, [0, 0, 0]);
+      const d = u[0] * Ti[0] + u[1] * Ti[1] + u[2] * Ti[2];
+      const ux = u[0] - d * Ti[0];
+      const uy = u[1] - d * Ti[1];
+      const uz = u[2] - d * Ti[2];
+      const l = Math.hypot(ux, uy, uz) || 1;
+      u = [ux / l, uy / l, uz / l];
+      up[3 * i] = u[0];
+      up[3 * i + 1] = u[1];
+      up[3 * i + 2] = u[2];
+    }
+    anus(t, A);
+    rec.push({ x: Float32Array.from(x), up, sy: Float32Array.from(sy), A: [A[0], A[1], A[2]], drop });
+  };
+  record();
+  let nextRec = 1 / EXIT_FPS;
+  while (true) {
+    for (let i = 0; i < n; i++) {
+      if (free[i]) continue;
+      if (i * h - v * t <= 0) free[i] = 1;
+      else {
+        xp[3 * i] = x[3 * i];
+        xp[3 * i + 1] = x[3 * i + 1];
+        xp[3 * i + 2] = x[3 * i + 2];
+      }
+    }
+    t += dt;
+    let vmax = 0;
+    for (let i = 0; i < n; i++) {
+      const k = 3 * i;
+      if (!free[i]) {
+        place(i);
+        continue;
+      }
+      for (let c = 0; c < 3; c++) {
+        const vel = (x[k + c] - xp[k + c]) * 0.998;
+        xp[k + c] = x[k + c];
+        x[k + c] += vel + (c === 1 ? -G * dt * dt : 0);
+        vmax = Math.max(vmax, Math.abs(vel) / dt);
+      }
+    }
+    touch.fill(0);
+    for (let it = 0; it < iters; it++) {
+      for (let i = 0; i < n - 1; i++) {
+        if (!link[i] || (!free[i] && !free[i + 1])) continue;
+        const a = 3 * i;
+        const b = a + 3;
+        const dx = x[b] - x[a];
+        const dy = x[b + 1] - x[a + 1];
+        const dz = x[b + 2] - x[a + 2];
+        const d = Math.hypot(dx, dy, dz) || 1e-9;
+        const wa = free[i];
+        const wb = free[i + 1];
+        const corr = (d - h) / d / (wa + wb);
+        x[a] += dx * corr * wa; x[a + 1] += dy * corr * wa; x[a + 2] += dz * corr * wa;
+        x[b] -= dx * corr * wb; x[b + 1] -= dy * corr * wb; x[b + 2] -= dz * corr * wb;
+      }
+      for (let q = 0; q < SPANS.length; q++) {
+        const m = SPANS[q];
+        const rest = bend[q];
+        for (let i = 0; i + m < n; i++) {
+          if (!free[i] && !free[i + m]) continue;
+          let ok = true;
+          for (let j = i; j < i + m; j++) if (!link[j]) ok = false;
+          if (!ok) continue;
+          const a = 3 * i;
+          const b = 3 * (i + m);
+          const dx = x[b] - x[a];
+          const dy = x[b + 1] - x[a + 1];
+          const dz = x[b + 2] - x[a + 2];
+          const d = Math.hypot(dx, dy, dz) || 1e-9;
+          const wa = free[i];
+          const wb = free[i + m];
+          const corr = (kb * (d - rest[i])) / d / (wa + wb);
+          x[a] += dx * corr * wa; x[a + 1] += dy * corr * wa; x[a + 2] += dz * corr * wa;
+          x[b] -= dx * corr * wb; x[b + 1] -= dy * corr * wb; x[b + 2] -= dz * corr * wb;
+        }
+      }
+      for (let i = 0; i < n; i++) {
+        if (!free[i]) continue;
+        for (let j = i + gap; j < n; j++) {
+          if (!free[j]) continue;
+          const a = 3 * i;
+          const b = 3 * j;
+          const dx = x[b] - x[a];
+          const dy = x[b + 1] - x[a + 1];
+          const dz = x[b + 2] - x[a + 2];
+          const m = (rc[i] + rc[j]) * 0.9;
+          const d2 = dx * dx + dy * dy + dz * dz;
+          if (d2 >= m * m) continue;
+          const d = Math.sqrt(d2) || 1e-9;
+          const corr = (0.5 * (d - m)) / d;
+          x[a] += dx * corr; x[a + 1] += dy * corr; x[a + 2] += dz * corr;
+          x[b] -= dx * corr; x[b + 1] -= dy * corr; x[b + 2] -= dz * corr;
+          if (dy > 0) touch[j] = 1;
+          else touch[i] = 1;
+        }
+      }
+      for (let i = 0; i < n; i++) {
+        if (!free[i]) continue;
+        const k = 3 * i;
+        const floor = rc[i] * sy[i] * 0.92;
+        if (x[k + 1] < floor) {
+          // Coulomb friction, position-based: the push back up is the normal
+          // impulse; sliding is cut by μ times it, or stopped outright.
+          const pen = floor - x[k + 1];
+          x[k + 1] = floor;
+          const dx = x[k] - xp[k];
+          const dz = x[k + 2] - xp[k + 2];
+          const dh = Math.hypot(dx, dz);
+          const f = dh < MU_S * pen ? 1 : Math.min(1, (MU_K * pen) / dh);
+          x[k] -= dx * f;
+          x[k + 2] -= dz * f;
+          touch[i] = 1;
+          if (tTouch < 0) tTouch = t;
+        }
+      }
+    }
+    for (let q = 0; q < SPANS.length; q++) {
+      const m = SPANS[q];
+      const rest = bend[q];
+      const lim = epsY * m * h;
+      for (let i = 0; i + m < n; i++) {
+        if (!free[i]) continue;
+        const a = 3 * i;
+        const b = 3 * (i + m);
+        const ex = Math.hypot(x[b] - x[a], x[b + 1] - x[a + 1], x[b + 2] - x[a + 2]) - rest[i];
+        if (Math.abs(ex) > lim) rest[i] = Math.min(m * h, Math.max(0.3 * m * h, rest[i] + (ex - Math.sign(ex) * lim) * 0.5));
+      }
+    }
+    for (let i = 0; i < n; i++) {
+      if (touch[i] && sy[i] > syEq[i]) sy[i] = Math.max(syEq[i], sy[i] - (dt / 0.5) * (sy[i] - syEq[i] + 0.02));
+    }
+    // Tear-off: the hanging part's weight on the anus.
+    let top = -1;
+    for (let i = n - 1; i >= 0; i--) {
+      if (free[i]) {
+        top = i;
+        break;
+      }
+    }
+    drop = 0;
+    if (top >= 0 && top < n - 1 && link[top] && !free[top + 1]) {
+      let low = Infinity;
+      for (let i = top; i >= 0; i--) {
+        low = Math.min(low, x[3 * i + 1] - rc[i] * 0.92);
+        if (i > 0 && !link[i - 1]) break;
+      }
+      drop = Math.max(0, H - low);
+      if (drop > Lbreak && L - top * h > 1.5) {
+        link[top] = 0;
+        breaks.push({ i: top, s: (top + 0.5) * h, t });
+      }
+    }
+    while (t >= nextRec) {
+      record();
+      nextRec += 1 / EXIT_FPS;
+    }
+    if (t > tEmit + 0.2) quiet = vmax < 1.5 ? quiet + dt : 0;
+    if (quiet > 0.4 || t > tEmit + 6) break;
+  }
+  record();
+  return { kind: 'rope', n, h, rec, breaks, Lbreak, hmax, tEmit, tTouch: Math.max(0, tTouch), tEnd: (rec.length - 1) / EXIT_FPS, v, L, radius };
+}
+
+// ---------- leaving: types 1 and 5 ----------
+// Separate pieces, pushed out one after another at v, then free fall to where
+// each one lands (the drift that gets it there is fixed by its fall time);
+// on landing it slumps to h_max, or stays as it is if it's hard.
+function planBlobs(blobs, H, hmax, spinRng) {
+  const e = EXIT_DIR;
+  const total = blobs.reduce((s, b) => s + 2 * b.R, 0);
+  const pause = 0.55;
+  const v = total / Math.max(3, T_EXIT - pause * (blobs.length - 1));
+  let t = 0;
+  for (const b of blobs) {
+    b.t0 = t;
+    b.t1 = t + (2 * b.R) / v;
+    t = b.t1 + pause;
+    b.p1 = [e[0] * b.R, H + e[1] * b.R, e[2] * b.R];
+    b.v1 = [v * e[0], v * e[1], v * e[2]];
+    b.yLand = b.y + b.R * (1 - b.squash) * 0.9;
+    const dy = b.p1[1] - b.yLand;
+    const fall = (b.v1[1] + Math.sqrt(b.v1[1] ** 2 + 2 * G * dy)) / G;
+    b.tl = b.t1 + fall;
+    b.v1[0] = (b.x - b.p1[0]) / fall;
+    b.v1[2] = (b.z - b.p1[2]) / fall;
+    const a = spinRng() * Math.PI * 2;
+    b.axis = new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
+    b.omega = b.hard ? 4 + spinRng() * 6 : 0;
+  }
+  const tEnd = Math.max(...blobs.map((b) => b.tl)) + 1.4;
+  return { kind: 'blobs', v, tEnd, tTouch: Math.min(...blobs.map((b) => b.tl)), hmax, H, blobs };
+}
+
+// Where blob b is at time t: centre, tilt about its axis, and vertical squash.
+function blobState(b, H, t, out) {
+  const e = EXIT_DIR;
+  if (t < b.t1) {
+    const d = Math.max(0, t - b.t0) * ((2 * b.R) / (b.t1 - b.t0)) - b.R; // centre's distance past the anus
+    out.c.set(e[0] * d, H + e[1] * d, e[2] * d);
+    out.angle = -b.omega * (b.tl - b.t1);
+    out.sy = 1;
+  } else if (t < b.tl) {
+    const s = t - b.t1;
+    out.c.set(b.p1[0] + b.v1[0] * s, b.p1[1] + b.v1[1] * s - 0.5 * G * s * s, b.p1[2] + b.v1[2] * s);
+    out.angle = -b.omega * (b.tl - t);
+    out.sy = 1;
+  } else {
+    const k = Math.exp(-(t - b.tl) / (b.hard ? 0.06 : 0.22));
+    out.sy = b.squash + (1 - b.squash) * k;
+    out.c.set(b.x, b.y + (b.yLand - b.y) * k, b.z);
+    out.angle = 0;
+  }
+  return out;
+}
+
+// ---------- reference geometry ----------
+// Every vertex is stored in the frame of a "ring": t along the log, a and b
+// across it (b is the frame's up). The skin puts each ring where the physics
+// has it this frame, so the same mesh hangs, falls and lies on the floor.
+
+// One piece of a log, from s0 to s1 along it. Ends: 'cap' (the rounded
+// front), 'tail' (pinched off by the sphincter), 'torn' (where it snapped).
+function tubeRef(noise, type, L, R, look, s0, s1, startKind, endKind) {
+  const { off, tail, lumpLen, lumpAmp, crackDepth } = look;
+  const len = s1 - s0;
+  const NS = Math.max(8, Math.round(len * 26));
+  const M = 104;
+  const ds = len / NS;
+  const capLen = (kind) => (kind === 'cap' ? R * 0.95 : R * 0.6);
   const radius = (s) => {
     let r = R * (1 + 0.06 * noise(s * 0.35, off, 1.7));
     const ph2 = s / lumpLen + 0.35 * noise(s * 0.2, off, 4.4);
     r *= 1 + lumpAmp * (Math.pow(Math.abs(Math.sin(Math.PI * ph2)), 0.5) - 0.62);
-    if (s < cap) r *= Math.sqrt(Math.max(0, 1 - (1 - s / cap) ** 2));
-    const u = (L - s) / tail;
-    if (u < 1) r *= 1 - Math.pow(1 - Math.max(u, 0), 2.2);
+    const a = s - s0;
+    const c0 = capLen(startKind) * (startKind === 'torn' ? 1 + 0.25 * noise(s0, off, 9) : 1);
+    if (a < c0) r *= Math.sqrt(Math.max(0, 1 - (1 - a / c0) ** 2));
+    if (endKind === 'tail') {
+      const u = (s1 - s) / tail;
+      if (u < 1) r *= 1 - Math.pow(1 - Math.max(u, 0), 2.2);
+    } else {
+      const b = s1 - s;
+      const c1 = capLen('torn') * (1 + 0.25 * noise(s1, off, 9));
+      if (b < c1) r *= Math.sqrt(Math.max(0, 1 - (1 - b / c1) ** 2));
+    }
     return r;
   };
-  const crackDepth = type === 3 ? 0.17 : type === 2 ? 0.12 : 0.025;
-  const w = 0.22 * R;
-  const positions = [];
-  const dirs = [];
+  const local = [];
+  const ldir = [];
+  const ring = [];
   const crack = [];
   const eligible = [];
-  const p = new THREE.Vector3();
-  const dir = new THREE.Vector3();
-  const push = (s, cosT, sinT, ring, pole) => {
-    const [cx, cz, a] = line[ring];
+  const rings = [];
+  const endRoom = endKind === 'tail' ? tail + 0.6 : 0.9;
+  const push = (k, s, cosT, sinT, pole) => {
     const r = pole ? 0 : radius(s);
-    const T = [Math.cos(a), 0, Math.sin(a)];
-    const B = [-Math.sin(a), 0, Math.cos(a)];
-    if (pole === 1) dir.set(-T[0], 0, -T[2]);
-    else if (pole === 2) dir.set(T[0], 0, T[2]);
-    else dir.set(B[0] * cosT, sinT * 0.92, B[2] * cosT).normalize();
-    const u = (L - s) / tail;
-    const yc = 0.82 * R * (u < 1 ? 0.35 + 0.65 * (1 - Math.pow(1 - Math.max(u, 0), 2.2)) : 1);
-    p.set(cx + B[0] * cosT * r, yc + sinT * r * 0.92, cz + B[2] * cosT * r);
-    // Surface relief along the outward direction.
+    let dt = 0;
+    let da = cosT;
+    let db = sinT * 0.92;
+    if (pole === 1) [dt, da, db] = [-1, 0, 0];
+    else if (pole === 2) [dt, da, db] = [1, 0, 0];
+    const dl = Math.hypot(dt, da, db);
+    dt /= dl;
+    da /= dl;
+    db /= dl;
+    let pa = cosT * r;
+    let pb = sinT * r * 0.92;
+    // Surface relief along the outward direction (noise read in the log's own coordinates).
     const arc = Math.atan2(sinT, cosT) * R;
-    let d = 0.05 * R * noise(p.x * 0.5, p.y * 0.5, p.z * 0.5 + off) + 0.025 * noise(p.x * 2.2, p.y * 2.2, p.z * 2.2);
+    let d = 0.05 * R * noise(s * 0.5, pa * 0.5, pb * 0.5 + off) + 0.025 * noise(s * 2.2, pa * 2.2, pb * 2.2);
     const n1 = noise(s * 0.75 + 0.3 * noise(s * 0.3, arc * 0.3, off + 5), arc * 0.16, off + 17);
     const n2 = noise(s * 1.7, arc * 0.8, off + 29);
     let c = crackLine(n1, 0.05) + 0.6 * crackLine(n2, 0.035) * smoothstep(-0.2, 0.4, noise(s * 0.4, arc * 0.4, off + 41));
-    c = Math.min(1, c) * smoothstep(-0.45, 0.25, dir.y) * smoothstep(0.3, 1.2, s) * smoothstep(0.2, 1.5, L - s);
+    c = Math.min(1, c) * smoothstep(0.3, 1.2, s - s0) * smoothstep(0.2, 1.5, s1 - s) * (pole ? 0 : 1);
     d -= crackDepth * c;
-    p.addScaledVector(dir, d);
-    sag(p, dir, w);
-    positions.push(p.x, p.y, p.z);
-    dirs.push(dir.x, dir.y, dir.z);
+    local.push(dt * d, pa + da * d, pb + db * d);
+    ldir.push(dt, da, db);
+    ring.push(k);
     crack.push(c * (crackDepth > 0.05 ? 1 : 0.4));
-    eligible.push(!pole && dir.y > 0.05 && s > 1.4 && L - s > tail + 0.6 ? 1 : 0);
+    eligible.push(!pole && s - s0 > 1.4 && s1 - s > endRoom ? 1 : 0);
   };
-  push(0, 0, 0, 0, 1);
+  rings.push(s0);
+  push(0, s0, 0, 0, 1);
   for (let i = 1; i < NS; i++) {
+    rings.push(s0 + i * ds);
     for (let j = 0; j < M; j++) {
       const th = (2 * Math.PI * j) / M;
-      push(i * ds, Math.cos(th), Math.sin(th), i, 0);
+      push(i, s0 + i * ds, Math.cos(th), Math.sin(th), 0);
     }
   }
-  push(L, 0, 0, NS, 2);
+  rings.push(s1);
+  push(NS, s1, 0, 0, 2);
   const last = 1 + (NS - 1) * M;
   const index = [];
   const ringStart = (i) => 1 + (i - 1) * M;
@@ -488,20 +868,19 @@ function tubePiece(rng, noise, type, L, R, x0, z0, heading) {
   }
   const lr = ringStart(NS - 1);
   for (let j = 0; j < M; j++) index.push(last, lr + j, lr + ((j + 1) % M));
-  return { positions, dirs, crack, eligible, index };
+  return { kind: 'tube', local, ldir, ring, rings, crack, eligible, index, s0, s1, w: 0.22 * R };
 }
 
-// One lump or blob (types 1 and 5).
-function blobPiece(rng, noise, type, cx, cy, cz, R, squash) {
+// One lump or blob (types 1 and 5), centred on its own origin, unsquashed.
+function blobRef(noise, type, R, off, squash) {
   let g = new THREE.IcosahedronGeometry(1, type === 1 ? 26 : 48);
   g.deleteAttribute('normal');
   g.deleteAttribute('uv');
   g = mergeVertices(g);
   const pos = g.attributes.position;
-  const off = rng() * 100;
-  const w = 0.22 * R * squash;
-  const positions = [];
-  const dirs = [];
+  const local = [];
+  const ldir = [];
+  const ring = [];
   const crack = [];
   const eligible = [];
   const p = new THREE.Vector3();
@@ -511,99 +890,349 @@ function blobPiece(rng, noise, type, cx, cy, cz, R, squash) {
     let r = R * (1 + 0.13 * noise(dir.x * 1.3 + off, dir.y * 1.3, dir.z * 1.3));
     if (type === 1) r += R * 0.09 * Math.abs(noise(dir.x * 2.6, dir.y * 2.6 + off, dir.z * 2.6));
     else r += R * 0.03 * noise(dir.x * 2.2, dir.y * 2.2 + off, dir.z * 2.2);
-    p.set(cx + dir.x * r, cy + dir.y * r * squash, cz + dir.z * r);
+    p.copy(dir).multiplyScalar(r);
     let c = 0;
     if (type === 1) {
-      c = crackLine(noise(p.x * 1.4 + off, p.y * 1.4, p.z * 1.4), 0.04) * smoothstep(-0.3, 0.3, dir.y);
+      c = crackLine(noise(p.x * 1.4 + off, p.y * 1.4, p.z * 1.4), 0.04);
       p.addScaledVector(dir, -0.08 * c + 0.03 * noise(p.x * 3, p.y * 3, p.z * 3));
     } else {
       p.addScaledVector(dir, 0.02 * noise(p.x * 2, p.y * 2, p.z * 2));
     }
-    if (cy - R * squash < w * 2) sag(p, dir, w);
-    positions.push(p.x, p.y, p.z);
-    dirs.push(dir.x, dir.y, dir.z);
+    // Frame axes for a blob: t = world x, a = world z, b = world y.
+    local.push(p.x, p.z, p.y);
+    ldir.push(dir.x, dir.z, dir.y);
+    ring.push(0);
     crack.push(c);
-    eligible.push(dir.y > 0.1 ? 1 : 0);
+    eligible.push(1);
   }
   const index = Array.from(g.index.array);
   g.dispose();
-  return { positions, dirs, crack, eligible, index };
+  return { kind: 'blob', local, ldir, ring, rings: [0], crack, eligible, index, w: 0.22 * R * squash };
 }
 
-// The pieces for a Bristol type, laid out around the origin.
-function layout(type, rng, noise) {
-  const out = [];
-  if (type >= 2 && type <= 4) {
-    const L = (type === 2 ? 12 : 14) + rng() * 4;
-    const R = type === 2 ? 1.5 : 1.3 + rng() * 0.15;
-    const heading = rng() * Math.PI * 2;
-    out.push(tubePiece(rng, noise, type, L, R, -Math.cos(heading) * L * 0.45, -Math.sin(heading) * L * 0.45, heading));
-    // Sometimes a short second piece, broken off.
-    if (rng() < 0.45) {
-      const h2 = heading + (rng() - 0.5) * 2.4;
-      const L2 = 4 + rng() * 3;
-      const sx = Math.cos(heading + Math.PI / 2) * (R * 2.6 + 0.8);
-      const sz = Math.sin(heading + Math.PI / 2) * (R * 2.6 + 0.8);
-      out.push(tubePiece(rng, noise, type, L2, R * 0.95, sx - Math.cos(h2) * L2 * 0.5, sz - Math.sin(h2) * L2 * 0.5, h2));
-    }
-  } else {
-    const n = type === 1 ? 7 + Math.floor(rng() * 4) : 3 + Math.floor(rng() * 2);
-    const placed = [];
-    for (let k = 0; k < n; k++) {
-      const R = type === 1 ? 0.85 + rng() * 0.4 : 1.6 + rng() * 0.6;
-      const squash = type === 1 ? 0.85 : 0.55;
-      let best = null;
-      for (let tries = 0; tries < 40; tries++) {
-        const a = rng() * Math.PI * 2;
-        const d = Math.sqrt(rng()) * (type === 1 ? 3.2 : 4.2);
-        const x = Math.cos(a) * d;
-        const z = Math.sin(a) * d;
-        // Rest on the floor, or on top of an earlier lump.
-        let y = R * squash * 0.86;
-        let clash = false;
-        for (const q of placed) {
-          const dh = Math.hypot(q.x - x, q.z - z);
-          const touch = (q.R + R) * 0.85;
-          if (dh < touch) {
-            if (type === 5) clash = true;
-            else y = Math.max(y, q.y + Math.sqrt(touch * touch - dh * dh) * 0.75);
-          }
+// Blob placements for types 1 and 5: on the floor, or (type 1) on an earlier lump.
+function blobLayout(type, rng, hmax) {
+  const n = type === 1 ? 7 + Math.floor(rng() * 4) : 3 + Math.floor(rng() * 2);
+  const placed = [];
+  for (let k = 0; k < n; k++) {
+    const R = type === 1 ? 0.85 + rng() * 0.4 : 1.6 + rng() * 0.6;
+    // A blob taller than h_max can't hold: it slumps to it (kept above 0.35 so it stays a blob).
+    const squash = Math.min(0.88, Math.max(0.35, hmax / (2 * R)));
+    for (let tries = 0; tries < 40; tries++) {
+      const a = rng() * Math.PI * 2;
+      const d = Math.sqrt(rng()) * (type === 1 ? 3.2 : 5.5);
+      const x = Math.cos(a) * d;
+      const z = Math.sin(a) * d;
+      let y = R * squash * 0.86;
+      let clash = false;
+      for (const q of placed) {
+        const dh = Math.hypot(q.x - x, q.z - z);
+        // Slumped blobs spread to R/√squash.
+        const touch = (q.R / Math.sqrt(q.squash) + R / Math.sqrt(squash)) * 0.85;
+        if (dh < touch) {
+          if (type === 5) clash = true;
+          else y = Math.max(y, q.y + Math.sqrt(touch * touch - dh * dh) * 0.75);
         }
-        if (clash || y > 2.6) continue;
-        best = { x, y, z, R, squash };
-        break;
       }
-      if (!best) continue;
-      placed.push(best);
-      out.push(blobPiece(rng, noise, type, best.x, best.y, best.z, best.R, best.squash));
+      if (clash || y > 2.6) continue;
+      placed.push({ x, y, z, R, squash, hard: type === 1, off: rng() * 100 });
+      break;
     }
   }
-  return out;
+  return placed;
+}
+
+// ---------- frames and skin ----------
+// Fill F (per ring: centre C, axes [T, S, U] in Rm, squash sy, horizontal
+// tangent th) for piece pc at time t.
+function tubeFrames(pc, ex, t, F, scratch) {
+  const { h, rec } = ex;
+  const f = Math.min(rec.length - 1.0001, Math.max(0, t * EXIT_FPS));
+  const r0 = rec[Math.floor(f)];
+  const r1 = rec[Math.floor(f) + 1];
+  const al = f - Math.floor(f);
+  const { P, U, S, Tn } = scratch;
+  const ia = pc.ia;
+  const ib = pc.ib;
+  for (let i = ia; i <= ib; i++) {
+    for (let c = 0; c < 3; c++) {
+      P[3 * i + c] = r0.x[3 * i + c] + (r1.x[3 * i + c] - r0.x[3 * i + c]) * al;
+      U[3 * i + c] = r0.up[3 * i + c] + (r1.up[3 * i + c] - r0.up[3 * i + c]) * al;
+    }
+    S[i] = r0.sy[i] + (r1.sy[i] - r0.sy[i]) * al;
+  }
+  for (let i = ia; i <= ib; i++) {
+    const a = Math.max(ia, i - 1);
+    const b = Math.min(ib, i + 1);
+    const tx = P[3 * b] - P[3 * a];
+    const ty = P[3 * b + 1] - P[3 * a + 1];
+    const tz = P[3 * b + 2] - P[3 * a + 2];
+    const l = Math.hypot(tx, ty, tz) || 1;
+    Tn[3 * i] = tx / l;
+    Tn[3 * i + 1] = ty / l;
+    Tn[3 * i + 2] = tz / l;
+  }
+  const nr = pc.rings.length;
+  for (let k = 0; k < nr; k++) {
+    const s = pc.rings[k];
+    const fi = s / h;
+    let i = Math.floor(fi);
+    let u = fi - i;
+    let cx;
+    let cy;
+    let cz;
+    if (i < ia || (i === ia && u < 0) || ib === ia) {
+      i = ia;
+      u = 0;
+      const ext = s - ia * h;
+      cx = P[3 * ia] + Tn[3 * ia] * ext;
+      cy = P[3 * ia + 1] + Tn[3 * ia + 1] * ext;
+      cz = P[3 * ia + 2] + Tn[3 * ia + 2] * ext;
+    } else if (i >= ib) {
+      i = ib - 1;
+      u = 1;
+      const ext = s - ib * h;
+      cx = P[3 * ib] + Tn[3 * ib] * ext;
+      cy = P[3 * ib + 1] + Tn[3 * ib + 1] * ext;
+      cz = P[3 * ib + 2] + Tn[3 * ib + 2] * ext;
+    } else {
+      // Catmull–Rom through the nodes, so the log doesn't kink every 4 mm.
+      const i0 = Math.max(ia, i - 1);
+      const i3 = Math.min(ib, i + 2);
+      const u2 = u * u;
+      const u3 = u2 * u;
+      const w0 = -0.5 * u3 + u2 - 0.5 * u;
+      const w1 = 1.5 * u3 - 2.5 * u2 + 1;
+      const w2 = -1.5 * u3 + 2 * u2 + 0.5 * u;
+      const w3 = 0.5 * u3 - 0.5 * u2;
+      cx = w0 * P[3 * i0] + w1 * P[3 * i] + w2 * P[3 * i + 3] + w3 * P[3 * i3];
+      cy = w0 * P[3 * i0 + 1] + w1 * P[3 * i + 1] + w2 * P[3 * i + 4] + w3 * P[3 * i3 + 1];
+      cz = w0 * P[3 * i0 + 2] + w1 * P[3 * i + 2] + w2 * P[3 * i + 5] + w3 * P[3 * i3 + 2];
+    }
+    const j = Math.min(ib, i + 1);
+    let tx = Tn[3 * i] + (Tn[3 * j] - Tn[3 * i]) * u;
+    let ty = Tn[3 * i + 1] + (Tn[3 * j + 1] - Tn[3 * i + 1]) * u;
+    let tz = Tn[3 * i + 2] + (Tn[3 * j + 2] - Tn[3 * i + 2]) * u;
+    let l = Math.hypot(tx, ty, tz) || 1;
+    tx /= l;
+    ty /= l;
+    tz /= l;
+    let ux = U[3 * i] + (U[3 * j] - U[3 * i]) * u;
+    let uy = U[3 * i + 1] + (U[3 * j + 1] - U[3 * i + 1]) * u;
+    let uz = U[3 * i + 2] + (U[3 * j + 2] - U[3 * i + 2]) * u;
+    const d = ux * tx + uy * ty + uz * tz;
+    ux -= d * tx;
+    uy -= d * ty;
+    uz -= d * tz;
+    l = Math.hypot(ux, uy, uz) || 1;
+    ux /= l;
+    uy /= l;
+    uz /= l;
+    // S = U × T keeps (T, S, U) right-handed.
+    const sx = uy * tz - uz * ty;
+    const sy = uz * tx - ux * tz;
+    const sz = ux * ty - uy * tx;
+    F.C[3 * k] = cx;
+    F.C[3 * k + 1] = cy;
+    F.C[3 * k + 2] = cz;
+    F.Rm.set([tx, ty, tz, sx, sy, sz, ux, uy, uz], 9 * k);
+    F.sy[k] = S[i] + (S[j] - S[i]) * u;
+    const hl = Math.hypot(tx, tz) || 1;
+    F.th[2 * k] = tx / hl;
+    F.th[2 * k + 1] = tz / hl;
+  }
+}
+
+const _bs = { c: new THREE.Vector3(), angle: 0, sy: 1 };
+const _q = new THREE.Quaternion();
+const _m3 = new THREE.Matrix4();
+function blobFrames(pc, plan, t, F) {
+  const b = pc.blob;
+  blobState(b, plan.H, t, _bs);
+  _q.setFromAxisAngle(b.axis, _bs.angle);
+  _m3.makeRotationFromQuaternion(_q);
+  const m = _m3.elements;
+  // Columns of the rotation: images of world x (t), world z (a), world y (b).
+  F.Rm.set([m[0], m[1], m[2], m[8], m[9], m[10], m[4], m[5], m[6]], 0);
+  F.C[0] = _bs.c.x;
+  F.C[1] = _bs.c.y;
+  F.C[2] = _bs.c.z;
+  F.sy[0] = _bs.sy;
+}
+
+// World positions (and rigid directions) of every vertex of pc, from its frames.
+function skin(pc, F, outPos, outDir) {
+  const { local, ldir, ring } = pc;
+  const blob = pc.kind === 'blob';
+  const nv = ring.length;
+  for (let v = 0; v < nv; v++) {
+    const k = ring[v];
+    const R = F.Rm;
+    const r = 9 * k;
+    const lt = local[3 * v];
+    const la = local[3 * v + 1];
+    const lb = local[3 * v + 2];
+    let ox = R[r] * lt + R[r + 3] * la + R[r + 6] * lb;
+    let oy = R[r + 1] * lt + R[r + 4] * la + R[r + 7] * lb;
+    let oz = R[r + 2] * lt + R[r + 5] * la + R[r + 8] * lb;
+    const dt = ldir[3 * v];
+    const da = ldir[3 * v + 1];
+    const db = ldir[3 * v + 2];
+    const dx = R[r] * dt + R[r + 3] * da + R[r + 6] * db;
+    const dy = R[r + 1] * dt + R[r + 4] * da + R[r + 7] * db;
+    const dz = R[r + 2] * dt + R[r + 5] * da + R[r + 8] * db;
+    // Slump, in world space: squashed vertically by sy and spread
+    // sideways (across the log, or every way for a blob) to keep its volume.
+    const sy = F.sy[k];
+    if (sy < 0.999) {
+      oy *= sy;
+      if (blob) {
+        const g = 1 / Math.sqrt(sy);
+        ox *= g;
+        oz *= g;
+      } else {
+        const hx = F.th[2 * k];
+        const hz = F.th[2 * k + 1];
+        const par = ox * hx + oz * hz;
+        ox = par * hx + (ox - par * hx) / sy;
+        oz = par * hz + (oz - par * hz) / sy;
+      }
+    }
+    const i = 3 * v;
+    outPos[i] = F.C[3 * k] + ox;
+    outPos[i + 1] = F.C[3 * k + 1] + oy;
+    outPos[i + 2] = F.C[3 * k + 2] + oz;
+    sagInto(outPos, i, dx, dz, pc.w);
+    if (outDir) {
+      outDir[i] = dx;
+      outDir[i + 1] = dy;
+      outDir[i + 2] = dz;
+    }
+  }
+}
+
+// The pieces of a ring frame k as a THREE basis / centre, and the slump
+// mapping for a single point (used for kernels).
+function ringBasis(F, k, m4) {
+  const R = F.Rm;
+  const r = 9 * k;
+  return m4.set(R[r], R[r + 3], R[r + 6], 0, R[r + 1], R[r + 4], R[r + 7], 0, R[r + 2], R[r + 5], R[r + 8], 0, 0, 0, 0, 1);
+}
+function slumpOffset(F, k, blob, o, inverse) {
+  const sy = F.sy[k];
+  if (sy >= 0.999) return o;
+  const f = inverse ? 1 / sy : sy;
+  o.y *= f;
+  if (blob) {
+    const g = inverse ? Math.sqrt(sy) : 1 / Math.sqrt(sy);
+    o.x *= g;
+    o.z *= g;
+  } else {
+    const hx = F.th[2 * k];
+    const hz = F.th[2 * k + 1];
+    const par = o.x * hx + o.z * hz;
+    o.x = par * hx + (o.x - par * hx) / f;
+    o.z = par * hz + (o.z - par * hz) / f;
+  }
+  return o;
+}
+
+function makeFrames(nr) {
+  return { C: new Float32Array(3 * nr), Rm: new Float32Array(9 * nr), sy: new Float32Array(nr).fill(1), th: new Float32Array(2 * nr) };
 }
 
 // ---------- the specimen ----------
-function buildSpecimen(type, nCorn, seed, kernelShapes) {
+function buildSpecimen(type, nCorn, seed, kernelShapes, opts) {
   const rng = mulberry32(seed);
   const noise = makeNoise(seed);
-  const pieces = layout(type, rng, noise);
+  const water = waterOf(type, opts.water);
+  const tau = yieldStress(water);
+  const rho = RHO_STOOL * (1 - opts.gas);
+  const H = opts.height;
+  const pieces = [];
+  let exit;
+  if (type >= 2 && type <= 4) {
+    const L = (type === 2 ? 12 : 14) + rng() * 4;
+    const R = type === 2 ? 1.5 : 1.3 + rng() * 0.15;
+    const look = {
+      off: rng() * 100,
+      tail: 2.2 + rng() * 1.6,
+      lumpLen: 1.8 + rng() * 0.6,
+      lumpAmp: type === 2 ? 0.17 : type === 3 ? 0.05 : 0.025,
+      crackDepth: type === 3 ? 0.17 : type === 2 ? 0.12 : 0.025,
+    };
+    // The whole log's radius, for contact in the simulation.
+    const whole = tubeRef(noise, type, L, R, look, 0, L, 'cap', 'tail');
+    const radiusAt = (s) => {
+      const k = Math.min(whole.rings.length - 2, Math.max(1, Math.round((s / L) * (whole.rings.length - 1))));
+      return Math.hypot(whole.local[3 * (1 + (k - 1) * 104) + 1], whole.local[3 * (1 + (k - 1) * 104) + 2]);
+    };
+    exit = bakeExit({ L, radius: radiusAt, v: L / T_EXIT, tau, rho, H, seed });
+    exit.radiusAt = radiusAt;
+    // One mesh per piece it tore into.
+    const cuts = [0, ...exit.breaks.map((b) => b.s), L];
+    for (let p = 0; p < cuts.length - 1; p++) {
+      const pc = p === 0 && cuts.length === 2 ? whole : tubeRef(noise, type, L, R, look, cuts[p], cuts[p + 1], p === 0 ? 'cap' : 'torn', p === cuts.length - 2 ? 'tail' : 'torn');
+      pc.ia = Math.ceil(cuts[p] / exit.h - 1e-6);
+      pc.ib = Math.min(exit.n - 1, Math.floor(cuts[p + 1] / exit.h + 1e-6));
+      if (pc.ib <= pc.ia) pc.ib = Math.min(exit.n - 1, pc.ia + 1);
+      pieces.push(pc);
+    }
+    const n = exit.n;
+    exit.scratch = { P: new Float32Array(3 * n), U: new Float32Array(3 * n), S: new Float32Array(n), Tn: new Float32Array(3 * n) };
+  } else {
+    const hmax = (2 * tau * 10) / (rho * G);
+    const blobs = blobLayout(type, rng, hmax);
+    exit = planBlobs(blobs, H, hmax, rng);
+    exit.Lbreak = (Math.sqrt(3) * tau * 10) / (rho * G);
+    exit.breaks = [];
+    for (const b of blobs) {
+      const pc = blobRef(noise, type, b.R, b.off, b.squash);
+      pc.blob = b;
+      pieces.push(pc);
+    }
+  }
+  exit.tau = tau;
+  exit.water = water;
+  exit.rho = rho;
 
-  // Kernels: pick surface points that face up-ish, away from each other.
+  // Typed arrays, frames, and the final pose (t = end).
+  for (const pc of pieces) {
+    const nv = pc.ring.length;
+    pc.local = Float32Array.from(pc.local);
+    pc.ldir = Float32Array.from(pc.ldir);
+    pc.ring = Uint16Array.from(pc.ring);
+    pc.F = makeFrames(pc.rings.length);
+    pc.pos = new Float32Array(3 * nv);
+    pc.dir = new Float32Array(3 * nv);
+  }
+  const frames = (pc, t) => (pc.kind === 'blob' ? blobFrames(pc, exit, t, pc.F) : tubeFrames(pc, exit, t, pc.F, exit.scratch));
+  const tEnd = exit.tEnd;
+  for (const pc of pieces) {
+    frames(pc, tEnd);
+    skin(pc, pc.F, pc.pos, pc.dir);
+  }
+
+  // Kernels: pick surface points that face up once it's all landed.
   const kernels = [];
   const cand = [];
   pieces.forEach((pc, pi) => {
-    for (let i = 0; i < pc.eligible.length; i++) if (pc.eligible[i] && rng() < 0.05) cand.push([pi, i]);
+    for (let i = 0; i < pc.eligible.length; i++) {
+      if (pc.eligible[i] && pc.dir[3 * i + 1] > (pc.kind === 'blob' ? 0.1 : 0.05) && rng() < 0.05) cand.push([pi, i]);
+    }
   });
   const tries = cand.length;
+  const m4 = new THREE.Matrix4();
   for (let t = 0; t < tries * 3 && kernels.length < nCorn && cand.length; t++) {
     const [pi, vi] = cand[Math.floor(rng() * cand.length)];
     const pc = pieces[pi];
-    const P = new THREE.Vector3(pc.positions[3 * vi], pc.positions[3 * vi + 1], pc.positions[3 * vi + 2]);
+    const P = new THREE.Vector3(pc.pos[3 * vi], pc.pos[3 * vi + 1], pc.pos[3 * vi + 2]);
     if (kernels.some((k) => k.P.distanceTo(P) < 1.5)) continue;
-    const n = new THREE.Vector3(pc.dirs[3 * vi], pc.dirs[3 * vi + 1], pc.dirs[3 * vi + 2]).normalize();
+    const n = new THREE.Vector3(pc.dir[3 * vi], pc.dir[3 * vi + 1], pc.dir[3 * vi + 2]).normalize();
     const hull = rng() < 0.3;
     const shape = kernelShapes[hull ? 1 : 0];
     const scale = 0.9 + rng() * 0.22;
-    // Lies mostly flat in the surface, crown tipped out by 8–35°.
+    // Lies mostly flat in the surface, crown tipped out by 12–45°.
     const ref = Math.abs(n.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0);
     const t1 = new THREE.Vector3().crossVectors(n, ref).normalize();
     const t2 = new THREE.Vector3().crossVectors(n, t1);
@@ -617,19 +1246,33 @@ function buildSpecimen(type, nCorn, seed, kernelShapes) {
     const sink = (hull ? 0.0 : -0.04) + rng() * (hull ? 0.05 : 0.12);
     const C = P.clone().addScaledVector(n, -sink);
     const half = shape.half.clone().multiplyScalar(scale);
-    kernels.push({ P, n, C, basis, half, hull, scale, mass: shape.volume * scale ** 3 * RHO_CORN, piece: pi });
+    // The kernel's pose in its ring's frame, so it rides along while it all moves.
+    const ringK = pc.ring[vi];
+    const Rk = ringBasis(pc.F, ringK, new THREE.Matrix4());
+    const RkT = Rk.clone().transpose();
+    const Ck = new THREE.Vector3(pc.F.C[3 * ringK], pc.F.C[3 * ringK + 1], pc.F.C[3 * ringK + 2]);
+    const toLocal = (p) => slumpOffset(pc.F, ringK, pc.kind === 'blob', p.clone().sub(Ck), true).applyMatrix4(RkT);
+    const rel = {
+      ring: ringK,
+      C: toLocal(C),
+      P: toLocal(P),
+      n: n.clone().applyMatrix4(RkT),
+      basis: m4.copy(RkT).multiply(basis).clone(),
+    };
+    kernels.push({ P, n, C, basis, half, hull, scale, mass: shape.volume * scale ** 3 * RHO_CORN, piece: pi, rel });
   }
 
-  // Carve each socket: a vertex inside a kernel's (enlarged) ellipsoid goes
-  // along −dir to where that line leaves the ellipsoid. A thin rim of pushed
-  // stool rises round it.
+  // Carve each socket in the final pose: a vertex inside a kernel's (enlarged)
+  // ellipsoid goes along −dir to where that line leaves the ellipsoid. A thin
+  // rim of pushed stool rises round it. The same moves are made in the
+  // vertex's own frame, so the socket travels with it.
   const inv = new THREE.Matrix4();
   const o = new THREE.Vector3();
   const d = new THREE.Vector3();
   const geos = [];
   for (let pi = 0; pi < pieces.length; pi++) {
     const pc = pieces[pi];
-    const nv = pc.positions.length / 3;
+    const nv = pc.ring.length;
     const cav = new Float32Array(nv);
     for (const k of kernels) {
       if (k.piece !== pi) continue;
@@ -637,46 +1280,61 @@ function buildSpecimen(type, nCorn, seed, kernelShapes) {
       const ax = [k.half.x * 1.07, k.half.y * 1.05, k.half.z * 1.12];
       const reach = Math.max(...ax) * 1.35;
       for (let i = 0; i < nv; i++) {
-        const px = pc.positions[3 * i];
-        const py = pc.positions[3 * i + 1];
-        const pz = pc.positions[3 * i + 2];
+        const px = pc.pos[3 * i];
+        const py = pc.pos[3 * i + 1];
+        const pz = pc.pos[3 * i + 2];
         if (Math.abs(px - k.C.x) > reach || Math.abs(py - k.C.y) > reach || Math.abs(pz - k.C.z) > reach) continue;
         o.set(px - k.C.x, py - k.C.y, pz - k.C.z).applyMatrix4(inv);
-        d.set(-pc.dirs[3 * i], -pc.dirs[3 * i + 1], -pc.dirs[3 * i + 2]).transformDirection(inv);
+        d.set(-pc.dir[3 * i], -pc.dir[3 * i + 1], -pc.dir[3 * i + 2]).transformDirection(inv);
         const ox = o.x / ax[0];
         const oy = o.y / ax[1];
         const oz = o.z / ax[2];
         const q = ox * ox + oy * oy + oz * oz;
+        let move = 0;
         if (q < 1) {
           const dx = d.x / ax[0];
           const dy = d.y / ax[1];
           const dz = d.z / ax[2];
           const A = dx * dx + dy * dy + dz * dz;
           const B = 2 * (ox * dx + oy * dy + oz * dz);
-          const t = (-B + Math.sqrt(B * B - 4 * A * (q - 1))) / (2 * A);
-          pc.positions[3 * i] -= pc.dirs[3 * i] * t;
-          pc.positions[3 * i + 1] -= pc.dirs[3 * i + 1] * t;
-          pc.positions[3 * i + 2] -= pc.dirs[3 * i + 2] * t;
+          move = -(-B + Math.sqrt(B * B - 4 * A * (q - 1))) / (2 * A);
           cav[i] = 1;
           pc.crack[i] = 0;
         } else if (q < 1.45) {
-          const lip = 0.035 * Math.sin(((q - 1) / 0.45) * Math.PI);
-          pc.positions[3 * i] += pc.dirs[3 * i] * lip;
-          pc.positions[3 * i + 1] += pc.dirs[3 * i + 1] * lip;
-          pc.positions[3 * i + 2] += pc.dirs[3 * i + 2] * lip;
+          move = 0.035 * Math.sin(((q - 1) / 0.45) * Math.PI);
           cav[i] = Math.max(cav[i], 0.35 * (1 - (q - 1) / 0.45));
+        }
+        if (move) {
+          for (let c = 0; c < 3; c++) pc.pos[3 * i + c] += pc.dir[3 * i + c] * move;
+          // The same move in the vertex's frame: undo the slump, then the rotation.
+          const rk = pc.ring[i];
+          o.set(pc.dir[3 * i] * move, pc.dir[3 * i + 1] * move, pc.dir[3 * i + 2] * move);
+          slumpOffset(pc.F, rk, pc.kind === 'blob', o, true).applyMatrix4(ringBasis(pc.F, rk, m4).transpose());
+          pc.local[3 * i] += o.x;
+          pc.local[3 * i + 1] += o.y;
+          pc.local[3 * i + 2] += o.z;
         }
       }
     }
     const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.Float32BufferAttribute(pc.positions, 3));
+    g.setAttribute('position', new THREE.BufferAttribute(Float32Array.from(pc.pos), 3));
     g.setAttribute('aCrack', new THREE.Float32BufferAttribute(pc.crack, 1));
     g.setAttribute('aCav', new THREE.BufferAttribute(cav, 1));
+    const ref = new Float32Array(3 * nv);
+    for (let i = 0; i < nv; i++) {
+      const lt = pc.local[3 * i];
+      const la = pc.local[3 * i + 1];
+      const lb = pc.local[3 * i + 2];
+      if (pc.kind === 'blob') ref.set([lt + pc.blob.off, lb, la], 3 * i);
+      else ref.set([pc.rings[pc.ring[i]] + lt, lb, la], 3 * i);
+    }
+    g.setAttribute('aRef', new THREE.BufferAttribute(ref, 3));
     g.setIndex(pc.index);
+    pc.geo = g;
     geos.push(g);
   }
 
-  // Volume (divergence theorem) and area; flip any piece built inside out.
+  // Volume (divergence theorem) and area of the final pose; flip any piece built inside out.
   let V = 0;
   let A = 0;
   const a = new THREE.Vector3();
@@ -719,7 +1377,118 @@ function buildSpecimen(type, nCorn, seed, kernelShapes) {
     g.computeBoundingBox();
     box.union(g.boundingBox);
   }
-  return { geos, kernels, V, A, foot, top, box };
+  return { geos, pieces, kernels, V, A, foot, top, box, exit, frames, H };
+}
+
+// ---------- where it comes from ----------
+// The underside of a squatting person, as a polar grid round the anus: a
+// short canal (rectal mucosa) that opens to whatever is passing, the anal
+// verge with its radial folds (they flatten as the sphincter stretches), the
+// pigmented perianal skin, and the two buttocks, the lower surfaces of two
+// ellipsoids joined by a smooth minimum (the cleft). It fades out upwards.
+const BODY_NR = 72;
+const BODY_NA = 132;
+function createBody() {
+  const nv = (BODY_NR + 1) * BODY_NA;
+  const pos = new Float32Array(3 * nv);
+  const col = new Float32Array(4 * nv);
+  const index = [];
+  for (let j = 0; j < BODY_NR; j++) {
+    for (let i = 0; i < BODY_NA; i++) {
+      const a = j * BODY_NA + i;
+      const b = j * BODY_NA + ((i + 1) % BODY_NA);
+      index.push(a, a + BODY_NA, b, b, a + BODY_NA, b + BODY_NA);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 4));
+  geo.setIndex(index);
+  const mat = new THREE.MeshPhysicalMaterial({
+    vertexColors: true, roughness: 0.58, sheen: 0.4, sheenRoughness: 0.55, sheenColor: new THREE.Color(0x9a4a38),
+    alphaHash: true, side: THREE.DoubleSide,
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.receiveShadow = true;
+  const e = EXIT_DIR;
+  // Axes across the canal: X, and Z' = X × e (both ⟂ e).
+  const X = [1, 0, 0];
+  const Z = [0, e[2], -e[1]];
+  const smin = (a, b, k) => {
+    const hh = Math.max(k - Math.abs(a - b), 0) / k;
+    return Math.min(a, b) - hh * hh * k * 0.25;
+  };
+  const lobe = (x, z, side) => {
+    const dx = x - side * 7.2;
+    const dz = (z + 0.8) * 0.92;
+    const d = Math.hypot(dx, dz);
+    return d < 10 ? 9.5 - Math.sqrt(100 - d * d) : 9.5 + (d - 10) * 3.5;
+  };
+  const skinCol = [0.62, 0.38, 0.28];
+  const perianal = [0.27, 0.13, 0.1];
+  const mucosa = [0.32, 0.045, 0.05];
+  let last = '';
+  function update(A, open, rise) {
+    const key = `${A[0].toFixed(3)},${A[2].toFixed(3)},${open.toFixed(3)},${rise.toFixed(2)}`;
+    if (key === last) return;
+    last = key;
+    const closed = 1 - Math.min(1, Math.max(0, (open - 0.15) / 1.0));
+    const rOpen = Math.max(0.1, open);
+    for (let j = 0; j <= BODY_NR; j++) {
+      const u = j / BODY_NR;
+      for (let i = 0; i < BODY_NA; i++) {
+        const ph = (i / BODY_NA) * Math.PI * 2;
+        const cp = Math.cos(ph);
+        const sp = Math.sin(ph);
+        const fold = Math.cos(16 * ph + 0.6 * Math.sin(5 * ph)) * (0.6 + 0.4 * Math.sin(3 * ph + 1));
+        const v = j * BODY_NA + i;
+        let x;
+        let y;
+        let z;
+        let c;
+        let alpha = 1;
+        if (u < 0.12) {
+          // The canal: up along −e, puckered when shut.
+          const depth = ((0.12 - u) / 0.12) * 2.6;
+          const r = rOpen * (1 + 0.25 * closed * fold);
+          x = A[0] + (X[0] * cp + Z[0] * sp) * r - e[0] * depth;
+          y = A[1] + (X[1] * cp + Z[1] * sp) * r - e[1] * depth;
+          z = A[2] + (X[2] * cp + Z[2] * sp) * r - e[2] * depth;
+          c = mucosa;
+        } else {
+          const w = (u - 0.12) / 0.88;
+          const rho = rOpen + (19 - rOpen) * Math.pow(w, 1.7);
+          const lx = rho * cp;
+          const lz = rho * sp;
+          const env = smin(lobe(lx, lz, 1), lobe(lx, lz, -1), 3);
+          const near = rho - rOpen;
+          // Folds of the anal verge: deepest when it's shut, gone when stretched.
+          const verge = Math.pow(Math.max(0, 1 - near / 2.4), 2);
+          let ly = env * smoothstep(0, 4.5, near) + 0.22 * closed * fold * verge * (1 - verge * 0.5);
+          ly += 0.12 * (1 - closed) * smoothstep(0, 0.6, near) * smoothstep(1.6, 0.6, near); // the stretched rim bulges
+          x = A[0] + lx;
+          y = A[1] + ly;
+          z = A[2] + lz;
+          const pig = smoothstep(3.2, 1.0, near);
+          c = [0, 1, 2].map((k) => skinCol[k] + (perianal[k] - skinCol[k]) * pig);
+          if (near < 0.25) c = c.map((k, q) => k + (mucosa[q] - k) * (1 - near / 0.25) * 0.7);
+          alpha = 1 - smoothstep(7.5, 12.5, ly);
+        }
+        pos[3 * v] = x;
+        pos[3 * v + 1] = y + rise;
+        pos[3 * v + 2] = z;
+        col[4 * v] = c[0];
+        col[4 * v + 1] = c[1];
+        col[4 * v + 2] = c[2];
+        col[4 * v + 3] = alpha * (1 - smoothstep(10, 30, rise));
+      }
+    }
+    geo.attributes.position.needsUpdate = true;
+    geo.attributes.color.needsUpdate = true;
+    geo.computeVertexNormals();
+    geo.computeBoundingSphere();
+  }
+  return { mesh, update, dispose: () => (geo.dispose(), mat.dispose()) };
 }
 
 // A canvas texture over [−S, S]² of the floor: soft dark where the specimen
@@ -815,15 +1584,18 @@ function buildFloor(kind, spec) {
   ao.position.y = 0.004;
   ao.renderOrder = 1;
   group.add(ao);
+  // These appear as it lands (update() scales the opacities).
+  const fades = [[ao.material, ao.material.opacity]];
   if (kind !== 2) {
     const stain = new THREE.Mesh(
       plane,
-      keep(new THREE.MeshPhysicalMaterial({ color: kind === 0 ? 0x3a2410 : 0x1a1408, roughness: 0.15, clearcoat: 1, alphaMap: keep(footprintTexture(spec.foot, S, 'stain')), transparent: true, opacity: kind === 0 ? 0.75 : 0.55, depthWrite: false })),
+      keep(new THREE.MeshPhysicalMaterial({ color: kind === 0 ? 0x3a2410 : 0x1a1408, roughness: 0.45, clearcoat: 0.35, clearcoatRoughness: 0.3, alphaMap: keep(footprintTexture(spec.foot, S, 'stain')), transparent: true, opacity: kind === 0 ? 0.75 : 0.55, depthWrite: false })),
     );
     stain.rotation.x = -Math.PI / 2;
     stain.position.y = 0.008;
     stain.renderOrder = 2;
     group.add(stain);
+    fades.push([stain.material, stain.material.opacity]);
   }
 
   if (kind === 2) {
@@ -872,7 +1644,8 @@ function buildFloor(kind, spec) {
     mesh.receiveShadow = true;
     group.add(mesh);
   }
-  return { group, dispose: () => disposables.forEach((x) => x.dispose()) };
+  const fade = (f) => fades.forEach(([m, o]) => (m.opacity = o * f));
+  return { group, fade, dispose: () => disposables.forEach((x) => x.dispose()) };
 }
 
 // ---------- steam ----------
@@ -1063,10 +1836,11 @@ const fmt = (x, d = 1) => (Number.isFinite(x) ? x.toFixed(d) : '?');
 export default {
   name: 'Bristol Specimen',
   description:
-    'An anatomically honest stool on the Bristol scale, with sweet corn in it. Tap a kernel to examine it and tap again to ' +
-    'pull it out (it leaves its socket behind); tap the stool for a Gram-stained look at its bacteria at ×1000; zoom right in. ' +
+    'An anatomically honest stool on the Bristol scale, with sweet corn in it, watched as it leaves. Its firmness is a yield ' +
+    'stress that falls with water content: it hangs until its own weight tears it, slumps if it is soft, folds or topples as it lands. ' +
+    'Then tap a kernel to examine it and tap again to pull it out; tap the stool for a Gram-stained look at ×1000; zoom right in. ' +
     'Volume by the divergence theorem, mass, bacteria count and Newton cooling, all live.',
-  tags: ['biology', 'anatomy', 'corn', 'microscope', 'bacteria', 'cooling', 'interactive', 'humor', 'realistic'],
+  tags: ['biology', 'anatomy', 'corn', 'microscope', 'bacteria', 'cooling', 'rheology', 'yield stress', 'interactive', 'humor', 'realistic'],
   category: 'Biology',
 
   mode: '3d',
@@ -1074,7 +1848,10 @@ export default {
   wheelZoom: true,
 
   motion() {
-    return { V: 0, A: 0, rho: RHO_STOOL, mStool: 0, mCorn: 0, N: 1, tau: 0, tMin: 0, T: 37, Tair: 21, Bi: 0, cornLeft: 0, cornTotal: 0, event: '', since: 99 };
+    return {
+      V: 0, A: 0, rho: RHO_STOOL, mStool: 0, mCorn: 0, N: 1, tau: 0, tMin: 0, T: 37, Tair: 21, Bi: 0, cornLeft: 0, cornTotal: 0, event: '', since: 99,
+      water: 0.76, tauY: TAU_REF, Lb: 25, hmax: 29, drop: 0, v: 1, out: 0, L: 0, H: 15, leaving: false, pieces: 1,
+    };
   },
 
   latex: (params, hl, m) => {
@@ -1083,12 +1860,18 @@ export default {
     const floats = m.rho < 1;
     const line =
       beat(m.since, [[0, m.event], [4, '']]) ||
+      (m.leaving ? (m.Lb < m.H ? `Anything hanging more than ${fmt(m.Lb, 1)} cm tears off under its own weight.` : 'Firm enough to reach the floor in one piece.') : '') ||
       (floats ? 'Floats: the gas, not the fat (Levitt & Duane, 1972).' : '') ||
       (m.T - m.Tair > 6 ? 'Steaming: warm, wet air meeting cold air.' : '') ||
       (m.T - m.Tair < 1 ? 'Room temperature. Now it is just a sculpture.' : 'Cooling exactly as fast as Newton said it would.');
+    const tauTex = m.tauY >= 1e4 ? `${hl(m.tauY / 1000, 0)}\\,\\text{kPa}` : m.tauY >= 1000 ? `${hl(m.tauY / 1000, 2)}\\,\\text{kPa}` : `${hl(m.tauY, 0)}\\,\\text{Pa}`;
+    const big = (x) => (x > 999 ? '\\gg 1\\,\\text{m}' : `${hl(x, 1)}\\,\\text{cm}`);
     return (
       '\\begin{aligned}' +
       `\\text{Bristol type ${type}} &: \\text{${BRISTOL[type - 1]}} \\\\` +
+      `\\tau_y &= 1.5\\,\\text{kPa}\\; e^{-(w - 76\\%)/1.5\\%} = ${tauTex}\\quad (w = ${hl(m.water * 100, 1)}\\%\\ \\text{water}) \\\\` +
+      `\\Delta y_{\\text{max}} &= \\tfrac{\\sqrt3\\,\\tau_y}{\\rho g} = ${big(m.Lb)}\\quad (\\text{hanging now: } ${hl(m.drop, 1)}\\,\\text{cm}),\\quad h_{\\text{max}} = \\tfrac{2\\tau_y}{\\rho g} = ${big(m.hmax)} \\\\` +
+      `v &= \\tfrac{L}{12\\,\\text{s}} = ${hl(m.v, 2)}\\,\\tfrac{\\text{cm}}{\\text{s}}:\\quad ${hl(m.out, 1)}\\text{ of }${hl(m.L, 1)}\\,\\text{cm out, in }${m.pieces}\\text{ piece${m.pieces === 1 ? '' : 's'}} \\\\` +
       `V &= \\tfrac13\\textstyle\\oint \\mathbf x\\cdot\\mathbf n\\,dA = ${hl(m.V, 1)}\\,\\text{cm}^3,\\quad A = ${hl(m.A, 0)}\\,\\text{cm}^2 \\\\` +
       `\\rho &= ${RHO_STOOL}\\,(1-\\varphi_{\\text{gas}}) = ${hl(m.rho, 3)}\\,\\tfrac{\\text{g}}{\\text{cm}^3}\\ ${floats ? '< 1:\\ \\text{floats}' : '> 1:\\ \\text{sinks}'} \\\\` +
       `m &= \\rho V + m_{\\text{corn}} = ${hl(m.mStool, 1)} + ${hl(m.mCorn, 2)}\\,\\text{g} \\\\` +
@@ -1107,15 +1890,22 @@ export default {
       group: 'Specimen', label: 'Bristol type',
       help: 'The Bristol Stool Form Scale, 1 (hard lumps, slow transit) to 5 (soft blobs). Types 6 and 7 are mush and liquid: no shape to build.',
     },
+    water: {
+      value: 0, min: -4, max: 5, step: 0.5, group: 'Specimen', label: 'Extra water (%)',
+      help: 'Shifts the water content away from the type\'s usual. Every 1.5% more water divides the firmness (yield stress) by e: wetter ones tear off sooner and slump.',
+    },
     corn: { value: 9, min: 0, max: 24, step: 1, group: 'Specimen', label: 'Corn kernels', help: 'How many kernels are in it. About 3 in 10 come out as empty hulls.' },
     gas: { value: 0.03, min: 0, max: 0.2, step: 0.005, group: 'Specimen', label: 'Gas fraction', help: 'Share of the volume that is gas bubbles. Above about 0.065 it floats.' },
+    height: { value: 15, min: 6, max: 35, step: 1, group: 'Scene', label: 'Drop height (cm)', help: 'How high the anus is above the floor. Higher: more of it hangs, so softer ones tear off.' },
     surface: { value: 0, min: 0, max: 2, step: 1, options: ['Porcelain', 'Concrete', 'Lawn'], group: 'Scene', label: 'Floor', help: 'What it landed on.' },
     airTemp: { value: 20, min: -5, max: 35, step: 1, group: 'Scene', label: 'Air temperature (°C)', help: 'Colder air: more steam, faster cooling.' },
-    speed: { value: 1, min: 0, max: 5, step: 0.1, group: 'Scene', label: 'Time warp', help: '1 = one minute of cooling per second on screen.' },
+    speed: { value: 1, min: 0, max: 5, step: 0.1, group: 'Scene', label: 'Time warp', help: '1 = one minute of cooling per second on screen. The exit itself always plays in real time.' },
   },
 
   actions: {
     fresh: { label: 'Fresh one', run: (ctx, st) => st.w.fresh(false) },
+    replay: { label: 'Watch it leave again', run: (ctx, st) => st.w.replay() },
+    skip: { label: 'Skip to the landing', run: (ctx, st) => st.w.skip() },
     pluckAll: { label: 'Remove all corn', run: (ctx, st) => st.w.pluckAll() },
     overview: { label: 'Back to overview', run: (ctx, st) => st.w.overview() },
   },
@@ -1124,33 +1914,37 @@ export default {
     const { scene, renderer, camera, controls } = ctx;
     const el = renderer.domElement;
     scene.background = new THREE.Color(0x0d0c0b);
-    scene.fog = new THREE.Fog(0x0d0c0b, 70, 160);
+    scene.fog = new THREE.Fog(0x0d0c0b, 90, 200);
     const pmrem = new THREE.PMREMGenerator(renderer);
     const envTarget = pmrem.fromScene(new RoomEnvironment(), 0.04);
     scene.environment = envTarget.texture;
-    scene.environmentIntensity = 0.45;
+    // Kept low: a bright room reflected in a wet surface is what made everything look varnished.
+    scene.environmentIntensity = 0.22;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    const key = new THREE.DirectionalLight(0xfff0dc, 2.6);
+    const key = new THREE.DirectionalLight(0xfff0dc, 2.8);
     key.position.set(-26, 46, 22);
     key.castShadow = true;
     key.shadow.mapSize.set(2048, 2048);
-    Object.assign(key.shadow.camera, { left: -18, right: 18, top: 18, bottom: -18, near: 10, far: 120 });
+    Object.assign(key.shadow.camera, { left: -20, right: 20, top: 20, bottom: -20, near: 10, far: 120 });
     key.shadow.bias = -0.0003;
     key.shadow.normalBias = 0.03;
-    const fill = new THREE.DirectionalLight(0xc4d6ff, 0.45);
+    const fill = new THREE.DirectionalLight(0xc4d6ff, 0.5);
     fill.position.set(30, 18, -10);
-    const rim = new THREE.DirectionalLight(0xffffff, 1.1);
+    const rim = new THREE.DirectionalLight(0xffffff, 0.8);
     rim.position.set(8, 14, -40);
-    scene.add(key, fill, rim);
+    // Light bounced off the floor: what lets you see anything's underside.
+    const bounce = new THREE.DirectionalLight(0xfff4ea, 0.55);
+    bounce.position.set(6, -30, 10);
+    scene.add(key, fill, rim, bounce);
 
     const glow = createGlow(ctx, { fov: 32, strength: 0.1, threshold: 1.8, exposure: 1.0, vignette: 0.55 });
 
     controls.enableZoom = true;
     controls.zoomToCursor = true;
     controls.minDistance = 1.2;
-    controls.maxDistance = 90;
+    controls.maxDistance = 150;
     controls.maxPolarAngle = 1.45;
     controls.screenSpacePanning = true;
 
@@ -1173,13 +1967,18 @@ export default {
     document.body.append(card, loupe, dot);
 
     const kernelShapes = [kernelGeometry(false), kernelGeometry(true)];
-    const stoolUniforms = { uType: { value: 4 }, uGas: { value: 0.03 }, uSeed: { value: 0 } };
+    const stoolUniforms = {
+      uType: { value: 4 }, uGas: { value: 0.03 }, uSeed: { value: 0 }, uWet: { value: 0.5 },
+      uClip: { value: new THREE.Vector4(0, 1, 0, 1e6) },
+    };
     const stoolMat = stoolMaterial(stoolUniforms);
     const steam = createSteam();
     scene.add(steam.points);
-    const strand = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 8, 1, true), new THREE.MeshStandardMaterial({ color: 0x2a1608, roughness: 0.3 }));
+    const strand = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 8, 1, true), new THREE.MeshStandardMaterial({ color: 0x2a1608, roughness: 0.75 }));
     strand.visible = false;
     scene.add(strand);
+    const body = createBody();
+    scene.add(body.mesh);
 
     // Everything that changes lives in `w`: SketchRunner keeps a shallow copy
     // of the returned state, so handlers and actions must share one object.
@@ -1204,6 +2003,7 @@ export default {
       raycaster: new THREE.Raycaster(),
       hover: null,
       lastHoverAt: 0,
+      play: { t: 0, clock: 0, done: false, gone: false, seenBreaks: 0, director: true },
     };
 
     function clearSpecimen() {
@@ -1222,14 +2022,16 @@ export default {
     function build(params) {
       clearSpecimen();
       const type = Math.round(params.bristol) + 1;
-      const spec = buildSpecimen(type, Math.round(params.corn), w.seed, kernelShapes);
+      const spec = buildSpecimen(type, Math.round(params.corn), w.seed, kernelShapes, { water: params.water, gas: params.gas, height: params.height });
       w.spec = spec;
       stoolUniforms.uType.value = type;
+      stoolUniforms.uWet.value = Math.min(1, Math.max(0, (spec.exit.water - 0.66) / 0.15));
       stoolUniforms.uSeed.value = (w.seed % 997) * 0.37;
       for (const g of spec.geos) {
         const m = new THREE.Mesh(g, stoolMat);
         m.castShadow = true;
         m.receiveShadow = true;
+        m.frustumCulled = false;
         scene.add(m);
         w.pieces.push(m);
       }
@@ -1248,8 +2050,26 @@ export default {
         scene.add(mesh);
         w.kernels.push({ ...k, mesh, mat, uniforms, state: 'in', t: 0, vel: new THREE.Vector3(), spin: new THREE.Vector3(), index: i + 1 });
       });
-      w.built = `${type}|${Math.round(params.corn)}|${w.seed}`;
+      w.built = `${type}|${Math.round(params.corn)}|${w.seed}|${params.water}|${params.height}`;
       w.floorKind = -1; // the floor's stain follows the footprint
+      startPlay();
+    }
+
+    function startPlay() {
+      w.play = { t: 0, clock: 0, done: false, gone: false, seenBreaks: 0, director: w.play.director };
+      w.tReal = 0;
+      w.focus = null;
+      closeLoupe();
+      for (const k of w.kernels) {
+        if (k.state === 'in') continue;
+        // Put plucked kernels back where they were.
+        k.state = 'in';
+        k.t = 0;
+      }
+      if (w.play.director) {
+        const p = exitPose();
+        flyTo(p.target, p.pos, 1.0);
+      }
     }
 
     function rebuildFloor(kind) {
@@ -1263,13 +2083,29 @@ export default {
     }
 
     // ---- camera ----
+    const fit = (r) => {
+      const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+      return r / t / Math.min(1, camera.aspect * 1.1);
+    };
     const overviewPose = () => {
       const b = w.spec.box;
       const c = b.getCenter(new THREE.Vector3());
       const r = b.getSize(new THREE.Vector3()).length() / 2;
-      const dist = Math.max(14, (r / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.05);
+      const dist = Math.min(controls.maxDistance, Math.max(14, fit(r) * 1.05));
       const dir = new THREE.Vector3(0.6, 0.48, 0.85).normalize();
       return { target: new THREE.Vector3(c.x, 0.9, c.z), pos: new THREE.Vector3(c.x, 0.9, c.z).addScaledVector(dir, dist) };
+    };
+    // From the side and a little below the anus: the whole drop in frame.
+    const exitPose = () => {
+      const H = w.spec.H;
+      const b = w.spec.box;
+      const c = b.getCenter(new THREE.Vector3());
+      const target = new THREE.Vector3(c.x * 0.5, H * 0.42 + 1, c.z * 0.5);
+      const r = Math.max(H * 0.5 + 4, b.getSize(new THREE.Vector3()).length() * 0.4);
+      const dist = Math.min(controls.maxDistance, fit(r));
+      // As low as the orbit allows (camera just above the target's level), so the anus is seen from below.
+      const dir = new THREE.Vector3(1, 0.13, 0.42).normalize();
+      return { target, pos: target.clone().addScaledVector(dir, dist) };
     };
     function flyTo(target, pos, dur = 1.3) {
       w.fly = { t: 0, dur, t0: controls.target.clone(), p0: camera.position.clone(), t1: target, p1: pos };
@@ -1292,7 +2128,7 @@ export default {
 
     // ---- pulling a kernel out ----
     function pluck(k) {
-      if (k.state !== 'in') return;
+      if (k.state !== 'in' || !k.mesh.visible) return;
       k.state = 'tug';
       k.t = 0;
       k.uniforms.uHover.value = 0;
@@ -1310,12 +2146,17 @@ export default {
     w.fresh = (auto) => {
       w.seed = 1 + Math.floor(Math.random() * 1e6);
       w.built = '';
-      w.tReal = 0;
-      w.focus = null;
-      closeLoupe();
+      w.play.director = true;
       w.event = auto ? 'A fresh one. Not the same one reheated. We checked.' : 'A fresh one.';
       w.eventAt = w.clock;
-      w.needOverview = true;
+    };
+    w.replay = () => {
+      w.play.director = true;
+      startPlay();
+    };
+    w.skip = () => {
+      w.play.t = w.spec.exit.tEnd;
+      w.play.clock = Math.max(w.play.clock, w.spec.exit.tEnd + 6);
     };
 
     // ---- microscope ----
@@ -1346,7 +2187,7 @@ export default {
     };
     const kernelAt = (e) => {
       castAt(e);
-      const live = w.kernels.filter((k) => k.state === 'in');
+      const live = w.kernels.filter((k) => k.state === 'in' && k.mesh.visible);
       const hit = w.raycaster.intersectObjects(live.map((k) => k.mesh), false)[0];
       const stoolHit = w.raycaster.intersectObjects(w.pieces, false)[0];
       if (!hit || (stoolHit && stoolHit.distance < hit.distance - 0.05)) return null;
@@ -1357,6 +2198,7 @@ export default {
       if (e.button !== undefined && e.button !== 0) return;
       w.lastUser = w.clock;
       w.fly = null;
+      w.play.director = false;
       const k = kernelAt(e);
       down = { x: e.clientX, y: e.clientY, t: performance.now(), k };
       if (k) {
@@ -1401,6 +2243,7 @@ export default {
     const onStart = () => {
       w.lastUser = w.clock;
       w.fly = null;
+      w.play.director = false;
     };
     el.addEventListener('pointerdown', onDown, { capture: true });
     window.addEventListener('pointerup', onUp);
@@ -1409,38 +2252,105 @@ export default {
 
     build(ctx.params);
     rebuildFloor(Math.round(ctx.params.surface));
-    const o = overviewPose();
+    const o = exitPose();
+    w.fly = null;
     controls.target.copy(o.target);
     camera.position.copy(o.pos);
     controls.update();
 
     return {
-      w, glow, pmrem, envTarget, style, card, loupe, dot, loupeCanvas, kernelShapes, stoolMat, steam, strand, key,
-      onDown, onUp, onMove, onStart, build, rebuildFloor, flyTo, overviewPose, focusKernel, pluck, openLoupe, closeLoupe,
+      w, glow, pmrem, envTarget, style, card, loupe, dot, loupeCanvas, kernelShapes, stoolMat, stoolUniforms, steam, strand, key, body,
+      onDown, onUp, onMove, onStart, build, rebuildFloor, flyTo, overviewPose, exitPose, focusKernel, pluck, openLoupe, closeLoupe,
     };
   },
 
   update(ctx, state) {
-    const { w, steam, strand, card, loupe, dot } = state;
+    const { w, steam, strand, card, loupe, dot, body, stoolUniforms } = state;
     const { params, camera, controls } = ctx;
     const dt = Math.min(ctx.delta, 1 / 20);
     w.clock += dt;
 
     // Rebuild when the specimen's dials change.
-    const sig = `${Math.round(params.bristol) + 1}|${Math.round(params.corn)}|${w.seed}`;
+    const sig = `${Math.round(params.bristol) + 1}|${Math.round(params.corn)}|${w.seed}|${params.water}|${params.height}`;
     if (sig !== w.built) {
       state.build(params);
       w.born = w.clock;
     }
     if (w.floorKind !== Math.round(params.surface)) state.rebuildFloor(Math.round(params.surface));
-    if (w.needOverview) {
-      w.needOverview = false;
-      const o = state.overviewPose();
-      state.flyTo(o.target, o.pos, 1.6);
+
+    const spec = w.spec;
+    const ex = spec.exit;
+    const play = w.play;
+
+    // ---- the exit, played back from the simulation ----
+    play.clock += dt;
+    const wasDone = play.done;
+    if (!play.done) {
+      play.t = Math.min(ex.tEnd, play.t + dt);
+      if (play.t >= ex.tEnd) play.done = true;
+    }
+    if (!wasDone) {
+      for (let i = 0; i < spec.pieces.length; i++) {
+        const pc = spec.pieces[i];
+        spec.frames(pc, play.t);
+        const g = w.pieces[i].geometry;
+        skin(pc, pc.F, g.attributes.position.array);
+        g.attributes.position.needsUpdate = true;
+        g.computeVertexNormals();
+        g.computeBoundingSphere();
+      }
+    }
+    // The anus: where it is, and how wide whatever is passing makes it.
+    const H = spec.H;
+    let A = [0, H, 0];
+    let open = 0.1;
+    let tLeave;
+    if (ex.kind === 'rope') {
+      const f = Math.min(ex.rec.length - 1.0001, play.t * EXIT_FPS);
+      const r0 = ex.rec[Math.floor(f)];
+      const r1 = ex.rec[Math.floor(f) + 1];
+      const al = f - Math.floor(f);
+      A = r0.A.map((a, i) => a + (r1.A[i] - a) * al);
+      const out = ex.v * play.t;
+      if (out > 0 && out < ex.L) open = Math.max(0.1, ex.radiusAt(out) + 0.05);
+      tLeave = ex.tEmit + 0.8;
+      Object.assign(ctx.motion, { drop: r0.drop + (r1.drop - r0.drop) * al, out: Math.min(ex.L, out), L: ex.L, v: ex.v });
+      while (play.seenBreaks < ex.breaks.length && ex.breaks[play.seenBreaks].t <= play.t) {
+        const b = ex.breaks[play.seenBreaks++];
+        w.event = `Torn off ${fmt(b.s, 1)} cm along: ${fmt(ex.Lbreak, 1)} cm hanging weighs more than its yield stress can hold.`;
+        w.eventAt = w.clock;
+      }
+    } else {
+      for (const b of ex.blobs) {
+        if (play.t < b.t0 || play.t > b.t1) continue;
+        const d = (play.t - b.t0) * ((2 * b.R) / (b.t1 - b.t0)) - b.R;
+        open = Math.max(open, Math.sqrt(Math.max(0, b.R * b.R - d * d)) + 0.05);
+      }
+      tLeave = Math.max(...ex.blobs.map((b) => b.t1)) + 0.8;
+      const outLen = ex.blobs.reduce((s, b) => s + Math.min(2 * b.R, Math.max(0, (play.t - b.t0) * ex.v)), 0);
+      const total = ex.blobs.reduce((s, b) => s + 2 * b.R, 0);
+      Object.assign(ctx.motion, { drop: 0, out: outLen, L: total, v: ex.v });
+    }
+    const leaving = play.t < tLeave;
+    if (play.done && play.clock < tLeave) play.clock = tLeave; // skipped
+    const rise = 34 * smoothstep(tLeave, tLeave + 2.6, play.clock);
+    body.mesh.visible = rise < 30;
+    if (body.mesh.visible) body.update(A, open, rise);
+    // Anything still deeper than 1.6 cm in the canal isn't drawn.
+    const e = EXIT_DIR;
+    const clipW = -(e[0] * A[0] + e[1] * A[1] + e[2] * A[2]) + 1.6;
+    stoolUniforms.uClip.value.set(-e[0], -e[1], -e[2], rise > 1 ? 1e6 : clipW);
+    const landed = smoothstep(ex.tTouch, ex.tEnd, play.t);
+    w.floor.fade(landed);
+
+    // The director: watch it leave, then (once the body has gone) look at the result.
+    if (play.director && rise >= 30 && !play.overviewed) {
+      play.overviewed = true;
+      w.overview();
+      w.auto.next = Math.max(w.auto.next, w.clock + 5);
     }
 
     // ---- physics readout ----
-    const spec = w.spec;
     const gas = params.gas;
     const rho = RHO_STOOL * (1 - gas);
     const mStool = rho * spec.V;
@@ -1451,15 +2361,18 @@ export default {
     w.tReal += dt * 60 * params.speed;
     const T = Tair + (37 - Tair) * Math.exp(-w.tReal / tau);
     const Bi = (H_AIR * (spec.V / spec.A) * 0.01) / K_STOOL;
+    const rhoG = rho * G;
     Object.assign(ctx.motion, {
       V: spec.V, A: spec.A, rho, mStool, mCorn, N: BACT_PER_G * mStool, tau, tMin: w.tReal / 60, T, Tair, Bi,
       cornLeft: left.length, cornTotal: w.kernels.length, event: w.event, since: w.clock - w.eventAt,
+      water: ex.water, tauY: ex.tau, Lb: (Math.sqrt(3) * ex.tau * 10) / rhoG, hmax: (2 * ex.tau * 10) / rhoG,
+      H, leaving, pieces: ex.kind === 'rope' ? 1 + play.seenBreaks : ex.blobs.length,
     });
 
     // ---- steam: vapour supply e_s(T) − RH·e_s(T_air) (Magnus), visible when the air is colder ----
     const es = (t) => 6.112 * Math.exp((17.62 * t) / (243.12 + t));
     const supply = Math.max(0, es(T) - 0.5 * es(Tair)) / (es(37) - 0.5 * es(20));
-    const intensity = Math.min(1.4, supply * Math.min(1, Math.max(0, (T - Tair) / 10)));
+    const intensity = Math.min(1.4, supply * Math.min(1, Math.max(0, (T - Tair) / 10))) * landed;
     steam.mat.uniforms.uIntensity.value = intensity;
     steam.mat.uniforms.uScale.value = ctx.size.height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
     const top = spec.top;
@@ -1489,6 +2402,25 @@ export default {
     steam.geo.attributes.position.needsUpdate = true;
     steam.geo.attributes.aLife.needsUpdate = true;
     steam.geo.attributes.aSize.needsUpdate = true;
+
+    // ---- kernels riding in the stool ----
+    const m4 = new THREE.Matrix4();
+    const o = new THREE.Vector3();
+    for (const k of w.kernels) {
+      if (k.state !== 'in') continue;
+      const pc = spec.pieces[k.piece];
+      const rel = k.rel;
+      const F = pc.F;
+      ringBasis(F, rel.ring, m4);
+      const Ck = o.set(F.C[3 * rel.ring], F.C[3 * rel.ring + 1], F.C[3 * rel.ring + 2]).clone();
+      const blob = pc.kind === 'blob';
+      k.C.copy(Ck).add(slumpOffset(F, rel.ring, blob, rel.C.clone().applyMatrix4(m4), false));
+      k.P.copy(Ck).add(slumpOffset(F, rel.ring, blob, rel.P.clone().applyMatrix4(m4), false));
+      k.n.copy(rel.n).applyMatrix4(m4).normalize();
+      k.mesh.position.copy(k.C);
+      k.mesh.quaternion.setFromRotationMatrix(m4.multiply(rel.basis));
+      k.mesh.visible = -e[0] * k.C.x - e[1] * k.C.y - e[2] * k.C.z < clipW - 0.6 || rise > 1;
+    }
 
     // ---- kernels in flight ----
     let strandOn = false;
@@ -1520,7 +2452,7 @@ export default {
         const h = dt / steps;
         const rest = k.half.z * (k.hull ? 1.2 : 1.05);
         for (let s = 0; s < steps; s++) {
-          k.vel.y -= 981 * h;
+          k.vel.y -= G * h;
           k.mesh.position.addScaledVector(k.vel, h);
           if (k.mesh.position.y < rest) {
             k.mesh.position.y = rest;
@@ -1573,7 +2505,7 @@ export default {
 
     // ---- autopilot: examine, pull, step back; a fresh one when it's done ----
     const idle = w.clock - w.lastUser > IDLE;
-    if (idle && !w.fly && w.clock > w.auto.next) {
+    if (idle && rise >= 30 && !w.fly && w.clock > w.auto.next) {
       const a = w.auto;
       const inK = w.kernels.filter((k) => k.state === 'in');
       if (a.step === 'focus' && w.focus) {
@@ -1663,6 +2595,7 @@ export default {
     state.steam.mat.dispose();
     state.strand.geometry.dispose();
     state.strand.material.dispose();
+    state.body.dispose();
     state.glow.dispose();
     state.envTarget.dispose();
     state.pmrem.dispose();

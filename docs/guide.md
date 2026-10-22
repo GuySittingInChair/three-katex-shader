@@ -2176,6 +2176,25 @@ noise field crosses zero. That field changes faster along the log than around it
 *around* the log, like real drying cracks. Everything sags: points below a small height w are squeezed up,
 y ↦ w·e^{(y−w)/w}, and pushed outward. That's what flattens the bottom into a contact patch.
 
+**Watching it leave.** Every specimen is first *simulated coming out*: it leaves an anus H cm above the floor
+(the *Drop height* dial) at v = L/12 s, because mammals of every size take about 12 seconds (Yang et al., 2017).
+The log is a chain of points 4 mm apart: gravity pulls them, each pair keeps its spacing, and extra links over
+2, 4 and 8 points stop it bending. The simulation is recorded once and played back, and the mesh rides along on
+it: every vertex is stored as "this far along the log, this far round it", so the same mesh can hang, fall and
+lie down. The last frame is the specimen you then examine.
+
+**Firmness is one number: the yield stress τ_y.** Below τ_y the stuff behaves like a solid, and above it, it
+flows like toothpaste. τ_y drops steeply with water: here τ_y = 1.5 kPa·e^{−(w − 76%)/1.5%}, so every extra 1.5%
+of water divides it by e ≈ 2.7. That exponential is a model, not a measurement. Try the *Extra water* dial. Three
+things follow from τ_y:
+- **When it tears off.** The part hanging from the anus pulls on it with a stress of ρgΔy (its weight per unit
+  area, with Δy the height it hangs). It tears when that reaches √3·τ_y, so anything hanging more than
+  Δy_max = √3τ_y/(ρg) breaks off. That's 25 cm for type 4 but only 6.7 cm with 2% more water.
+- **How tall it can stand.** A heap of yield-stress material can't be taller than h_max = 2τ_y/(ρg), so a soft
+  blob slumps until it is that tall. It keeps its volume by spreading sideways.
+- **How it lands.** A stiff log topples like a stick. A soft one folds, and it stays folded, because once a bend
+  goes past the yield point the bent shape becomes its new resting shape.
+
 **Sockets.** Each kernel gets a hole carved to its shape before it's put in. Every surface point inside
 the kernel's ellipsoid is moved inward along the surface direction −n, to where that line leaves the
 ellipsoid. It's the same quadratic as a ray hitting a sphere, after scaling the ellipsoid into a sphere.
@@ -2202,6 +2221,8 @@ Try the *Gas fraction* dial.
 | `\oint` | `\oint` | integral over a closed surface (or loop) |
 | `\varphi` | `\varphi` | phi, here the gas fraction |
 | `\beta(1{\to}4)` | `\beta(1{\to}4)` | the bond type in cellulose |
+| `\tau_y` | `\tau_y` | tau sub y: the yield stress |
+| `\sqrt3` | `\sqrt3` | square root of 3 (braces optional for one digit) |
 
 ---
 
