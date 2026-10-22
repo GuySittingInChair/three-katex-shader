@@ -2224,6 +2224,74 @@ Try the *Gas fraction* dial.
 | `\tau_y` | `\tau_y` | tau sub y: the yield stress |
 | `\sqrt3` | `\sqrt3` | square root of 3 (braces optional for one digit) |
 
+### The explorer: cutting, heat, the microscope, A/B and the instruments
+
+The **Instruments** panel (top left; a pill at the bottom on phones) holds everything below. Every number in
+it carries a badge. **SIM** means it was computed from this specimen's mesh or simulation. **MODEL** means it
+comes from an assumed relation, like the yield-stress exponential. **REF** means it was taken from a paper.
+Point at a row (or tap it) to see where it comes from.
+
+**Cutting it open.** *Cutaway* slices it with a flat knife; *Knife*, *Turn* and *Tilt* move it. The code
+finds where the knife crosses each triangle. Each crossing triangle gives one short segment of the cut's
+outline, and segments that share a mesh edge join up, so they chain into closed loops. A loop inside
+another loop of the same piece is a hole. The loops are triangulated into the cut face (`section`).
+Two numbers come for free:
+- **Cut area:** the area of the outer loops, minus the holes.
+- **Volume on each side:** the divergence theorem again, but with the origin *on the knife*. On the cut
+  face, x·n = 0, so the face adds nothing, and V_kept = ⅙Σ det(a, b, c) over the clipped triangles alone.
+  The check V_kept + V_cut = V is in the *Checks* list.
+
+**Gas pockets.** The space is divided into 4.5 mm cubes, with one bubble per cube at a random point in it
+and a random radius. The random numbers come from an integer hash that gives the same answers in
+JavaScript and in the shader, so the pockets you see are the pockets the readout counts. The radius is
+chosen so the bubbles fill a fraction φ of the volume (the *Gas fraction* dial). **Delesse's principle**
+(1847): on a random flat cut, the fraction of the *area* that is holes equals the fraction of the
+*volume* that is holes, A_A = V_V. The panel samples about 6000 points on the cut and compares. Expect
+it within a couple of percent, not exactly: one cut is one sample.
+
+**Heat inside.** The lumped model gives one temperature for the whole thing. The *Heat* view solves the
+real heat equation for a long cylinder (logs) or a sphere (lumps) of the local radius R, cooling at its
+surface:
+
+θ = (T − T_air)/(37 − T_air) = Σ Cₙ e^{−ζₙ²·Fo} J₀(ζₙ r/R),  Fo = αt/R²,  Bi = hR/k
+
+- **Fo, the Fourier number:** how far the cooling has got. It goes as 1/R², so thin parts cool first.
+- **Bi, the Biot number:** how much the surface holds the heat back compared with the inside.
+- **ζₙ:** the roots of ζJ₁(ζ) = Bi·J₀(ζ).
+- **J₀, J₁:** Bessel functions, the cylinder's version of cos and sin.
+
+The code finds the roots numerically and checks the series against a finite-difference solution (the two
+agree to 4 decimals). The shader works out r/R for each pixel from the distance to the nearest piece of
+the rope's centreline. The plot shows core, skin, the thinnest core, and the lumped curve.
+
+**Microscope.** Tap the outside, a corn socket, or the cut face (or a gas pocket on it). The smear
+changes with the spot: mucus and shed lining cells on the outside, corn skin cells in a socket, more
+fibre inside. ×100 / ×400 / ×1000 change the field (1.8 mm / 450 µm / 180 µm across, for an 18 mm field
+number). It's a drawing, labelled as one. What's real is the sizes and the count: 0.096 cells/µm³ × 1 µm
+in focus × field area.
+
+**A/B.** *Pin as A* freezes this specimen and slides it left. B is a fresh copy with the **same seed**,
+so when you change a dial, every difference in the A/B table is caused by that dial.
+
+**Stepping the exit.** The exit was simulated once at a fixed 1/480 s step and recorded at 30 fps, so
+⏮ ◀ ⏸ ▶ ⏭ just move through the recording, and every replay is identical. The *Exit simulation* plot shows
+kinetic and gravitational energy and the worst stretch of any segment. Bending energy isn't counted, so
+a stiff log springing loose from the anus shows as a bump.
+
+**Checks** run on every specimen: finite numbers, closed pieces, volume near the nominal shape, the
+isoperimetric inequality A³ ≥ 36πV², no folded surface, the rope not over-stretched, no sinking into the
+floor. They do fail at the extremes. A soft log (+5% water) slumps into overlapping sheets, and a stiff log
+from a 6 cm drop gets squashed between the floor and the anus. That's the model's limit, and the checks
+say so.
+
+| LaTeX | You write | Means |
+|---|---|---|
+| `J_0(\zeta_n r/R)` | `J_0(\zeta_n r/R)` | Bessel function of order 0 |
+| `\zeta_n` | `\zeta_n` | zeta sub n: the n-th root |
+| `\text{Fo}` | `\text{Fo}` | Fourier number αt/R² |
+| `\det(\mathbf a,\mathbf b,\mathbf c)` | `\det(\mathbf a,\mathbf b,\mathbf c)` | determinant: 6 × the tetrahedron's volume |
+| `A_A = V_V` | `A_A = V_V` | Delesse: area fraction = volume fraction |
+
 ---
 
 ## 59. My notes
