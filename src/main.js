@@ -631,6 +631,7 @@ if (!feedOn) {
     'wheel',
     (e) => {
       if (page !== 'viewer') return;
+      if (manager.getCurrent().wheelZoom) return; // the sketch zooms with the wheel itself (OrbitControls)
       e.preventDefault();
       const now = performance.now();
       const quiet = now - lastWheel > 220; // a new gesture, not a coast

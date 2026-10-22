@@ -93,7 +93,8 @@ export class SketchRunner {
     if (this.sketch.controls === 'orbit') {
       this.ctx.controls = new OrbitControls(this.ctx.camera, this.domElement);
       // With a mouse the wheel flips between sketches (see main.js), so zoom
-      // is Ctrl + wheel there; touch keeps pinch-to-zoom.
+      // is Ctrl + wheel there; touch keeps pinch-to-zoom. A sketch that sets
+      // `wheelZoom: true` keeps the wheel for zooming (and re-enables it in setup()).
       if (!window.matchMedia('(pointer: coarse)').matches) this.ctx.controls.enableZoom = false;
       this.ctx.controls.enableDamping = true;
     }

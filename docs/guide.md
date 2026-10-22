@@ -2159,7 +2159,53 @@ Try: Classic Mandelbrot, then tap inside the black and outside it, and compare t
 
 ---
 
-## 58. My notes
+## 58. Bristol Specimen, annotated
+
+File: `src/sketches/bristolSpecimen.js`
+
+A stool on the Bristol Stool Form Scale with sweet corn in it. **Tap a kernel** to examine it (the camera
+flies in and a card gives its size, mass and whether it's intact or just the empty skin); **tap it again**
+to pull it out. It leaves its socket behind. **Tap the stool** for a Gram-stained view at ×1000.
+**Scroll or pinch** to zoom, towards wherever the cursor is. Leave it alone for ten seconds and it does all
+this by itself.
+
+**The shape is a tube.** Types 2–4 are a centreline that wanders across the floor, with a radius r(s) at
+each distance s along it. The front is a rounded cap, r = R√(1 − (1 − s/c)²), which is a quarter circle.
+The back is pinched off, r = R(1 − (1 − u)^2.2), which ends in a point. Cracks (type 3) are drawn where a
+noise field crosses zero. That field changes faster along the log than around it, so its zero lines run
+*around* the log, like real drying cracks. Everything sags: points below a small height w are squeezed up,
+y ↦ w·e^{(y−w)/w}, and pushed outward. That's what flattens the bottom into a contact patch.
+
+**Sockets.** Each kernel gets a hole carved to its shape before it's put in. Every surface point inside
+the kernel's ellipsoid is moved inward along the surface direction −n, to where that line leaves the
+ellipsoid. It's the same quadratic as a ray hitting a sphere, after scaling the ellipsoid into a sphere.
+
+**Volume without a formula for the shape.** The divergence theorem says V = ⅓∮ x·n dA: add up, over every
+triangle, a third of (position · normal) × area. In code that's one line per triangle,
+`v += a.dot(b.cross(c)) / 6`, which is the signed volume of the tetrahedron from the origin to that
+triangle. It works for any closed mesh, sockets and all.
+
+**Cooling.** Newton's law with "lumped capacitance": the whole thing is treated as one temperature T,
+so ρcV·dT/dt = −hA(T − T_air), which gives T = T_air + (37 − T_air)e^{−t/τ} with τ = ρcV/(hA). The
+Biot number Bi = h(V/A)/k checks that assumption: it's fine when Bi ≪ 1, and here it's about 0.1, so
+it's a fair estimate.
+
+**Why corn survives.** The kernel's skin is cellulose: glucose joined by β(1→4) bonds. Human enzymes only
+cut the α kind (starch). So the skin comes out whole, sometimes with the starch inside it digested away,
+which is the "empty hull".
+
+**Why some float.** Gas, not fat (Levitt & Duane, 1972). With ρ = 1.07(1 − φ), it floats once φ > 6.5%.
+Try the *Gas fraction* dial.
+
+| LaTeX | You write | Means |
+|---|---|---|
+| `\oint` | `\oint` | integral over a closed surface (or loop) |
+| `\varphi` | `\varphi` | phi, here the gas fraction |
+| `\beta(1{\to}4)` | `\beta(1{\to}4)` | the bond type in cellulose |
+
+---
+
+## 59. My notes
 
 Add your own findings, questions and discoveries here.
 

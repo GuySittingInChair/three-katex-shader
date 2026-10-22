@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import * as Tone from 'tone';
 import { fibonacciSphere, hopfFiber } from '../lib/hopf.js';
 import { parametricSurface } from '../lib/parametric.js';
@@ -32,6 +33,8 @@ export {
   THREE,
   OrbitControls,
   mergeGeometries,
+  mergeVertices,
+  RoomEnvironment,
   Tone,
   fibonacciSphere,
   hopfFiber,
@@ -85,6 +88,8 @@ export const HELPERS = {
   THREE,
   OrbitControls,
   mergeGeometries,
+  mergeVertices,
+  RoomEnvironment,
   Tone,
   fibonacciSphere,
   hopfFiber,
