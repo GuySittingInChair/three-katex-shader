@@ -2189,11 +2189,19 @@ of water divides it by e ≈ 2.7. That exponential is a model, not a measurement
 things follow from τ_y:
 - **When it tears off.** The part hanging from the anus pulls on it with a stress of ρgΔy (its weight per unit
   area, with Δy the height it hangs). It tears when that reaches √3·τ_y, so anything hanging more than
-  Δy_max = √3τ_y/(ρg) breaks off. That's 25 cm for type 4 but only 6.7 cm with 2% more water.
-- **How tall it can stand.** A heap of yield-stress material can't be taller than h_max = 2τ_y/(ρg), so a soft
-  blob slumps until it is that tall. It keeps its volume by spreading sideways.
+  ℓ_tear = √3τ_y/(ρg) breaks off (a length, shown as ℓ_tear in the equation). That's 25 cm for type 4 but only 6.7 cm with 2% more water.
+- **How tall it can stand.** A heap of yield-stress material can't be taller than h_pile = 2τ_y/(ρg), so a soft
+  blob slumps until it is that tall. It keeps its volume by spreading sideways. The same goes for a pile of
+  folds: a bit of log lying on another bit, with its top above h_pile, flows off sideways.
 - **How it lands.** A stiff log topples like a stick. A soft one folds, and it stays folded, because once a bend
   goes past the yield point the bent shape becomes its new resting shape.
+
+Two things keep the landing honest. The push is a pressure, not a piston: if the part that's already out is
+jammed against the floor and squeezed along its length, the feed slows down (to a stop if it has to) until the
+log bends out of the way. And the anus isn't a rigid clamp: the canal's direction swings towards wherever the
+log leaves it (up to 35°), so a stiff log can pivot and topple instead of being pinned between the body and
+the floor. Inside the canal it moves as a plug: a yield-stress material in a mucus-lined tube slides as one
+solid piece, with all the shear in the thin wall layer, so corn kernels ride along without turning.
 
 **Sockets.** Each kernel gets a hole carved to its shape before it's put in. Every surface point inside
 the kernel's ellipsoid is moved inward along the surface direction −n, to where that line leaves the
@@ -2223,6 +2231,8 @@ Try the *Gas fraction* dial.
 | `\beta(1{\to}4)` | `\beta(1{\to}4)` | the bond type in cellulose |
 | `\tau_y` | `\tau_y` | tau sub y: the yield stress |
 | `\sqrt3` | `\sqrt3` | square root of 3 (braces optional for one digit) |
+| `\ell_{\text{tear}}` | `\ell_{\text{tear}}` | script l: the hanging length at which it tears off |
+| `h_{\text{pile}}` | `h_{\text{pile}}` | the tallest a heap of it can stand |
 
 ### The explorer: cutting, heat, the microscope, A/B and the instruments
 

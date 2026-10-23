@@ -53,7 +53,7 @@ import { caption, beat } from '../lib/bit.js';
 // as a simulated rope (see bakeExit) whose stiffness comes from its yield
 // stress τ_y. τ_y falls steeply with water content (assumed 66% for type 1 up
 // to 80% for type 5), so firmness is one number with three consequences:
-//   - it hangs until ρgΔy = √3 τ_y, i.e. Δy_max = √3 τ_y/(ρg), then tears;
+//   - it hangs until ρgΔy = √3 τ_y, i.e. Δy = ℓ_tear = √3 τ_y/(ρg), then tears;
 //   - a pile can't stand taller than h_max = 2τ_y/(ρg), so soft ones slump;
 //   - stiff ones topple like a rod, soft ones fold and stay folded.
 // The whole exit is simulated once when a specimen is made, recorded at 30 fps
@@ -776,7 +776,14 @@ function transport(u, a, b, out) {
 // anus pulls on it with stress ρgΔy (Δy = how far below the anus its lowest
 // point is); past the tensile yield √3·τ_y (von Mises) it tears off. Where a
 // node rests on something, it slumps towards the tallest column a yield-stress
-// material can make, h_max = 2τ_y/(ρg).
+// material can make, h_max = 2τ_y/(ρg); a node stacked on another whose top
+// is above h_max flows off sideways, so a pile of folds can't stand taller either.
+// The push is a pressure, not a piston: when the part already out is jammed
+// against the floor and squeezed along its length, the feed slows (to a stop
+// if need be) until bending creep lets it buckle and fold out of the way.
+// Nor is the anus a rigid clamp: the canal's axis gives way to the bending
+// moment of what hangs from it (up to 35° from its resting angle), so a stiff
+// log pivots and topples instead of being held against the floor.
 function bakeExit({ L, radius, v, tau, rho, H, seed }) {
   const rng = mulberry32(seed ^ 0x2c1b3c6d);
   const n = Math.max(8, Math.round(L / 0.4) + 1);
@@ -785,7 +792,7 @@ function bakeExit({ L, radius, v, tau, rho, H, seed }) {
   const tauC = tau * 10; // Pa → dyn/cm²
   const Lbreak = (Math.sqrt(3) * tauC) / rhoG;
   const hmax = (2 * tauC) / rhoG;
-  const e = EXIT_DIR;
+  const e = EXIT_DIR.slice();
   // A person isn't a statue: the anus drifts a few mm while it happens.
   const sw = [0.3 + rng() * 0.5, 0.4 + rng() * 0.6, rng() * 6.28, rng() * 6.28, 0.2 + rng() * 0.2, 0.15 + rng() * 0.2];
   const anus = (t, out) => {
@@ -821,7 +828,6 @@ function bakeExit({ L, radius, v, tau, rho, H, seed }) {
   const dt = 1 / 480;
   const iters = 6;
   const A = [0, 0, 0];
-  const tEmit = L / v;
   const breaks = [];
   const rec = [];
   const wall = performance.now();
@@ -830,8 +836,11 @@ function bakeExit({ L, radius, v, tau, rho, H, seed }) {
   let quiet = 0;
   let drop = 0;
   let tTouch = -1;
+  let sOut = 0; // length pushed out so far
+  let feed = 1; // share of v the push manages against what's in the way
+  let tEmit = -1;
   const place = (i) => {
-    const d = i * h - v * t; // depth inside the canal
+    const d = i * h - sOut; // depth inside the canal
     anus(t, A);
     x[3 * i] = A[0] - e[0] * d;
     x[3 * i + 1] = A[1] - e[1] * d;
@@ -847,6 +856,7 @@ function bakeExit({ L, radius, v, tau, rho, H, seed }) {
   // the rope from node 0, and node 0's carried from the last record, so the
   // surface pattern doesn't spin.
   const T = new Float64Array(3 * n);
+  const support = new Int32Array(n);
   let up0 = [1, 0, 0];
   let T0prev = [-e[0], -e[1], -e[2]];
   const tmp = [0, 0, 0];
@@ -896,7 +906,7 @@ function bakeExit({ L, radius, v, tau, rho, H, seed }) {
       if (free[i]) pen = Math.max(pen, rc[i] * sy[i] * 0.92 - x[k + 1]);
       if (i < n - 1 && link[i]) strain = Math.max(strain, Math.abs(Math.hypot(x[k + 3] - x[k], x[k + 4] - x[k + 1], x[k + 5] - x[k + 2]) - h) / h);
     }
-    rec.push({ x: Float32Array.from(x), up, sy: Float32Array.from(sy), A: [A[0], A[1], A[2]], drop, ek, ep, strain, pen, contacts });
+    rec.push({ x: Float32Array.from(x), up, sy: Float32Array.from(sy), A: [A[0], A[1], A[2]], drop, ek, ep, strain, pen, contacts, out: Math.min(L, sOut), feed, e: e.slice() });
   };
   // Segment lengths: solved first and again last in every iteration, so the
   // stiff bending spans can't leave the rope stretched (that stored stretch
@@ -922,7 +932,7 @@ function bakeExit({ L, radius, v, tau, rho, H, seed }) {
   while (true) {
     for (let i = 0; i < n; i++) {
       if (free[i]) continue;
-      if (i * h - v * t <= 0) free[i] = 1;
+      if (i * h - sOut <= 0) free[i] = 1;
       else {
         xp[3 * i] = x[3 * i];
         xp[3 * i + 1] = x[3 * i + 1];
@@ -930,6 +940,8 @@ function bakeExit({ L, radius, v, tau, rho, H, seed }) {
       }
     }
     t += dt;
+    sOut += v * feed * dt;
+    if (tEmit < 0 && sOut >= L) tEmit = t;
     steps++;
     let vmax = 0;
     for (let i = 0; i < n; i++) {
@@ -946,6 +958,7 @@ function bakeExit({ L, radius, v, tau, rho, H, seed }) {
       }
     }
     touch.fill(0);
+    support.fill(-1);
     for (let it = 0; it < iters; it++) {
       stretch();
       for (let q = 0; q < SPANS.length; q++) {
@@ -987,8 +1000,13 @@ function bakeExit({ L, radius, v, tau, rho, H, seed }) {
           x[a] += dx * corr; x[a + 1] += dy * corr; x[a + 2] += dz * corr;
           x[b] -= dx * corr; x[b + 1] -= dy * corr; x[b + 2] -= dz * corr;
           contacts++;
-          if (dy > 0) touch[j] = 1;
-          else touch[i] = 1;
+          if (dy > 0) {
+            touch[j] = 1;
+            support[j] = i;
+          } else {
+            touch[i] = 1;
+            support[i] = j;
+          }
         }
       }
       for (let i = 0; i < n; i++) {
@@ -1026,7 +1044,35 @@ function bakeExit({ L, radius, v, tau, rho, H, seed }) {
     }
     for (let i = 0; i < n; i++) {
       if (touch[i] && sy[i] > syEq[i]) sy[i] = Math.max(syEq[i], sy[i] - (dt / 0.5) * (sy[i] - syEq[i] + 0.02));
+      // Stacked above h_max: it can't hold, so it flows off what it's on.
+      const j = support[i];
+      if (j < 0) continue;
+      const over = x[3 * i + 1] + rc[i] * sy[i] - hmax;
+      if (over <= 0) continue;
+      let dx = x[3 * i] - x[3 * j];
+      let dz = x[3 * i + 2] - x[3 * j + 2];
+      const dh = Math.hypot(dx, dz);
+      if (dh < 1e-4) {
+        dx = Math.cos(i * 2.4);
+        dz = Math.sin(i * 2.4);
+      } else {
+        dx /= dh;
+        dz /= dh;
+      }
+      const step = Math.min(over, 0.3 * rc[i]) * (dt / 0.25);
+      x[3 * i] += dx * step;
+      x[3 * i + 2] += dz * step;
     }
+    // How hard the part that's out pushes back: the worst shortening of any
+    // segment still joined to the canal. Past 2% the push can't keep up.
+    let squeeze = 0;
+    for (let i = n - 2; i >= 0; i--) {
+      if (!link[i]) break;
+      if (!free[i]) continue;
+      const k = 3 * i;
+      squeeze = Math.max(squeeze, 1 - Math.hypot(x[k + 3] - x[k], x[k + 4] - x[k + 1], x[k + 5] - x[k + 2]) / h);
+    }
+    feed += (Math.min(1, Math.max(0, 1 - (squeeze - 0.02) / 0.04)) - feed) * Math.min(1, dt / 0.1);
     // Tear-off: the hanging part's weight on the anus.
     let top = -1;
     for (let i = n - 1; i >= 0; i--) {
@@ -1052,15 +1098,42 @@ function bakeExit({ L, radius, v, tau, rho, H, seed }) {
         for (let k = top + 1; k <= n; k++) broken[k]++;
       }
     }
+    // The canal swivels towards the direction the part that's out leaves in.
+    if (top > 0 && top < n - 1 && link[top]) {
+      const o = Math.max(0, top - Math.ceil(2 * R / h));
+      let ux = x[3 * o] - x[3 * top];
+      let uy = x[3 * o + 1] - x[3 * top + 1];
+      let uz = x[3 * o + 2] - x[3 * top + 2];
+      const ul = Math.hypot(ux, uy, uz);
+      if (ul > 0.5 * h) {
+        const k = Math.min(1, dt / 0.3);
+        for (let c = 0; c < 3; c++) e[c] += ((c === 0 ? ux : c === 1 ? uy : uz) / ul - e[c]) * k;
+        const el = Math.hypot(e[0], e[1], e[2]);
+        for (let c = 0; c < 3; c++) e[c] /= el;
+        const cosA = e[0] * EXIT_DIR[0] + e[1] * EXIT_DIR[1] + e[2] * EXIT_DIR[2];
+        const MAXA = 0.61;
+        if (cosA < Math.cos(MAXA)) {
+          // Back onto the 35° cone round the resting axis.
+          const px = e[0] - cosA * EXIT_DIR[0];
+          const py = e[1] - cosA * EXIT_DIR[1];
+          const pz = e[2] - cosA * EXIT_DIR[2];
+          const pl = Math.hypot(px, py, pz) || 1;
+          e[0] = EXIT_DIR[0] * Math.cos(MAXA) + (px / pl) * Math.sin(MAXA);
+          e[1] = EXIT_DIR[1] * Math.cos(MAXA) + (py / pl) * Math.sin(MAXA);
+          e[2] = EXIT_DIR[2] * Math.cos(MAXA) + (pz / pl) * Math.sin(MAXA);
+        }
+      }
+    }
     while (t >= nextRec) {
       record();
       nextRec += 1 / EXIT_FPS;
     }
-    if (t > tEmit + 0.2) quiet = vmax < 1.5 ? quiet + dt : 0;
-    if (quiet > 0.4 || t > tEmit + 6) break;
+    if (tEmit >= 0 && t > tEmit + 0.2) quiet = vmax < 1.5 ? quiet + dt : 0;
+    if (quiet > 0.4 || (tEmit >= 0 && t > tEmit + 6) || t > 3 * (L / v) + 6) break;
   }
   record();
-  return { kind: 'rope', n, h, dt, steps, bakeMs: performance.now() - wall, rec, breaks, Lbreak, hmax, tEmit, tTouch: Math.max(0, tTouch), tEnd: (rec.length - 1) / EXIT_FPS, v, L, radius };
+  if (tEmit < 0) tEmit = t;
+  return { kind: 'rope', n, h, dt, steps, bakeMs: performance.now() - wall, rec, breaks, Lbreak, lMin: 2.5 * R, hmax, tEmit, tTouch: Math.max(0, tTouch), tEnd: (rec.length - 1) / EXIT_FPS, v, L, radius };
 }
 
 // ---------- leaving: types 1 and 5 ----------
@@ -2663,13 +2736,17 @@ function poseView(v, play, dt) {
   let drop = 0;
   let out;
   let L;
+  let eA = EXIT_DIR;
   if (ex.kind === 'rope') {
     const f = Math.min(ex.rec.length - 1.0001, t * EXIT_FPS);
     const r0 = ex.rec[Math.floor(f)];
     const r1 = ex.rec[Math.floor(f) + 1];
     const al = f - Math.floor(f);
     A = r0.A.map((a, i) => a + (r1.A[i] - a) * al);
-    out = ex.v * t;
+    eA = r0.e.map((a, i) => a + (r1.e[i] - a) * al);
+    const el = Math.hypot(eA[0], eA[1], eA[2]);
+    eA = eA.map((a) => a / el);
+    out = r0.out + (r1.out - r0.out) * al;
     if (out > 0 && out < ex.L) open = Math.max(0.1, ex.radiusAt(out) + 0.05);
     tLeave = ex.tEmit + 0.8;
     drop = r0.drop + (r1.drop - r0.drop) * al;
@@ -2690,7 +2767,7 @@ function poseView(v, play, dt) {
   v.body.mesh.visible = rise < 30;
   if (v.body.mesh.visible) v.body.update(A, open, rise);
   // Anything still deeper than 1.6 cm in the canal isn't drawn.
-  const e = EXIT_DIR;
+  const e = eA;
   const clipW = -(e[0] * A[0] + e[1] * A[1] + e[2] * A[2]) + 1.6;
   // uClip works in world space: shift it by the group's offset.
   const shift = -(e[0] * v.group.position.x);
@@ -2775,7 +2852,7 @@ function drawHud(state, ctx, now) {
   row('Mass', `${fmt(now.mStool, 1)} g`, 'MODEL', 'ρV: simulated volume times modelled density.');
   row('Bacteria', `${fmt(BACT_PER_G * now.mStool / 1e12, 1)} × 10¹²`, 'REF', '0.9 × 10¹¹ cells per wet gram (Sender, Fuchs & Milo, PLoS Biol 2016) × the mass.');
   row('Yield stress τ_y', ex.tau >= 1000 ? `${fmt(ex.tau / 1000, 2)} kPa` : `${fmt(ex.tau, 0)} Pa`, 'MODEL', 'An exponential in water content pinned at 1.5 kPa for 76% water. The shape matches faecal-sludge data; the numbers are a model, not measurements.');
-  row('Tears when hanging', `${fmt((Math.sqrt(3) * ex.tau * 10) / (now.rho * G), 1)} cm`, 'MODEL', 'Δy = √3·τ_y/(ρg): its own weight reaches the tensile yield stress (von Mises).');
+  row('Tears when hanging', `${fmt(Math.max((Math.sqrt(3) * ex.tau * 10) / (now.rho * G), ex.lMin ?? 0), 1)} cm`, 'MODEL', 'ℓ_tear = √3·τ_y/(ρg): its own weight reaches the tensile yield stress (von Mises). Never shorter than 2.5R: a piece can\'t neck off thinner than it is thick.');
   row('T, lumped', `${fmt(now.T, 1)} °C`, 'MODEL', 'One temperature for the whole thing (Newton cooling), τ = ρcV/(hA) = ' + fmt(now.tau / 60, 0) + ' min, h = 10 W/m²K (still air).');
   row('T core / skin', `${fmt(now.Tc, 1)} / ${fmt(now.Ts, 1)} °C`, 'MODEL', 'Exact conduction series for an infinitely long cylinder (or a sphere, for lumps) of the thickest radius, with the same h. Ignores the floor and the ends.');
   if (now.cutOn && live.sec) {
@@ -2958,7 +3035,7 @@ export default {
   motion() {
     return {
       V: 0, A: 0, rho: RHO_STOOL, mStool: 0, mCorn: 0, N: 1, tau: 0, tMin: 0, T: 37, Tair: 21, Bi: 0, cornLeft: 0, cornTotal: 0, event: '', since: 99,
-      water: 0.76, tauY: TAU_REF, Lb: 25, hmax: 29, drop: 0, v: 1, out: 0, L: 0, H: 15, leaving: false, pieces: 1,
+      water: 0.76, tauY: TAU_REF, Lb: 25, lMin: 0, hmax: 29, drop: 0, v: 1, out: 0, L: 0, H: 15, leaving: false, pieces: 1,
       cut: false, cutA: 0, keptV: 0, gasCut: 0, phi: 0, heat: false, sphere: false, Fo: 0, BiR: 0, Rth: 1, Tc: 37, Ts: 37,
     };
   },
@@ -2969,7 +3046,13 @@ export default {
     const floats = m.rho < 1;
     const line =
       beat(m.since, [[0, m.event], [4, '']]) ||
-      (m.leaving ? (m.Lb < m.H ? `Anything hanging more than ${fmt(m.Lb, 1)} cm tears off under its own weight.` : 'Firm enough to reach the floor in one piece.') : '') ||
+      (m.leaving
+        ? m.Lb >= m.H
+          ? 'Firm enough to reach the floor in one piece.'
+          : m.lMin > m.Lb
+            ? `Too soft to hang at all: it necks off in pieces about ${fmt(m.lMin, 1)} cm long, the shortest a piece this thick can be.`
+            : `Anything hanging more than ${fmt(m.Lb, 1)} cm tears off under its own weight.`
+        : '') ||
       (m.cut && m.cutA > 0 ? 'Delesse, 1847: on any flat cut, the share of area that is holes is the share of volume.' : '') ||
       (m.heat ? 'Thin bits cool first: the Fourier number goes as 1/R².' : '') ||
       (floats ? 'Floats: the gas, not the fat (Levitt & Duane, 1972).' : '') ||
@@ -2977,10 +3060,15 @@ export default {
       (m.T - m.Tair < 1 ? 'Room temperature. Now it is just a sculpture.' : 'Cooling exactly as fast as Newton said it would.');
     const tauTex = m.tauY >= 1e4 ? `${hl(m.tauY / 1000, 0)}\\,\\text{kPa}` : m.tauY >= 1000 ? `${hl(m.tauY / 1000, 2)}\\,\\text{kPa}` : `${hl(m.tauY, 0)}\\,\\text{Pa}`;
     const big = (x) => (x > 999 ? '\\gg 1\\,\\text{m}' : `${hl(x, 1)}\\,\\text{cm}`);
+    // A piece can't neck off shorter than about its own thickness (2.5R), so
+    // when the weight criterion is shorter than that, that's the real limit.
+    const tear = m.lMin > m.Lb
+      ? `\\max\\big(\\tfrac{\\sqrt3\\,\\tau_y}{\\rho g},\\,2.5R\\big) = \\max(${hl(m.Lb, 1)}, ${hl(m.lMin, 1)}) = ${big(m.lMin)}`
+      : `\\tfrac{\\sqrt3\\,\\tau_y}{\\rho g} = ${big(m.Lb)}`;
     const rows = [
       `\\text{Bristol type ${type}} &: \\text{${BRISTOL[type - 1]}}`,
       `\\tau_y &= 1.5\\,\\text{kPa}\\; e^{-(w - 76\\%)/1.5\\%} = ${tauTex}\\quad (w = ${hl(m.water * 100, 1)}\\%\\ \\text{water})`,
-      `\\Delta y_{\\text{max}} &= \\tfrac{\\sqrt3\\,\\tau_y}{\\rho g} = ${big(m.Lb)}\\quad (\\text{hanging now: } ${hl(m.drop, 1)}\\,\\text{cm}),\\quad h_{\\text{max}} = \\tfrac{2\\tau_y}{\\rho g} = ${big(m.hmax)}`,
+      `\\ell_{\\text{tear}} &= ${tear}\\quad (\\text{hanging now: } ${hl(m.drop, 1)}\\,\\text{cm}),\\quad h_{\\text{pile}} = \\tfrac{2\\tau_y}{\\rho g} = ${big(m.hmax)}`,
       `v &= \\tfrac{L}{12\\,\\text{s}} = ${hl(m.v, 2)}\\,\\tfrac{\\text{cm}}{\\text{s}}:\\quad ${hl(m.out, 1)}\\text{ of }${hl(m.L, 1)}\\,\\text{cm out, in }${m.pieces}\\text{ piece${m.pieces === 1 ? '' : 's'}}`,
       `V &= \\tfrac13\\textstyle\\oint \\mathbf x\\cdot\\mathbf n\\,dA = ${hl(m.V, 1)}\\,\\text{cm}^3,\\quad A = ${hl(m.A, 0)}\\,\\text{cm}^2`,
       `\\rho &= ${RHO_STOOL}\\,(1-\\varphi_{\\text{gas}}) = ${hl(m.rho, 3)}\\,\\tfrac{\\text{g}}{\\text{cm}^3}\\ ${floats ? '< 1:\\ \\text{floats}' : '> 1:\\ \\text{sinks}'}`,
@@ -3766,7 +3854,9 @@ export default {
     if (ex.kind === 'rope') {
       while (play.seenBreaks < ex.breaks.length && ex.breaks[play.seenBreaks].t <= play.t) {
         const b = ex.breaks[play.seenBreaks++];
-        w.event = `Torn off ${fmt(b.s, 1)} cm along: ${fmt(ex.Lbreak, 1)} cm hanging weighs more than its yield stress can hold.`;
+        w.event = ex.lMin > ex.Lbreak
+          ? `Torn off ${fmt(b.s, 1)} cm along: too soft to hold up even one ${fmt(ex.lMin, 1)} cm piece.`
+          : `Torn off ${fmt(b.s, 1)} cm along: ${fmt(ex.Lbreak, 1)} cm hanging weighs more than its yield stress can hold.`;
         w.eventAt = w.clock;
       }
     }
@@ -3861,7 +3951,7 @@ export default {
     Object.assign(ctx.motion, {
       V: spec.V, A: spec.A, rho, mStool, mCorn, N: BACT_PER_G * mStool, tau, tMin: w.tReal / 60, T, Tair, Bi,
       cornLeft: left.length, cornTotal: w.kernels.length, event: w.event, since: w.clock - w.eventAt,
-      water: ex.water, tauY: ex.tau, Lb: (Math.sqrt(3) * ex.tau * 10) / rhoG, hmax: (2 * ex.tau * 10) / rhoG,
+      water: ex.water, tauY: ex.tau, Lb: (Math.sqrt(3) * ex.tau * 10) / rhoG, lMin: ex.lMin ?? 0, hmax: (2 * ex.tau * 10) / rhoG,
       H: spec.H, leaving: P.leaving, pieces: ex.kind === 'rope' ? 1 + play.seenBreaks : ex.blobs.length,
       cut: cutOn, cutA: secLive ? secLive.area : 0, keptV: secLive ? secLive.keptV : 0, gasCut: live.voids?.frac ?? 0, phi: gas,
       heat: heatOn, sphere: hb.sphere, Fo: (hb.alpha * w.tReal) / hb.Rmax ** 2, BiR: hb.rows[top].Bi, Rth: hb.Rmax, Tc, Ts,
