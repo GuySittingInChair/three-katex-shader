@@ -55,6 +55,11 @@ const GAMES = {
     blurb: 'Two robots sneeze at each other across a room, on a real Navier–Stokes fluid simulation. Read the draft, aim, time your sneeze. Bet Snot Coins.',
     custom: createSneezeDuel,
   },
+  'corn-gulag': {
+    title: 'Corn Gulag',
+    blurb: 'Giant butts drift over a labour camp and drop logs full of sweet corn. Six prisoners, photoreal-ish and all animated by IK, fight over the kernels to stay fed. About 3 in 10 kernels are empty hulls.',
+    custom: lazyCustom(() => import('../games/gulag/index.js').then((m) => m.createCornGulag)),
+  },
   gomoku: {
     title: 'Gomoku',
     blurb: 'Five in a row wins, on a 13 × 13 board. Simple rules, sharp tactics.',
@@ -64,6 +69,24 @@ const GAMES = {
     howTo: 'Tap an intersection. Black moves first.',
   },
 };
+
+// A custom game loaded only when opened (Corn Gulag brings its own 3D scene and models).
+function lazyCustom(load) {
+  return (el, opts) => {
+    let game = null;
+    let gone = false;
+    el.textContent = 'Loading…';
+    load().then((create) => {
+      if (!gone) game = create(el, opts);
+    });
+    return {
+      destroy() {
+        gone = true;
+        game?.destroy();
+      },
+    };
+  };
+}
 
 const PREFS_KEY = 'aiship:games';
 function loadPrefs() {
