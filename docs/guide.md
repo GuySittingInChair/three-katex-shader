@@ -2554,7 +2554,55 @@ frequency, 153 Hz, Kepler puts two such masses 343 km apart. Their horizons (2GM
 
 ---
 
-## 64. My notes
+## 64. The Universe Is Speeding Up, annotated
+
+File: `src/sketches/snAcceleration.js`
+
+Pantheon+: 1701 light curves of 1550 type Ia supernovae, the data set behind most of today's
+dark-energy results. `tools/sn/build_sn.py` does every fit, using the published covariance matrix
+(statistical and systematic errors, and how they're shared between supernovae).
+
+**Standard candles.** A type Ia supernova is a white dwarf that blows up. They all peak at nearly the
+same brightness (absolute magnitude about −19.3, after a correction for how fast each fades and its
+colour). So how faint one looks says how far away it is: the *distance modulus* μ = m − M =
+5 log₁₀(d_L / 10 pc). In the first view each one sits in its real direction, at the comoving
+distance D = d_L/(1+z) that its faintness gives. The streaks are deep, narrow surveys; the dense ball
+in the middle is the nearby ones.
+
+**The Hubble diagram.** μ against redshift z. Three universes are drawn through it, each with the
+same Hubble constant: only matter (Ω_m = 1, grey: gravity slows the expansion), empty (white dashed:
+it coasts), and the best flat fit, Ω_m = 0.333 with dark energy making up the rest (gold).
+
+**The residuals.** Subtract the empty universe's μ. Above zero means fainter than a coasting universe
+allows, so farther away. Light from the far supernovae has had further to go than in any universe
+where the expansion always slows: it has sped up. Past z ≈ 1 the points bend back down, because back
+then matter still dominated and the expansion *was* slowing. Matter only is worse than the best fit by
+Δχ² = 693; empty by 48.
+
+**The plane.** Dropping the assumption that space is flat: matter Ω_m across, dark energy Ω_Λ up, with
+1, 2 and 3σ contours. The blue line is flat universes (Ω_m + Ω_Λ = 1). Above the dashed line the
+deceleration parameter q₀ = Ω_m/2 − Ω_Λ is negative, which means the expansion speeds up today. The best
+slowing-down universe is 6.7σ out. (Supernovae alone; adding the cosmic microwave background and
+galaxy clustering tightens this a lot.)
+
+**H₀.** The nearby supernovae are tied to Cepheid stars, whose distances come from parallax, so their
+distances are in megaparsecs, not just relative. Velocity against distance is then Hubble's law
+v = H₀d, and the slope comes out 73.3 km/s/Mpc (published 73.0 ± 1.0, the ± mostly from the Cepheid
+step, which isn't redone here). The early universe, read from the microwave background, says 67.4. That
+gap is the *Hubble tension*, still unexplained.
+
+| LaTeX | You write | Meaning |
+|---|---|---|
+| `\mu = m - M` | `\mu = m - M` | distance modulus: apparent minus absolute magnitude |
+| `d_L` | `d_L` | luminosity distance |
+| `E(z)` | `E(z)` | expansion rate at redshift z, in units of today's |
+| `\Omega_m,\ \Omega_\Lambda` | `\Omega_m,\ \Omega_\Lambda` | fractions of matter and dark energy |
+| `q_0` | `q_0` | deceleration parameter (negative: speeding up) |
+| `\Delta\chi^2` | `\Delta\chi^2` | how much worse a model fits (bigger is worse) |
+
+---
+
+## 65. My notes
 
 Add your own findings, questions and discoveries here.
 
