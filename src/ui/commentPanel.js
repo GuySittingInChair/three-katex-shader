@@ -34,7 +34,7 @@ export function createCommentPanel(container, manager) {
 
   // textContent throughout: comments are written by strangers.
   function renderComments(comments) {
-    const signature = JSON.stringify([getUser()?.id, comments.map((c) => c.id)]);
+    const signature = JSON.stringify([getUser()?.id, comments.map((c) => [c.id, c.status])]);
     if (signature === lastRendered) return;
     lastRendered = signature;
     list.innerHTML = '';
@@ -66,6 +66,12 @@ export function createCommentPanel(container, manager) {
       timeSpan.className = 'comment-time';
       timeSpan.textContent = new Date(c.created_at).toLocaleString();
       header.append(authorSpan, timeSpan);
+      if (c.status === 'pending') {
+        const wait = document.createElement('span');
+        wait.className = 'comment-time';
+        wait.textContent = isAdmin() ? '· pending' : '· waiting for review';
+        header.appendChild(wait);
+      }
 
       if (c.user_id === me || isAdmin()) {
         const del = document.createElement('button');
@@ -130,10 +136,10 @@ export function createCommentPanel(container, manager) {
     if (!text) return;
     postBtn.disabled = true;
     try {
-      await addComment(currentSketchId, text);
+      const row = await addComment(currentSketchId, text);
       textInput.value = '';
       await refresh();
-      setStatus('');
+      setStatus(row?.status === 'pending' ? 'Thanks! Others will see it once it has been reviewed.' : '');
     } catch (err) {
       setStatus(`✗ ${err.message}`, 'error');
     } finally {

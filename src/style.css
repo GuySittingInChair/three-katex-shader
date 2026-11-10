@@ -3265,3 +3265,9 @@ body.feed-on #toast {
 body.is-recording.rec-panel-open #rec-indicator {
   display: none; /* the panel's own pill shows it */
 }
+
+/* Something is waiting in the admin's review queue. */
+#review-toggle.review-waiting {
+  color: #ffb454;
+  border-color: color-mix(in srgb, #ffb454 55%, transparent);
+}

@@ -1,4 +1,4 @@
-import { listPending, listPendingBots, review, reviewSound, onAuthChange, isAdmin } from '../core/community.js';
+import { listPending, listPendingBots, listPendingComments, review, reviewSound, onAuthChange, isAdmin } from '../core/community.js';
 import { soundUrl } from '../core/sounds.js';
 import { listPendingClips, clipUrl } from '../core/clips.js';
 import { compileSketch } from '../core/sketchCompiler.js';
@@ -13,7 +13,7 @@ export function createReviewPanel(container, manager, { toggleButton, onReviewed
       <div class="params-panel-title">Review</div>
       <button type="button" class="params-panel-reset" data-role="refresh">Refresh</button>
     </div>
-    <div class="explain-hint">Guide notes, shared sketches, sketch sounds, clips and game bots wait here until you approve them. Bots run sealed off, but still read their code first. Read a sketch's code before previewing it: previewing runs it in your logged-in browser.</div>
+    <div class="explain-hint">Comments (a person's first one), guide notes, shared sketches, sketch sounds, clips and game bots wait here until you approve them. Bots run sealed off, but still read their code first. Read a sketch's code before previewing it: previewing runs it in your logged-in browser.</div>
     <div class="review-list" data-role="list"></div>
   `;
   container.classList.add('review-panel');
@@ -70,25 +70,59 @@ export function createReviewPanel(container, manager, { toggleButton, onReviewed
     }
   }
 
+  async function load() {
+    const [pending, bots, clips, comments] = await Promise.all([
+      listPending(),
+      listPendingBots().catch(() => []),
+      listPendingClips().catch(() => []),
+      listPendingComments(),
+    ]);
+    const count =
+      pending.notes.length + pending.sketches.length + pending.sounds.length + bots.length + clips.length + comments.length;
+    toggleButton.textContent = count ? `🛡 Review (${count})` : '🛡 Review';
+    toggleButton.classList.toggle('review-waiting', count > 0);
+    return { pending, bots, clips, comments, count };
+  }
+
+  // Count only, for the badge and the sign-in notice; quiet on failure.
+  let lastCount = 0;
+  async function checkQueue({ announce } = {}) {
+    try {
+      const { count } = await load();
+      if (count && (announce || count > lastCount)) {
+        toast?.(`${count} waiting for review. Open 🛡 Review.`);
+      }
+      lastCount = count;
+    } catch {}
+  }
+
   async function render() {
     list.textContent = 'Loading…';
-    let pending;
-    let bots = [];
-    let clips = [];
+    let pending, bots, clips, comments, count;
     try {
-      [pending, bots, clips] = await Promise.all([
-        listPending(),
-        listPendingBots().catch(() => []),
-        listPendingClips().catch(() => []),
-      ]);
+      ({ pending, bots, clips, comments, count } = await load());
+      lastCount = count;
     } catch (err) {
       list.textContent = `Couldn't load: ${err.message}`;
       return;
     }
-    const count = pending.notes.length + pending.sketches.length + pending.sounds.length + bots.length + clips.length;
-    toggleButton.textContent = count ? `🛡 Review (${count})` : '🛡 Review';
     list.textContent = '';
     if (!count) list.append(el('p', 'explain-hint', 'Nothing waiting.'));
+
+    for (const c of comments) {
+      const card = el('div', 'review-card');
+      card.append(
+        el('div', 'review-meta', `Comment · ${c.sketch_id} · @${c.author?.username ?? '?'} · ${new Date(c.created_at).toLocaleString()}`),
+        el('div', 'review-body', c.body)
+      );
+      const row = el('div', 'review-actions');
+      row.append(
+        button('Approve', 'approve', () => decide('comments', c.id, 'approved')),
+        button('Reject', 'reject', () => decide('comments', c.id, 'rejected'))
+      );
+      card.append(row);
+      list.append(card);
+    }
 
     for (const note of pending.notes) {
       const card = el('div', 'review-card');
@@ -172,10 +206,26 @@ export function createReviewPanel(container, manager, { toggleButton, onReviewed
 
   container.querySelector('[data-role="refresh"]').addEventListener('click', render);
 
+  // While the admin is signed in: a notice on sign-in if anything is waiting,
+  // then a quiet re-check every few minutes (another notice only if it grows).
+  const RECHECK_MS = 3 * 60 * 1000;
+  let recheck = null;
+  let wasAdmin = false;
   onAuthChange(() => {
-    toggleButton.classList.toggle('hidden', !isAdmin());
-    if (isAdmin()) render();
-    else container.classList.add('hidden');
+    const admin = isAdmin();
+    toggleButton.classList.toggle('hidden', !admin);
+    if (admin && !wasAdmin) {
+      checkQueue({ announce: true });
+      recheck = setInterval(() => {
+        if (document.visibilityState === 'visible') checkQueue();
+      }, RECHECK_MS);
+    }
+    if (!admin) {
+      clearInterval(recheck);
+      recheck = null;
+      container.classList.add('hidden');
+    }
+    wasAdmin = admin;
   });
 
   return { show: render };

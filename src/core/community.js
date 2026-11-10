@@ -116,7 +116,7 @@ export async function listComments(sketchId) {
   return check(
     await supabase
       .from('comments')
-      .select(`id, body, created_at, user_id, ${AUTHOR}`)
+      .select(`*, ${AUTHOR}`) // includes status once 0008_comment_review.sql has run
       .eq('sketch_id', sketchId)
       .order('created_at', { ascending: true })
       .limit(200)
@@ -124,7 +124,7 @@ export async function listComments(sketchId) {
 }
 
 export async function addComment(sketchId, body) {
-  return check(await supabase.from('comments').insert({ sketch_id: sketchId, body }).select('id').single());
+  return check(await supabase.from('comments').insert({ sketch_id: sketchId, body }).select('*').single());
 }
 
 export async function deleteComment(id) {
@@ -266,6 +266,16 @@ export async function listPendingBots() {
 }
 
 // ---------- admin review ----------
+
+// Empty until 0008_comment_review.sql has run (no status column yet).
+export async function listPendingComments() {
+  const { data, error } = await supabase
+    .from('comments')
+    .select(`id, sketch_id, body, created_at, ${AUTHOR}`)
+    .eq('status', 'pending')
+    .order('created_at');
+  return error ? [] : data;
+}
 
 export async function listPending() {
   const [notes, sketches, sounds] = await Promise.all([
