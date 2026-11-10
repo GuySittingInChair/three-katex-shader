@@ -2406,7 +2406,53 @@ redshift distances, the fingers of God smear out small scales; with real distanc
 
 ---
 
-## 61. My notes
+## 61. The Stars Within 100 Parsecs, annotated
+
+File: `src/sketches/gaiaNeighbourhood.js`
+
+256,326 real stars from ESA's Gaia spacecraft (data release 3): every star within 100 parsecs (326
+light-years) whose distance is known to better than 10 %, with a clean measurement (RUWE < 1.4) and a
+colour. `tools/gaia/build_gaia.py` downloads them from the Gaia archive.
+
+**Parallax.** As Earth goes round the Sun, a nearby star seems to wobble against far-away ones. The
+size of the wobble is its parallax ϖ, and its distance is d = 1/ϖ: d in parsecs when ϖ is in
+arcseconds, or d = 1000/ϖ with ϖ in milliarcseconds. That's what a parsec means: the distance at which
+the wobble is one arcsecond.
+
+**The bubble.** The Galactic plane is drawn flat, with the Galactic centre to the right. At this scale
+stars fill the bubble almost evenly. The green knot is the Hyades, the nearest star cluster, 47 pc away
+in Taurus. You can see it with the naked eye as the V of stars round Aldebaran (Aldebaran itself is a
+foreground star, not a member).
+
+**Drift.** Gaia measures how fast a star moves across the sky (its proper motion, μ) and, for about
+half of these stars, how fast it moves towards or away from us (radial velocity v_r, from the Doppler
+shift of its spectrum). The sideways speed is v_tan = 4.74 μ/ϖ km/s (μ in arcseconds per year, ϖ in
+arcseconds). With both, every star has a 3D velocity and moves in a straight line, x(t) = x₀ + v t,
+here for ±1.5 million years. 1 km/s is 1.02 parsecs per million years. Only the 132,504 stars with
+both speeds move; the rest fade out. The Hyades members share one velocity, so they travel together
+while everything round them spreads out. 305 members were found by position and shared motion; their
+mean velocity comes out as (−42.3, −19.3, −1.3) km/s, against the published (−42.2, −19.0, −1.5).
+
+**The Hertzsprung–Russell diagram.** Each star moves to a point given by its colour (BP − RP: blue to
+the left, red to the right) and true brightness, the absolute magnitude M_G = G + 5 log₁₀(ϖ/100 mas). That
+is how bright it would look from 10 pc. Smaller magnitudes are brighter, so up is brighter. Most stars
+lie on the **main sequence**, burning hydrogen; where a star sits on it depends on its mass. **White
+dwarfs**, the leftover cores of dead stars, make a second line below. **Giants**, swollen old stars, sit
+at the top right. The Sun (green ring) is an ordinary main-sequence star. The Hyades, all the same age,
+make one thin line.
+
+| LaTeX | You write | Meaning |
+|---|---|---|
+| `\varpi` | `\varpi` | varpi: parallax |
+| `\mu` | `\mu` | mu: proper motion, how fast it crosses the sky |
+| `v_{\text{tan}},\ v_r` | `v_{\text{tan}},\ v_r` | sideways speed, speed along our line of sight |
+| `M_G` | `M_G` | absolute magnitude in Gaia's G band |
+| `BP - RP` | `BP - RP` | colour: blue-band minus red-band magnitude |
+| `\log_{10}` | `\log_{10}` | logarithm base 10 |
+
+---
+
+## 62. My notes
 
 Add your own findings, questions and discoveries here.
 
