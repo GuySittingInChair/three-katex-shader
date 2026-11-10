@@ -2452,7 +2452,47 @@ make one thin line.
 
 ---
 
-## 62. My notes
+## 62. From the Whole Sky to One Galaxy, annotated
+
+File: `src/sketches/skyZoom.js`
+
+One continuous zoom, about 26,000 times, from 78° of the southern sky to a single spiral galaxy in the
+Webb deep field (§59). Every level is real data, and they all line up because they share one
+projection.
+
+**The projection.** Imagine a flat sheet touching the sky at the target galaxy. Each star is drawn where
+the line from you to it pierces the sheet (the *gnomonic* or TAN projection, what a camera does). The
+sheet's coordinates ξ, η are called standard coordinates. Every image here was made in this projection,
+centred on the same galaxy, so each level drops exactly onto the one before. East is on the left, as
+on every sky map: you're looking up, not down.
+
+**The zoom.** The view's half-height on the sheet is h(t) = h₀e^{−kt}. It shrinks by the same factor
+every second (×10 every 9.5 s), so every power of ten takes the same time. The angle across the view is
+2·atan(h), which is nearly 2h once the view is small.
+
+**The levels.**
+- *Gaia stars*, drawn live (§61): stars brighter than G = 8.5 out to 62°, G = 12 to 15°, G = 16 to 2.9°. A
+  zoomed-in telescope collects light from a smaller patch, so it shows fainter stars. Here the faintest
+  magnitude drawn deepens by 2.5 for every tenfold zoom.
+- *Digitized Sky Survey 2*: glass photographic plates from the UK Schmidt telescope in Australia,
+  scanned. Blue, red and infrared plates make the colour. The circle is the full Moon (31′ across).
+- *Webb*: the JADES picture from §59 (the square), then the target at Webb's full resolution, 0.03″ a
+  pixel. At the end the view is less than a hundredth of the Moon's width.
+
+**The galaxy.** Its redshift comes from its colours (z ≈ 1.08, between 1.05 and 1.13). Its light set off
+8.2 billion years ago, when the universe was 5.5 billion years old. The Sun is 4.6 billion years old, so
+the light had already been travelling for more than half its journey when the Sun formed.
+
+| LaTeX | You write | Meaning |
+|---|---|---|
+| `h_0 e^{-kt}` | `h_0 e^{-kt}` | exponential shrink: same factor each second |
+| `k` | `k` | the zoom rate, per second |
+| `\xi,\ \eta` | `\xi,\ \eta` | xi, eta: standard coordinates on the tangent sheet |
+| `'` and `''` | `'` and `''` | arcminute (1/60°) and arcsecond (1/3600°) |
+
+---
+
+## 63. My notes
 
 Add your own findings, questions and discoveries here.
 

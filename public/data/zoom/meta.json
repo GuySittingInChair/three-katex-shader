@@ -1,0 +1,50 @@
+{
+"target": {
+"ra": 53.1661861,
+"dec": -27.7875755,
+"z": 1.08,
+"zlo": 1.048,
+"zhi": 1.131,
+"name": "JADES DR2 deep-field galaxy, photometric z"
+},
+"stars": {
+"count": 55123,
+"fields": [
+"xi",
+"eta",
+"G",
+"bp_rp"
+]
+},
+"levels": [
+{
+"file": "dss_1.jpg",
+"size": 0.017453292519943295,
+"cx": 0.0,
+"cy": 0.0,
+"source": "DSS2 (photographic, 1980s\u201390s) via NASA SkyView"
+},
+{
+"file": "dss_q.jpg",
+"size": 0.004363323129985824,
+"cx": 0.0,
+"cy": 0.0,
+"source": "DSS2 (photographic, 1980s\u201390s) via NASA SkyView"
+},
+{
+"file": "jades_96.jpg",
+"size": 0.0004653389094648384,
+"cx": -5.7818597764937715e-05,
+"cy": -6.658589015213084e-05,
+"source": "JWST NIRCam, JADES"
+},
+{
+"file": "jades_19.jpg",
+"size": 9.306778189296768e-05,
+"cx": 5.668935319787279e-07,
+"cy": -2.3836624869039114e-06,
+"source": "JWST NIRCam, JADES (full resolution)"
+}
+],
+"credit": "Stars: ESA/Gaia/DPAC. Wide images: Digitized Sky Survey 2 (STScI, AAO/UKSTU), via NASA SkyView. Deep field: NASA, ESA, CSA, STScI, JADES Collaboration."
+}
