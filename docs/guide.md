@@ -2360,7 +2360,53 @@ evenly spaced. With **where they are now**, they bunch up at the far end.
 
 ---
 
-## 60. My notes
+## 60. The Cosmic Web, Measured, annotated
+
+File: `src/sketches/sdssCosmicWeb.js`
+
+597,968 real galaxies from the Sloan Digital Sky Survey (data release 18). SDSS measured a spectrum,
+and so a redshift, for every galaxy brighter than magnitude 17.77 in about a fifth of the sky (8,269 square
+degrees). `tools/sdss/build_sdss.py` downloads them from the SDSS SkyServer and works out the Coma and
+clustering numbers below.
+
+**Sky, then depth.** At first every galaxy is on one sphere, which is all a picture of the sky can show.
+Then each moves out to its distance, D = (c/H₀)∫dz/E(z), the same formula as in §59. This close (z < 0.2)
+it's nearly Hubble's law, D ≈ cz/H₀. The web appears.
+
+**The slice.** Only galaxies within 12 Mpc of a plane through us are kept, like the famous SDSS "pizza
+slice" pictures. Walls and filaments surround voids tens of megaparsecs across. The first slice is the
+celestial equator, which cuts the Sloan Great Wall. Far away only bright galaxies pass the magnitude
+limit, so the fan thins out and turns redder with distance. That's how the survey was selected, not how
+the universe is.
+
+**Coma's finger of God.** Redshift measures all of a galaxy's speed away from us: the expansion H₀d plus
+its own orbit inside a cluster, cz = H₀d + v. The 591 galaxies of the Coma cluster orbit at about
+σ_v = 955 km/s (measured here, as the standard deviation of their velocities after 3σ clipping), so in
+redshift they spread over about 2σ_v/H₀ ≈ 28 Mpc along our line of sight. The cluster itself is only a few
+Mpc across. Pulling every member back to the cluster's distance shows its real shape.
+
+**ξ(r), how clustered galaxies are.** Count the pairs of galaxies a distance r apart (DD), the pairs of
+random points scattered over the same patch of sky and the same distances (RR), and the mixed pairs (DR).
+The Landy–Szalay estimator ξ = (DD − 2DR + RR)/RR is how many *more* pairs there are than chance: ξ = 1
+means twice as many. The sample is volume-limited (only galaxies bright enough to be seen anywhere out
+to z = 0.1, so nothing fades out with distance). The sphere in the sketch does the same count round one
+galaxy. Measured: ξ ≈ (r/r₀)^−γ with r₀ = 10.2 Mpc (6.9 h⁻¹ Mpc) and γ = 1.36. Because these are
+redshift distances, the fingers of God smear out small scales; with real distances γ is about 1.8.
+
+| LaTeX | You write | Meaning |
+|---|---|---|
+| `\xi(r)` | `\xi(r)` | xi of r: the two-point correlation function |
+| `DD,\ DR,\ RR` | `DD,\ DR,\ RR` | pair counts: data–data, data–random, random–random |
+| `r_0` | `r_0` | correlation length: where ξ = 1 |
+| `\gamma` | `\gamma` | gamma: how steeply ξ falls |
+| `\sigma_v` | `\sigma_v` | sigma v: spread of velocities in a cluster |
+| `v_{\text{orbit}}` | `v_{\text{orbit}}` | a galaxy's own speed, on top of the expansion |
+| `M_r` | `M_r` | absolute magnitude in the r band (smaller = brighter) |
+| `\hat n` | `\hat n` | n hat: a unit vector, here the slice's normal |
+
+---
+
+## 61. My notes
 
 Add your own findings, questions and discoveries here.
 
