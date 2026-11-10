@@ -2304,7 +2304,63 @@ say so.
 
 ---
 
-## 59. My notes
+## 59. Webb Deep Field in Depth, annotated
+
+File: `src/sketches/webbDeepField.js`
+
+A real James Webb picture, taken apart. It's the JADES deep field around the Hubble Ultra Deep Field:
+a square 96 arcseconds across, about a nineteenth of the width of the full Moon. Every object in it
+sits at its real distance. **Tap any galaxy** to fly to it and read its numbers; tap empty sky to let
+the tour carry on. The **Depth shows** dial switches between where the galaxies are now and how far
+their light travelled.
+
+**Where the data comes from.** Everything is public: the JADES team's images and catalogue (data
+release 2, at the Mikulski Archive for Space Telescopes) and their spectroscopic redshifts (release
+4). `tools/deepfield/` downloads only the 3200 × 3200-pixel square needed out of 11 GB images, makes the
+colour picture, and cuts every one of the 3945 detected objects out along the outline the JADES team
+drew round it (their *segmentation map*). The colours are infrared: Webb sees 1.15, 2.0 and 4.4 µm,
+shown as blue, green and red.
+
+**Redshift, z.** The universe has stretched since the light left, and the light stretched with it:
+λ_seen = (1 + z) λ_sent. For 140 galaxies z was measured from a spectrum (lines at known wavelengths,
+shifted). For the rest it's a best guess from the colours alone (*photometric*), with a range: tap one
+and a blue bar shows every distance it could be at.
+
+**From redshift to distance.** How far away a galaxy is *now* is the comoving distance
+
+D_C = (c/H₀) ∫₀^z dz′ / E(z′),  E(z) = √(Ω_m(1+z)³ + Ω_r(1+z)⁴ + Ω_Λ)
+
+E(z) says how fast the universe was expanding at redshift z compared with today. The sketch adds up the
+integral once at load (Simpson's rule) and reads a table after that. It agrees with astropy's Planck 2018
+model to 0.07 %. How long the light took is the lookback time t = ∫₀^z dz′/((1+z′)H(z′)).
+
+**Why the picture doesn't change at first.** Each galaxy is placed at D(z) × (θx, θy, 1), where θ is
+its position in the picture. That only slides it along its own line of sight, so from where we stand
+(the origin) it's in exactly the same place. Only when the camera moves does the depth show.
+
+**The field is a needle.** It is 0.027° wide and 10 billion parsecs deep. Drawn to scale you'd see a
+line, so it's stretched sideways 1000×. That doesn't change the view from the origin either.
+
+**Two kinds of distance.** Light from a z = 3 galaxy travelled for 11.6 billion years, so 3.6 Gpc (11.6
+billion light-years). But the galaxy is now 6.5 Gpc away, because space kept stretching behind the
+light. With **Depth shows: how far their light came**, the squares (1, 3, 5 … 13 billion years ago) are
+evenly spaced. With **where they are now**, they bunch up at the far end.
+
+| LaTeX | You write | Meaning |
+|---|---|---|
+| `z` | `z` | redshift: how much the light has been stretched, minus one |
+| `D_C` | `D_C` | comoving distance: how far it is now |
+| `E(z)` | `E(z)` | expansion rate then, divided by today's |
+| `H_0` | `H_0` | Hubble constant: today's expansion rate, 67.66 km/s per megaparsec |
+| `\Omega_m` | `\Omega_m` | fraction of the universe that is matter (0.311) |
+| `\Omega_\Lambda` | `\Omega_\Lambda` | fraction that is dark energy (0.689) |
+| `t_{\text{light}}` | `t_{\text{light}}` | lookback time: how long the light travelled |
+| `\lambda_{\text{seen}}` | `\lambda_{\text{seen}}` | wavelength we receive |
+| `\text{Gpc}` | `\text{Gpc}` | gigaparsec: 3.26 billion light-years |
+
+---
+
+## 60. My notes
 
 Add your own findings, questions and discoveries here.
 
