@@ -2492,7 +2492,69 @@ the light had already been travelling for more than half its journey when the Su
 
 ---
 
-## 63. My notes
+## 63. The First Chirp, annotated
+
+File: `src/sketches/gwChirp.js`
+
+GW150914: the first gravitational wave anyone recorded, on 14 September 2015, from two black holes
+merging about 1.3 billion light-years away. Everything here comes from the public LIGO recordings
+(32 seconds from each detector, 4096 samples a second, from the Gravitational Wave Open Science
+Center), worked through the way the discovery was. `tools/gw/build_gw.py` does the analysis.
+
+**Strain.** A passing wave stretches space one way and squeezes it the other. LIGO measures the
+change in its 4 km arms as a fraction, the strain h = ΔL/L. This wave peaked near 10⁻²¹: the arms
+changed by about a four-hundredth of a proton's width. The raw record swings about 600 times wider
+than that, mostly from ground motion at low frequencies.
+
+**Whitening.** The noise spectrum √S(f) says how loud the noise is at each frequency (Welch's method:
+average the spectra of many 4-second pieces). Dividing the data by it makes every frequency's noise
+equally loud, so a signal at a quiet frequency can stand out. Then keep 35–350 Hz, where the detectors
+hear best, and notch out the sharp lines (mains power at 60 Hz and its multiples, mirror-suspension
+"violin" modes).
+
+**Two detectors.** Hanford (Washington) and Livingston (Louisiana) are 3002 km apart, 10 ms for light.
+The same chirp shows in both. Sliding one against the other, the best match comes with Livingston
+7.3 ms earlier and turned upside down (the two sites' arms point about 90° apart). A delay that big
+means the source lay on a ring of sky; two detectors can't narrow it further.
+
+**The search.** A *matched filter* slides a template of the expected wave along the data and
+measures how much of the data looks like it, in units of the noise: the signal-to-noise ratio ρ. Here
+the template is the simplest chirp (Newton's gravity plus the energy the waves carry away). Over 30
+seconds it finds one spike, ρ = 16.9 for both detectors together. Nothing else in the record goes above
+4.9. LIGO's full analysis, with templates from general relativity, got 24.
+
+**The merger, replayed.** About 60 times slower. The ripples on the sheet *are* the measured signal:
+Hanford plus the shifted Livingston, sent outward so that a point at distance r shows the signal from
+a time r/v earlier. The spiral pattern uses the signal and its quarter-cycle-shifted partner (the
+Hilbert transform), because a pair of orbiting masses sends out a two-armed spiral. The two holes
+orbit at half the wave's frequency (one wave crest for each half-orbit), and their separation comes
+from Kepler's law R³ = GM/ω². Near the end they move at a quarter of the speed of light. The data
+outside the chirp is only noise, so it is faded out rather than sent from the holes.
+
+**Weighing it.** For an inspiral the frequency rises as f^{−8/3} = (256/5)π^{8/3}(G𝓜/c³)^{5/3}(t_c − t),
+a straight line in time. 𝓜 = (m₁m₂)^{3/5}/(m₁+m₂)^{1/5} is the *chirp mass*, the one combination of
+the two masses that sets how fast the chirp rises. The frequency is read off where the signal crosses
+zero (two crossings per cycle). The 11 loudest half-cycles give 𝓜 = 30.6 M☉. The wave was stretched
+by the expansion of the universe on the way (z ≈ 0.09), so dividing by 1.09 gives 28.1 M☉; LIGO
+published 28.6. With only 11 points the range is wide, 26 to 37.
+
+**Why black holes.** Equal masses give the smallest total for a given chirp mass: 70 M☉. At the peak
+frequency, 153 Hz, Kepler puts two such masses 343 km apart. Their horizons (2GM/c² each) would add to
+208 km. Neutron stars that heavy can't exist, and stars are far too big. Only black holes fit.
+
+| LaTeX | You write | Meaning |
+|---|---|---|
+| `h = \Delta L / L` | `h = \Delta L / L` | strain: fractional change in length |
+| `\sqrt{S_n(f)}` | `\sqrt{S_n(f)}` | noise amplitude at frequency f |
+| `\rho` | `\rho` | rho: signal-to-noise ratio of the matched filter |
+| `\langle d, h \rangle` | `\langle d, h \rangle` | noise-weighted overlap of data and template |
+| `\mathcal{M}` | `\mathcal{M}` | chirp mass |
+| `t_c` | `t_c` | time of coalescence |
+| `M_\odot` | `M_\odot` | the Sun's mass |
+
+---
+
+## 64. My notes
 
 Add your own findings, questions and discoveries here.
 
