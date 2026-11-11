@@ -2936,7 +2936,54 @@ calibrate the supernovae, and the supernovae give the Hubble constant (see *The 
 
 ---
 
-## 72. My notes
+## 72. The Grand Tour, annotated
+
+File: `src/sketches/voyagerTour.js`
+
+Voyager 2 launched on 20 August 1977 and Voyager 1 on 5 September; a line-up of the outer planets that comes
+once every 175 years let one craft visit all four giants. The positions come from JPL Horizons, the
+trajectories NASA's navigators reconstructed from tracking, every two days from 1977 to now; around each
+flyby `tools/voyager/build_voy.py` also takes planet-centred positions every two minutes.
+
+**The tour.** Orange is Voyager 1, blue Voyager 2; the faint tracks are the planets' own paths over the
+same years (Uranus and Neptune haven't finished an orbit since 1977). The clock slows near each flyby and
+a ring flashes round the planet. Closest approaches, from the data: Voyager 1 passed Jupiter at 348,000 km
+(4.9 Jupiter radii) and Saturn at 184,000 km; Voyager 2 passed Jupiter at 721,000 km, Saturn at 161,000,
+Uranus at 107,000 and Neptune at 29,000 km from its centre, under 5000 km above the clouds.
+Voyager 1 was bent up out of the plane of the planets at Saturn, to pass Titan; Voyager 2 down, at Neptune.
+
+**Speed against distance.** Speed around the Sun, with distance on a log scale. The dashed line is the
+escape speed √(2GM☉/r): the speed needed to never come back. Coasting outward, each craft slows as the Sun
+pulls back; the spikes are the dive into each planet's gravity well. After Jupiter both were above the dashed
+line for good: Voyager 2 went from 10.0 to 19.9 km/s there, with 18.2 needed.
+
+**The gravity assist.** How can a planet speed a craft up without an engine? In the planet's own frame, the
+craft swings past on a hyperbola: it leaves with the same speed it came in with (its *v∞*, here measured as
+√(v² − 2GM/r) a day before and after: 7.64 and 7.62 km/s at Jupiter; 16.74 and 16.74 at Neptune), just turned,
+by 97° at Jupiter and 54° at Neptune. The turn angle follows from 2 arcsin(1/e), with eccentricity
+e = 1 + r v∞²/GM. But the planet itself is moving round the Sun (grey arrow), and the craft's speed around
+the Sun is that plus v∞ (gold arrow, which can point anywhere on the dashed circle). Turn v∞ towards the
+planet's direction of motion and the sum gets longer (blue arrow); turn it away and it gets shorter. Jupiter
+loses exactly the momentum Voyager gains: for an 800 kg craft gaining 10 km/s, Jupiter's speed changed
+by about 4×10⁻²¹ m/s. At
+Neptune the turn was chosen to aim at Triton, not for speed, and Voyager 2 came away slower: 18.9 to 16.7 km/s.
+
+**Today** (10 November 2026): Voyager 1 is 172.3 AU from the Sun and its signals take 23.9 hours to arrive;
+it will pass one light-day in early 2027. Voyager 2 is 144.4 AU out. The white dots mark where each crossed
+the heliopause, the edge of the bubble blown by the solar wind: Voyager 1 in August 2012 at 121.6 AU,
+Voyager 2 in November 2018 at 119.0 AU. The dashed ring at 120 AU is only a guide; the real boundary is
+not a sphere.
+
+| LaTeX | You write | Meaning |
+|---|---|---|
+| `v_\infty` | `v_\infty` | speed relative to the planet, far from it |
+| `M_\odot` | `M_\odot` | the Sun's mass |
+| `\sqrt{2GM_\odot/r}` | `\sqrt{2GM_\odot/r}` | escape speed at distance r |
+| `^\circ` | `^\circ` | degrees |
+
+---
+
+## 73. My notes
 
 Add your own findings, questions and discoveries here.
 
