@@ -2602,7 +2602,53 @@ gap is the *Hubble tension*, still unexplained.
 
 ---
 
-## 65. My notes
+## 65. The Sun's Eleven-Year Heartbeat, annotated
+
+File: `src/sketches/sunCycle.js`
+
+Two of the longest-running records in science. `tools/sun/build_sun.py` makes the data.
+- **Sunspot groups, 1874–2016.** The Royal Greenwich Observatory photographed the Sun every day from
+  1874; the US Air Force and NOAA carried on from 1977. NASA Marshall compiled it: 246,132 sightings of
+  a group on a day, each with its latitude, longitude and area. Areas after 1976 are multiplied by 1.4
+  to match the older observers, as the archive's own derived files do.
+- **The sunspot number, monthly since 1749,** from the World Data Center SILSO in Brussels.
+
+**Carrington rotations.** The Sun isn't solid: its equator turns in about 25 days, its poles in about
+35. Richard Carrington picked 27.2753 days (as seen from the moving Earth) as the standard turn, and
+numbered every turn from November 1853. A *Carrington longitude* is fixed on that rotating frame. Each
+group here is averaged over one rotation and painted at its Carrington longitude and latitude. Spots
+are drawn twice the radius of a disc with their area, because a group is several spots spread out.
+
+**Why spots are dark.** A spot is where a bundle of magnetic field, thousands of times Earth's, breaks
+through the surface. The field stops the hot gas from churning up from below, so the spot is about
+1500 K cooler than the 5800 K surface around it, and looks dark beside it.
+
+**The butterfly.** 1874 → 2016, one rotation after another. Underneath, the area covered by spots is
+plotted against time and latitude (on a sine scale, so each strip is the same area of Sun). Each cycle
+begins with spots near ±25° and ends with them near the equator, so each one draws a pair of wings.
+The gold curve is the smoothed sunspot number on the same time axis.
+
+**The record.** Wolf's number R = 10g + s counts groups g and individual spots s. The smoothed curve is
+the standard 13-month running mean. Its minima give 24 complete cycles since 1755, averaging 11.03 years
+(standard deviation 1.15). The periodogram (how well a sine wave of each period fits the whole record)
+peaks at 11.00 years. The low maxima around 1800–1830 are the Dalton Minimum. The latest maximum in the
+data is late 2024.
+
+**Spörer's law.** For every cycle from 1878 to 2009, take each spot's latitude (north or south, as a
+size) and its time since that cycle's minimum, then average by area in half-year steps. A straight line
+through the cycle gives 23.4° at the minimum, falling 1.6° a year. The band where the Sun's internal
+dynamo pushes field to the surface drifts towards the equator as each cycle goes on.
+
+| LaTeX | You write | Meaning |
+|---|---|---|
+| `R = 10g + s` | `R = 10g + s` | Wolf's sunspot number: groups and spots |
+| `\bar T` | `\bar T` | the mean cycle length |
+| `\lvert\bar\phi\rvert` | `\lvert\bar\phi\rvert` | mean distance from the equator, in latitude |
+| `\phi_0,\ k` | `\phi_0,\ k` | the line's starting latitude and drift per year |
+
+---
+
+## 66. My notes
 
 Add your own findings, questions and discoveries here.
 
