@@ -2715,8 +2715,8 @@ Mars-crossers. Violet: centaurs and the trans-Neptunian ones.
 
 **Turning with Jupiter.** Rotate everything so Jupiter stays put. The Trojans share Jupiter's orbit,
 held in two clouds 60° ahead (L4) and behind (L5), where the Sun's and Jupiter's pull balance. The
-counts differ, 6697 ahead against 3936 behind. That's a real, still-unexplained imbalance, not only
-the order they happened to be found in. The Hildas go round three times for Jupiter's two, and their
+counts differ, 6697 ahead against 3936 behind. Some of that is where surveys happened to look, but
+the leading cloud still comes out bigger after allowing for it, and why is still debated. The Hildas go round three times for Jupiter's two, and their
 closest approaches to the Sun line up into a triangle that turns with Jupiter.
 
 **The Kirkwood gaps.** Move each asteroid out to its orbit's average distance a. Rings open where
