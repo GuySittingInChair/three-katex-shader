@@ -2887,7 +2887,56 @@ gives M ∝ v^3.6, scatter 0.23 dex; published fits with measurement errors give
 
 ---
 
-## 71. My notes
+## 71. The Cosmic Yardstick, annotated
+
+File: `src/sketches/cepheids.js`
+
+A Cepheid is a yellow supergiant that swells and shrinks every few days to months, brightening and fading as
+it goes. In 1912 Henrietta Leavitt noticed that, in the Small Magellanic Cloud (where all the stars are at
+about the same distance), the slower a Cepheid pulses, the brighter it is. Measure a Cepheid's period and
+you know how bright it really is; compare with how bright it looks and you know how far away it is. The data
+is Gaia DR3's Cepheid catalogue (15,021 stars, 7637 classical fundamental-mode Cepheids);
+`tools/cepheids/build_ceph.py` makes the data and every number.
+
+**The Cloud.** 2201 Cepheids in the Large Magellanic Cloud, at their positions on the sky. Each one pulses
+with its own period (1 second = 2 days) and with the light-curve shape Gaia fitted to it: three Fourier
+terms, A₁[cos 2πφ + R₂₁ cos(4πφ + φ₂₁) + R₃₁ cos(6πφ + φ₃₁)], scaled to the measured peak-to-peak
+amplitude. The phases come from Gaia's time of maximum light, run forward to the day you load the page.
+The bright bar across the middle is the Cloud's stellar bar.
+
+**The law.** Period across (1 to 100 days, log scale), brightness up. The brightness is the *Wesenheit*
+magnitude W = G − 1.90 (BP − RP): dust makes stars both fainter and redder, and this combination of
+brightness and colour cancels it. A straight-line fit gives W = 16.01 − 3.33 log₁₀ P, with only 0.089 mag
+of scatter (some of it the Cloud's own depth).
+
+**The Milky Way.** To know how bright that really is, we need Cepheids whose distances we know without
+the law. Gaia measures *parallax* ϖ, the tiny yearly shift of a star as the Earth orbits; the distance is
+1/ϖ (ϖ in milliarcseconds gives kiloparsecs). Gaia's parallaxes have a small known offset, corrected here
+with the published recipe (Lindegren et al. 2021; median −26 μas for these stars). 245 Cepheids have
+parallaxes good to 5%, out to 4.9 kpc around the Sun (the gold cross; the dashed line points to the
+Galactic centre). The absolute magnitude is M = W + 5 log₁₀ ϖ − 10.
+
+**The distance.** With the Cloud's slope, the nearby Cepheids give M = −2.59 − 3.33 log₁₀ P (scatter 0.19).
+The Cloud's line is 18.60 magnitudes fainter. That *distance modulus* μ means a distance of 10^(μ/5+1)
+parsecs = 52.5 kpc. One more correction: the Cloud's stars have fewer heavy elements (0.41 dex less iron),
+and metal-poor Cepheids are slightly fainter. Taking −0.3 mag per dex (published values run −0.2 to −0.4)
+gives μ = 18.48, 49.6 kpc. That this exactly matches the best independent measurement (eclipsing binaries,
+49.59 kpc, Pietrzyński et al. 2019) is partly luck: over the published range of the metallicity term the
+answer runs from about 48.7 to 50.5 kpc.
+
+This is the first rung of the distance ladder: Cepheids in galaxies that also had a type Ia supernova
+calibrate the supernovae, and the supernovae give the Hubble constant (see *The Universe Is Speeding Up*).
+
+| LaTeX | You write | Meaning |
+|---|---|---|
+| `\varpi` | `\varpi` | parallax (a curly pi) |
+| `\mu` | `\mu` | distance modulus |
+| `\log_{10}` | `\log_{10}` | base-10 logarithm |
+| `\Delta[\text{Fe/H}]` | `\Delta[\text{Fe/H}]` | difference in iron abundance (dex) |
+
+---
+
+## 72. My notes
 
 Add your own findings, questions and discoveries here.
 
