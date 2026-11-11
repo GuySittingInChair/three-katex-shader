@@ -2648,7 +2648,97 @@ dynamo pushes field to the surface drifts towards the equator as each cycle goes
 
 ---
 
-## 66. My notes
+## 66. Six Planets in a Star's Flicker, annotated
+
+File: `src/sketches/keplerEleven.js`
+
+Kepler-11 is a Sun-like star about 2000 light-years away. The Kepler space telescope measured its
+brightness every 30 minutes for four years (2009–2013). Its six planets are found here from scratch
+in the public light curve. `tools/kepler/build_kep.py` runs the search.
+
+**The raw record.** Kepler rolled a quarter turn every three months to keep its solar panels on the
+Sun, so each quarter puts the star on a different patch of the camera, with its own level and drifts.
+
+**Flattening.** Each quarter is divided by its median, then by a running median over 1.5 days. Planet
+transits here last at most about 10 hours, so a 1.5-day median follows the star's slow changes but not
+the dips. What's left scatters by 173 parts per million (ppm) every 30 minutes, and the dips are a few
+hundred ppm: hidden until many are stacked.
+
+**Box least squares (BLS).** For every trial period P (60,000 of them, 3 to 150 days) and duration,
+fold the light curve at P (stack every stretch of P days on top of each other) and fit a box-shaped
+dip. The period whose box stands out most from the noise is the strongest planet. Hide the points in
+its transits and search again, until the best box left is under signal-to-noise 10. Six planets come
+out, the deepest first. A seventh search finds nothing better than 7.4: noise.
+
+**What each one tells you.**
+- *Size.* A planet covers a fraction (R_p/R_⋆)² of the star's disc, so the depth δ gives
+  R_p = R_⋆√δ. These come out about 10% bigger than published, because a real star is darker at its
+  edge (limb darkening), which makes the middle of a transit deeper than a box would be. The published
+  values fit that shape.
+- *Distance.* Kepler's third law, a³ = P²M_⋆ (a in AU, P in years, M in Suns), with the star's mass
+  0.961 Suns.
+- *Periods* match the published ones to within 0.003 days. The six planets are all closer to their
+  star than Venus is to the Sun; five of them closer than Mercury.
+
+**The system.** The planets are placed where their measured period and transit time put them, and
+the real flattened light curve plays underneath. A dip is coloured when a measured orbit has that
+planet in front of the star at that moment, so each dip lines up with a planet crossing Kepler's line
+of sight (the dashed line). The star is drawn 6 times its true size and the planets 45 times, or
+neither would show.
+
+| LaTeX | You write | Meaning |
+|---|---|---|
+| `\delta` | `\delta` | transit depth (fraction of light blocked) |
+| `R_\star,\ R_p` | `R_\star,\ R_p` | radii of the star and the planet |
+| `R_\oplus` | `R_\oplus` | Earth's radius |
+| `\mathrm{median}_{1.5\,\text{d}}` | `\mathrm{median}_{1.5\,\text{d}}` | running median over 1.5 days |
+
+---
+
+## 67. Every Asteroid We've Numbered, annotated
+
+File: `src/sketches/asteroidBelt.js`
+
+All 895,910 numbered asteroids from NASA/JPL's Small-Body Database. To keep the download small the page
+draws 247,020 of them: every one outside the main belt, and the brightest in it. Every count and gap
+uses all of them. `tools/asteroids/build_ast.py` makes the data.
+
+**Orbits.** Each asteroid comes with six numbers: the orbit's size a, its stretch e, its tilt i, where
+it crosses the Earth's orbital plane Ω, where it comes closest to the Sun ω, and where along the orbit it
+was M at one date. To place it on any other date, advance M by n = √(GM_⊙/a³) per unit time, then solve
+Kepler's equation M = E − e sin E for E (a few Newton steps). That gives its position, recomputed for
+every asteroid on the graphics card every frame. The first view is today. The planets use JPL's
+approximate planetary elements.
+
+**Colours.** Blue: main belt. Green: Jupiter's Trojans. Orange: Hildas. Red: near-Earth asteroids. Pink:
+Mars-crossers. Violet: centaurs and the trans-Neptunian ones.
+
+**Turning with Jupiter.** Rotate everything so Jupiter stays put. The Trojans share Jupiter's orbit,
+held in two clouds 60° ahead (L4) and behind (L5), where the Sun's and Jupiter's pull balance. The
+counts differ, 6697 ahead against 3936 behind. That's a real, still-unexplained imbalance, not only
+the order they happened to be found in. The Hildas go round three times for Jupiter's two, and their
+closest approaches to the Sun line up into a triangle that turns with Jupiter.
+
+**The Kirkwood gaps.** Move each asteroid out to its orbit's average distance a. Rings open where
+almost nothing orbits: where an asteroid would go round exactly 3 times for Jupiter's once (3:1), or 5
+for 2, 7 for 3, 2 for 1. Kepler's third law puts each at a = a_J(q/p)^{2/3}. The repeated tugs from
+Jupiter at the same point in the orbit pump up the eccentricity until the asteroid is thrown out. The
+measured gaps sit on the predictions; the 3:1 gap holds 0.5% of the density beside it. The histogram is
+all 870,924 main-belt asteroids.
+
+**Families.** Plot a against sin i. The sharp clumps are *families*: the pieces of one asteroid broken
+up in a collision, still on similar orbits. Vesta, Koronis, Eos, Themis and Phocaea are the big ones.
+
+| LaTeX | You write | Meaning |
+|---|---|---|
+| `M = E - e\sin E` | `M = E - e\sin E` | Kepler's equation: mean and eccentric anomaly |
+| `n` | `n` | mean motion: radians per day |
+| `a_{p:q}` | `a_{p:q}` | the distance of the p:q resonance with Jupiter |
+| `\lambda_J` | `\lambda_J` | Jupiter's longitude |
+
+---
+
+## 68. My notes
 
 Add your own findings, questions and discoveries here.
 
