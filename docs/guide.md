@@ -2738,7 +2738,59 @@ up in a collision, still on similar orbits. Vesta, Koronis, Eos, Themis and Phoc
 
 ---
 
-## 68. My notes
+## 68. The Oldest Light, annotated
+
+File: `src/sketches/cmbPlanck.js`
+
+The cosmic microwave background (CMB): light released 380,000 years after the Big Bang, when the
+universe cooled enough for electrons and protons to form atoms and the fog cleared. It has travelled
+since then, stretched 1090 times by the expansion from visible light to microwaves. The map is Planck's
+2015 Commander map (ESA). `tools/cmb/build_cmb.py` measures the spectrum.
+
+**From inside.** We sit at the centre of the sphere this light comes from. It is 2.7255 K in every
+direction, give or take about 100 millionths of a kelvin (one part in 27,000). The colours show those
+differences: blue colder, red warmer.
+
+**The map.** Unrolled into the Mollweide projection, which keeps areas equal, in Galactic coordinates
+(the Milky Way's plane across the middle). Planck observed at nine frequencies. The CMB has the same
+spectrum at all of them, and the Galaxy's dust and gas don't, so combining them (Commander is one
+method) removes the Galaxy. The middle band is still the least trustworthy part.
+
+**Splitting by size.** Any pattern on a sphere can be written as a sum of spherical harmonics Y_ℓm,
+like a sound as a sum of tones. ℓ counts ripples: a ripple of degree ℓ is about 180°/ℓ across. Keeping
+only ℓ ≤ 20 leaves ripples wider than about 9°: regions that had never been in contact when the light
+set off. Keeping ℓ = 150–300 shows spots about 0.8° across (the circle is the full Moon). They are sound
+waves: the young universe was a hot plasma where gravity pulled matter in and light pressure pushed it
+back out, and these are the waves caught at the moment the light got away.
+
+**The power spectrum.** C_ℓ is the average of |a_ℓm|² over m: how much the temperature varies at
+degree ℓ. It's plotted as D_ℓ = ℓ(ℓ+1)C_ℓ/2π. Measured here:
+- *Two halves.* Planck's two half-missions are separate maps of the same sky with independent noise.
+  Multiplying one by the other (the cross-spectrum) keeps the sky and averages the noise away.
+- *A mask.* The Galactic plane and bright sources are masked (81% of sky kept), with the edges softened.
+  Dividing by the kept fraction corrects the power.
+- *The beam.* The map is blurred by a 10′ beam and by its pixels; the spectrum is divided by both.
+
+The peaks land at ℓ = 230, 538 and 815, where Planck's own spectrum (smoothed the same way) has 228,
+520 and 826. The error bars are *cosmic variance*: at each ℓ there are only 2ℓ+1 numbers to average, so
+even a perfect map can't do better.
+
+**What the first peak says.** It is the largest sound wave that had time to reach its first crest. Its
+real size is known from physics (about 145 Mpc today), so how big it looks says how light bends on the
+way to us. Near 1° means it hasn't bent: space is flat. The heights of the next peaks give the amounts
+of ordinary and dark matter.
+
+| LaTeX | You write | Meaning |
+|---|---|---|
+| `Y_{\ell m}` | `Y_{\ell m}` | spherical harmonic of degree ℓ, order m |
+| `a_{\ell m}` | `a_{\ell m}` | the map's amount of each harmonic |
+| `C_\ell` | `C_\ell` | power at degree ℓ |
+| `\mathcal{D}_\ell` | `\mathcal{D}_\ell` | the same, scaled so a flat line means equal power per log range |
+| `\hat n` | `\hat n` | a direction on the sky |
+
+---
+
+## 69. My notes
 
 Add your own findings, questions and discoveries here.
 
