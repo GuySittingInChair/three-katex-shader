@@ -2790,7 +2790,54 @@ of ordinary and dark matter.
 
 ---
 
-## 69. My notes
+## 69. Lighthouses of the Galaxy, annotated
+
+File: `src/sketches/pulsars.js`
+
+A pulsar is a neutron star: the collapsed core of a big star, more mass than the Sun in a ball about
+20 km across, spinning and magnetised. Beams from its magnetic poles sweep past us once a turn, like a
+lighthouse. The data is the ATNF Pulsar Catalogue (CSIRO, Australia), 3838 pulsars;
+`tools/pulsars/build_psr.py` makes the data and every derived number.
+
+**The Galaxy.** The 3679 with a position and distance, in the Milky Way (rings every 4 kpc; the gold
+cross is the Sun, 8.2 kpc from the centre). Most distances come from the *dispersion measure*: free
+electrons between us and the pulsar slow low radio frequencies more than high ones, so the pulse
+arrives later at low frequencies, and a model of the Galaxy's electrons turns that delay into a
+distance. Each pulsar blinks at its real rotation period. The ones faster than about 7 turns a second
+can't be shown on a 60-frames-a-second screen, so they glow steadily. Most of them are near the Sun
+only because nearby pulsars are easier to find.
+
+**The P–Ṗ diagram.** Period P across, and how fast the period grows, Ṗ (seconds per second), up, both
+on log scales. A spinning magnet radiates its spin away, and if that's all it does:
+- the surface magnetic field is B ≈ 3.2×10¹⁹ √(PṖ) gauss (grey lines, 10⁸ to 10¹⁴ G);
+- the *characteristic age* is τ = P/2Ṗ (blue lines, 1000 years to a billion);
+- the spin-down power is Ė = 4π²IṖ/P³, with I = 10⁴⁵ g cm² the neutron star's moment of inertia.
+
+Ordinary pulsars (blue) are born upper left and drift down and right as they slow. Below the red
+*death line* (an approximate one, B/P² = 1.7×10¹¹ G/s²) they're too slow to make radio beams. The
+magnetars (red), with fields near 10¹⁴–10¹⁵ G, sit top right.
+
+**The Crab.** P = 33.4 ms, Ṗ = 4.21×10⁻¹³. Its characteristic age comes to 1257 years. Chinese
+astronomers saw the supernova in 1054, 972 years ago: close, because τ assumes the pulsar was born
+spinning much faster than now. Its spin-down power is 4.5×10³⁸ erg/s, about 10⁵ Suns, and that's what
+keeps the Crab Nebula shining. Also ringed: Vela (green) and the magnetar next to the Milky Way's
+central black hole (red).
+
+**Millisecond pulsars** (gold, bottom left): old pulsars with weak fields that were spun back up by gas
+falling on from a companion star. 58% of them are still in binaries, against 2.3% of ordinary pulsars.
+(The 58% includes those in globular clusters, where close encounters often strip the companion away.)
+The fastest, in the cluster Terzan 5, turns 716 times a second.
+
+| LaTeX | You write | Meaning |
+|---|---|---|
+| `\dot P` | `\dot P` | rate the period grows (seconds per second) |
+| `\tau = P/2\dot P` | `\tau = P/2\dot P` | characteristic age |
+| `\dot E` | `\dot E` | spin-down power |
+| `I` | `I` | moment of inertia |
+
+---
+
+## 70. My notes
 
 Add your own findings, questions and discoveries here.
 
