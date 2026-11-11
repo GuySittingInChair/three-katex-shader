@@ -2837,7 +2837,57 @@ The fastest, in the cluster Terzan 5, turns 716 times a second.
 
 ---
 
-## 70. My notes
+## 70. The Missing Mass, annotated
+
+File: `src/sketches/missingMass.js`
+
+The data is SPARC (Lelli, McGaugh & Schombert 2016): 175 nearby disc galaxies. For each one, astronomers
+measured how fast its gas orbits at each radius (from the Doppler shift of hydrogen's 21 cm radio line, and
+of Hα light near the centre), and separately worked out how much the visible matter weighs: stars from
+Spitzer's 3.6 μm infrared light, gas from the hydrogen maps. Each curve point gives the measured speed and
+the speeds the gas, stellar disc and bulge alone would produce. `tools/sparc/build_sparc.py` makes the data
+and every fitted number.
+
+**The spin.** NGC 3198, 14 Mpc away. Every particle orbits at the measured speed for its radius, 1 second
+standing for 60 million years. The orange ghosts start in the same places but orbit at the speed the
+visible matter could hold them at, v² = GM(<r)/r. Near the centre the two agree; further out the ghosts
+fall behind. (The arms are drawn for the look; real spiral arms are density waves, not fixed groups of stars,
+so they don't wind up the way these do.)
+
+**The curve.** White crosses with error bars: the measured speed. Green, blue and red: gas, stars and bulge.
+Orange: all the visible matter together, v_seen² = v_gas² + 0.5 v_stars² + 0.7 v_bulge². The 0.5 and 0.7 are
+the mass of stars per unit of 3.6 μm light (in solar units), the values the SPARC team uses. The dashed line is
+how speed would fall if all the mass were inside the orange peak (Kepler: v ∝ 1/√r). At 44 kpc NGC 3198
+moves at 149 km/s; what we see supplies 65. Mass goes as v², so there's about 5 times more mass inside that
+radius than we can see.
+
+**The gallery.** Six more, from the dwarf DDO 154 to the giant UGC 2885. In every one the outer curve stays
+flat. Across all 175, the median unseen share of the mass inside the last measured point is 77%.
+
+**The radial acceleration relation** (McGaugh, Lelli & Schombert 2016). Turn each point into two
+accelerations: the one measured, g_obs = v²/r, and the one the visible matter predicts, g_seen = v_seen²/r.
+Using their cuts (good-quality curves, inclination at least 30°, speed errors under 10%) gives 2696 points
+from 147 galaxies (they had 2693). Without dark matter or new physics they'd sit on the grey line. They don't,
+but they don't scatter either: they follow one curve, g_obs = g_seen / (1 − e^(−√(g_seen/g†))), with
+g† = 1.16×10⁻¹⁰ m/s² here (published 1.20 ± 0.02, with ± 0.24 systematic) and scatter 0.13 dex, the same as
+published. Where the visible pull is strong (centres of big galaxies) nothing is missing; below g† the real
+pull is bigger, on average 5 times bigger at a tenth of g†. Whether that's dark matter that tracks visible
+matter very closely, or gravity behaving differently at low acceleration (MOND), is still argued.
+
+**Baryonic Tully–Fisher.** Visible mass (0.5 × 3.6 μm luminosity + 1.33 × hydrogen mass, the 1.33 adding
+helium) against the flat outer speed, for 123 galaxies. A fit (the bisector of the two least-squares lines)
+gives M ∝ v^3.6, scatter 0.23 dex; published fits with measurement errors give 3.7 to 4.
+
+| LaTeX | You write | Meaning |
+|---|---|---|
+| `v_{\rm seen}` | `v_{\rm seen}` | speed the visible matter alone produces |
+| `M(<r)` | `M(<r)` | mass inside radius r |
+| `g_\dagger` | `g_\dagger` | the acceleration scale where the extra pull starts |
+| `\big(` | `\big(` | a slightly bigger bracket |
+
+---
+
+## 71. My notes
 
 Add your own findings, questions and discoveries here.
 
