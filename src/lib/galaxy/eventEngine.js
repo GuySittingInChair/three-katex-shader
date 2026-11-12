@@ -24,6 +24,23 @@ export const SN_TYPES = {
   },
 };
 export const TYPICAL = { energyErg: 1e51, ejectaKms: 10000 };   // textbook order of magnitude for any supernova
+
+// Rare events, per galaxy like the Milky Way, per year. Both are uncertain by more than a factor of ten, so the
+// whole range is kept and shown.
+// Neutron-star mergers: LIGO-Virgo-KAGRA's merger rate density for binary neutron stars, 10–1700 per Gpc³ per year
+// (GWTC-3 population analysis, 2023), divided by the number density of Milky-Way-like galaxies, 0.0116 per Mpc³
+// (Kopparapu et al. 2008) = 1.16e7 per Gpc³.
+// Tidal disruptions (a star torn apart by the central black hole): optical surveys find roughly 1e-5 to 1e-4 per
+// galaxy per year (e.g. van Velzen 2018; ZTF, Yao et al. 2023).
+export const RARE = {
+  kilonova: { perYear: [10 / 1.16e7, 1700 / 1.16e7], ref: 'LIGO-Virgo-KAGRA GWTC-3 (binary neutron star merger rate 10–1700 per Gpc³ per year) ÷ Milky-Way-like galaxies 0.0116 per Mpc³ (Kopparapu et al. 2008)' },
+  tde: { perYear: [1e-5, 1e-4], ref: 'optical survey rates of tidal disruption events, e.g. van Velzen 2018; Yao et al. 2023 (ZTF)' },
+};
+/** "one every N to M years", from a [low, high] rate per year */
+export function waitText([lo, hi]) {
+  const f = (y) => (y >= 1e6 ? `${+(y / 1e6).toPrecision(2)} million` : Math.round(y / 1000) * 1000 >= 1000 ? `${(Math.round(y / 1000) * 1000).toLocaleString('en-US')}` : `${Math.round(y)}`);
+  return `about one every ${f(1 / hi)} to ${f(1 / lo)} years`;
+}
 export const LOSS_REF = 'Li et al. 2011, MNRAS 412, 1441 (Lick Observatory Supernova Search)';
 
 /** small seeded random number generator, so tests (and a given seed) are repeatable */
@@ -90,6 +107,18 @@ export function createEventEngine({ sites, ratePerYear, yearsPerSecond = 1, rng 
       for (let i = events.length - 1; i >= 0; i--) if (now - events[i].t0 > events[i].duration * 2.5) events.splice(i, 1);
       return born;
     },
+    /** any other kind of event (kilonova, tidal disruption, star birth …), logged like the supernovae */
+    custom(kind, label, pos, now, provenance, duration, extra = {}) {
+      const e = { id: nextId++, kind, type: kind, label, pos: pos.slice(), t0: now, duration, intensity: 1, provenance, simYear: simYears, ...extra };
+      events.push(e);
+      return e;
+    },
+    /** a random place for a kind of event: 'young' (core-collapse sites), 'old' (Type Ia sites), or 'any' */
+    site(which) {
+      const list = which === 'old' ? sites.ia : which === 'young' ? sites.cc : rng() < 0.5 ? sites.ia : sites.cc;
+      return list[Math.floor(rng() * list.length)];
+    },
+    random: rng,
     /** replay a real, observed supernova at its real place */
     replay(obs, now) {
       const type = /^Ia/.test(obs.type) ? 'Ia' : /^I[bc]/.test(obs.type) ? 'Ibc' : 'II';

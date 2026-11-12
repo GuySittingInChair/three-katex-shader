@@ -143,7 +143,23 @@ for key, name, typ, date, peak, what, url in SN:
                          x=round(float(x), 3), y=round(float(y), 3), z=0.0))
     print(f'{name:11s} {typ:5s} {date}  disk ({x:6.2f}, {y:6.2f}) kpc, R = {np.hypot(x, y):5.2f} kpc   pos {p["ref"]}')
 
-meta = dict(
+# ---- permanent features: the active nucleus and the X-ray binary M51-ULS-1 ----
+def hms(h, m, sec): return (h + m / 60 + sec / 3600) * 15
+def dms(d, m, sec): return d + m / 60 + sec / 3600
+uls_ra, uls_dec = hms(13, 29, 43.31), dms(47, 11, 34.8)       # Wikipedia, M51-ULS-1 (from the discovery paper)
+e, n = sky_offset(uls_ra, uls_dec); e0, n0 = sky_offset(C5194['ra'], C5194['dec'])
+ux, uy = to_disk(e - e0, n - n0)
+features = [
+    dict(id='agn', name='The active nucleus', x=0.0, y=0.0, z=0.0, provenance='OBSERVED',
+         facts='M51 has a Seyfert 2 active galactic nucleus: a supermassive black hole swallowing gas. A jet from it is disturbing the molecular gas within a few hundred light-years of the centre (Matsushita, Muller & Lim 2007, A&A 468, L49). Its mass is not given in the sources used here.',
+         src='https://en.wikipedia.org/wiki/Whirlpool_Galaxy'),
+    dict(id='uls1', name='M51-ULS-1', x=round(float(ux), 3), y=round(float(uy), 3), z=0.0, provenance='OBSERVED', ra=uls_ra, dec=uls_dec,
+         facts='A high-mass X-ray binary found by the Chandra X-ray Observatory: a blue supergiant of about 20 solar masses and a compact companion (a neutron star or black hole of 1.4–10 solar masses), closer than 3 AU, 4–16 million years old. Gas pulled off the giant falls onto the companion and glows in X-rays. In 2020 a dip in its X-rays was reported as a possible planet, M51-ULS-1b, about the size of Saturn, orbiting both at ~45 AU every ~70 years — unconfirmed; if real, the first planet found in another galaxy.',
+         src='https://en.wikipedia.org/wiki/M51-ULS-1'),
+]
+print('M51-ULS-1 disk (%.2f, %.2f) kpc, R = %.2f' % (ux, uy, np.hypot(ux, uy)))
+
+meta = dict(features=features, 
     name='M51', distMpc=dist_mpc, distModulus=mod_med, distSource='NED-D median of published redshift-independent distances',
     kpcPerArcsec=KPC_PER_ARCSEC, inclination=22.0, positionAngle=173.0, orientationRef='Colombo et al. 2014, ApJ 784, 3 (PAWS)',
     centre=C5194, companion=dict(**C5195, x=round(float(cx_), 3), y=round(float(cy_), 3), z=-2.0),

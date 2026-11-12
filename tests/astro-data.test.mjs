@@ -33,6 +33,7 @@ test('M51 structure: provenance on every layer, real events sourced', () => {
     assert.ok(o.posRef && o.wiki && o.date && o.type, `${o.name} incomplete`);
     assert.ok(Math.hypot(o.x, o.y) < 15, `${o.name} lies outside the disk`);
   }
+  for (const f of g.features) assert.ok(f.facts && f.src && f.provenance === 'OBSERVED' && Number.isFinite(f.x), `feature ${f.id}`);
   const bytes = fs.statSync(new URL('../public/data/galaxies/m51/stars.bin', import.meta.url)).size;
   assert.equal(bytes, g.nStars * g.stride * 4);
 });

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { createEventEngine, createRng, SN_TYPES, TYPICAL, LOSS_REF } from './eventEngine.js';
+import { createEventEngine, createRng, SN_TYPES, TYPICAL, LOSS_REF, RARE, waitText } from './eventEngine.js';
+import { createCloseups } from './closeupFx.js';
 import { createSupernovaFx } from './supernovaFx.js';
 import { badge, parseProvenance } from './provenance.js';
 
@@ -81,6 +82,8 @@ export function createGalaxyMode({ url, skyDir, ra, dec, center, photo, onEvents
   group.visible = false;
   const state = { ready: false, alpha: 0, chaos: false, selected: null, log: [], lastLog: 0, t: 0 };
   const fx = createSupernovaFx({ shellKpc: 0.8 });
+  const closeups = createCloseups();
+  const CLOSE_KPC = { kilonova: 0.7, tde: 0.7, agn: 0.75, xrb: 0.45 };   // kpc per close-up unit
   let starMat, knotMat, starGeo, knotGeo, engine, meta, prov = {};
 
   const ready = Promise.all([fetch(url + 'meta.json').then((r) => r.json()), fetch(url + 'stars.bin').then((r) => r.arrayBuffer())]).then(([m, buf]) => {
@@ -116,17 +119,39 @@ export function createGalaxyMode({ url, skyDir, ra, dec, center, photo, onEvents
     knotGeo.setAttribute('aPh', new THREE.BufferAttribute(Float32Array.from(kn.map((_, i) => i * 2.39)), 1));
     knotMat = new THREE.ShaderMaterial({ vertexShader: KNOT_VERT, fragmentShader: KNOT_FRAG, uniforms: { uPx: { value: 1 }, uA: { value: 0 }, uTime: { value: 0 } }, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, transparent: true });
     const knots = new THREE.Points(knotGeo, knotMat); knots.frustumCulled = false; knots.renderOrder = 3;
-    group.add(stars, knots, fx.group);
+    group.add(stars, knots, fx.group, closeups.group);
     // the galaxy's own record sets the default rate: real supernovae seen in it per year (since the first one listed)
     const sne = m.observed.filter((o) => o.type !== 'LRN');
     const y0 = Math.min(...sne.map((o) => +o.date.slice(0, 4))), years = new Date().getFullYear() - y0;
     state.rate = { perYear: sne.length / years, n: sne.length, since: y0 };
     engine = createEventEngine({ sites: { cc: m.ccSites, ia: m.iaSites }, ratePerYear: state.rate.perYear, yearsPerSecond: 1, rng: createRng(Date.now() % 1e9) });
+    state.nextBirth = 0; state.nextRare = 25;
     state.ready = true;
   });
 
   const toWorld = (p, out = new THREE.Vector3()) => out.set(p[0], p[1], p[2]).applyMatrix4(group.matrix);
+  const MADE_UP = '<p style="margin:0 0 6px">This one was <b>made up by this page</b>. Nobody saw it.</p>';
+  const otherText = (e) => {
+    const R = Math.hypot(e.pos[0], e.pos[1]);
+    if (e.kind === 'starbirth') return `<div class="gx-ev"><h3>A new star cluster ${badge('PROCEDURAL')}</h3>${MADE_UP}
+      <p style="margin:0 0 6px">A cloud of cold gas and dust in a star-forming region collapsing under its own gravity and breaking up into hundreds or thousands of new stars. The hottest ones light the leftover gas pink (hydrogen) and their winds and first supernovae blow it away.</p>
+      <p style="margin:0;color:#9aa3b5">The place is one of the star-forming regions ${badge('INFERRED')} from the photograph's colours, ${R.toFixed(1)} kpc from the centre. Real collapse takes a few million years; here a few seconds ${badge('ARTISTIC')}.</p></div>`;
+    if (e.kind === 'kilonova') return `<div class="gx-ev"><h3>Two neutron stars collide ${badge('PROCEDURAL')}</h3>${MADE_UP}
+      <p style="margin:0 0 6px">Neutron stars are the collapsed cores left by supernovae: 1.2–2 Suns of matter squeezed into a ball about 20 km across. A pair born together slowly spirals in as the orbit leaks energy as gravitational waves — faster and faster, the "chirp" (drawn here with the real law: the gap shrinks as (t<sub>c</sub> − t)<sup>1/4</sup>, Peters 1964). They merge in a flash, can fire a short gamma-ray burst along the spin axis, and throw out hot, neutron-rich debris where heavy elements like gold and platinum are made. That debris glows as a <b>kilonova</b>: a fast blue part towards the poles that fades in about a day, a slower red part round the waist that lasts about a week.</p>
+      <p style="margin:0 0 6px">The only one seen so far in both gravitational waves and light: <b>GW170817</b>, 17 August 2017, in the galaxy NGC 4993, about 130 million light-years away — gamma rays arrived 1.7 seconds after the merger, then the kilonova AT 2017gfo.</p>
+      <p style="margin:0;color:#9aa3b5">How often, in a galaxy like this: ${waitText(RARE.kilonova.perYear)} (${RARE.kilonova.ref}). Place: anywhere there are stars, ${R.toFixed(1)} kpc out — the pair can wait billions of years and be kicked far from where it was born. Drawn tens of trillions of times larger than life ${badge('ARTISTIC')}.</p></div>`;
+    if (e.kind === 'tde') return `<div class="gx-ev"><h3>A star torn apart by the black hole ${badge('PROCEDURAL')}</h3>${MADE_UP}
+      <p style="margin:0 0 6px">A star wandered too close to the supermassive black hole at the centre. Inside the <b>tidal radius</b>, r<sub>t</sub> ≈ R<sub>★</sub>(M<sub>BH</sub>/M<sub>★</sub>)<sup>1/3</sup>, the hole pulls on the star's near side so much harder than on its far side that the star is stretched into a long stream. About half the debris is bound and falls back; the rest is flung away. Falling back, it piles into a hot disk and flares, then fades — in theory as t<sup>−5/3</sup> (Rees 1988; Phinney 1989).</p>
+      <p style="margin:0 0 6px">Here that isn't drawn in: the debris is moved with Newtonian gravity in your browser, and the glow is just how fast it arrives. (A black hole above about 100 million Suns would swallow a Sun-like star whole, without a flare.)</p>
+      <p style="margin:0;color:#9aa3b5">How often, per galaxy: ${waitText(RARE.tde.perYear)} (${RARE.tde.ref}). None has been seen in M51. Drawn about fifty million times larger than life ${badge('ARTISTIC')}.</p></div>`;
+    return '';
+  };
+  const featureText = (f) => `<div class="gx-ev"><h3>${f.name} ${badge('OBSERVED')}</h3><p style="margin:0 0 6px">${f.facts}</p>
+      ${f.id === 'agn' ? `<p style="margin:0 0 6px">What "Seyfert 2" means: in the usual (unified) picture every active nucleus has a bright disk of gas spiralling into the black hole, wrapped in a thick doughnut of dust. Seen face-on we'd see the disk itself (Seyfert 1); M51's is seen through the dust, which hides it, so only gas further out shows (Seyfert 2).</p>` : `<p style="margin:0 0 6px">Gas pulled off the giant star swirls into a disk round the compact object and heats to millions of degrees, hot enough to shine in X-rays.</p>`}
+      <p style="margin:0;color:#9aa3b5">The close-up is ${badge('ARTISTIC')}: the arrangement follows the description, the sizes and speeds don't${f.id === 'xrb' || f.id === 'uls1' ? ' (the planet\'s orbit is really ~15 times wider than the pair, not shown to scale)' : ''}. <a href="${f.src}" target="_blank" rel="noopener">Source</a>.</p>
+      <div class="gx-row"><button class="mz-btn" data-gx="closeup" data-id="${f.id}">${closeups.current?.feature === f.id ? '■ Stop the close-up' : '▶ Close-up'}</button></div></div>`;
   const eventText = (e) => {
+    if (e.kind !== 'supernova') return otherText(e);
     const T = SN_TYPES[e.type];
     const R = Math.hypot(e.pos[0], e.pos[1]);
     const where = e.provenance === 'OBSERVED'
@@ -153,6 +178,33 @@ export function createGalaxyMode({ url, skyDir, ra, dec, center, photo, onEvents
       return toWorld(e.pos);
     },
     focusWorld(e) { return toWorld(e.pos); },
+    /** start a rare event now (it would really take thousands of years); returns where to look */
+    rare(kind, now) {
+      const pos = kind === 'tde' ? [0, 0, 0] : engine.site('any').map((x, i) => x + (i < 2 ? (engine.random() - 0.5) * 1.2 : 0));
+      const e = engine.custom(kind, kind === 'kilonova' ? 'Neutron stars collide' : 'Star torn apart', pos, now, 'PROCEDURAL', kind === 'kilonova' ? 17 : 22);
+      const q = kind === 'kilonova' ? new THREE.Quaternion().setFromEuler(new THREE.Euler(engine.random() * 3, engine.random() * 3, 0)) : null;
+      closeups.play(kind, { now, position: new THREE.Vector3(...pos), scale: CLOSE_KPC[kind], quaternion: q, seed: e.id * 7919, event: e });
+      state.log.unshift(e); state.log.length = Math.min(state.log.length, 8);
+      state.selected = e;
+      return toWorld(pos);
+    },
+    /** loop a close-up of a permanent feature (or stop it) */
+    closeup(id, now) {
+      if (closeups.current?.feature === id) { closeups.stop(); return null; }
+      const f = meta.features.find((x) => x.id === id);
+      const kind = id === 'agn' ? 'agn' : 'xrb';
+      // the nucleus: torus seen edge-on from Earth (Seyfert 2), so its axis is across our line of sight
+      let q = null;
+      if (kind === 'agn') {
+        const L = center.clone().normalize().applyMatrix3(new THREE.Matrix3().setFromMatrix4(group.matrix).invert()).normalize();
+        const axis = new THREE.Vector3().crossVectors(L, new THREE.Vector3(1, 0, 0)).normalize();
+        q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), axis);
+      }
+      closeups.play(kind, { now, position: new THREE.Vector3(f.x, f.y, f.z), scale: CLOSE_KPC[kind], quaternion: q, seed: 5 });
+      closeups.current.feature = id;
+      return toWorld([f.x, f.y, f.z]);
+    },
+    featuresWorld() { return state.ready ? meta.features.map((f) => ({ f, p: toWorld([f.x, f.y, f.z]) })) : []; },
     update(ctx) {
       if (!state.ready) return;
       const k = Math.min(1, ctx.delta * 2.5);
@@ -160,15 +212,32 @@ export function createGalaxyMode({ url, skyDir, ra, dec, center, photo, onEvents
       if (state.alpha < 0.005 && !state.on) { group.visible = false; return; }
       group.visible = true;
       const pxPerUnit = ctx.size.height / (2 * Math.tan(THREE.MathUtils.degToRad(ctx.camera.fov) / 2));
-      starMat.uniforms.uA.value = state.alpha * 0.55;
+      // while a close-up plays and the camera is near it, the galaxy's stars step back
+      state.dim = (state.dim ?? 1) + (((closeups.current && ctx.camera.position.distanceTo(ctx.controls?.target ?? ctx.camera.position) < 8 * unitsPerKpc) ? 0.25 : 1) - (state.dim ?? 1)) * Math.min(1, ctx.delta * 2);
+      starMat.uniforms.uA.value = state.alpha * 0.55 * state.dim;
       starMat.uniforms.uPx.value = pxPerUnit * unitsPerKpc * 0.06;
       knotMat.uniforms.uA.value = state.alpha;
       knotMat.uniforms.uPx.value = pxPerUnit * unitsPerKpc * 0.45;
       knotMat.uniforms.uTime.value = ctx.time;
       fx.update(ctx.time, pxPerUnit * unitsPerKpc * 0.05);
+      closeups.update(ctx.time, ctx.delta, pxPerUnit * unitsPerKpc, ctx.camera);
       if (state.on) {
         const born = engine.step(ctx.delta, ctx.time);
-        for (const e of born) { fx.add(e); state.log.unshift(e); }
+        // star birth at the star-forming regions, every ~9 s (3 s in chaos): ARTISTIC timing, INFERRED places
+        if (ctx.time > state.nextBirth) {
+          state.nextBirth = ctx.time + (state.chaos ? 3 : 9) * (0.5 + engine.random());
+          let pick = meta.knots[0], tot = meta.knots.reduce((a, k) => a + k.s, 0) * engine.random();
+          for (const k of meta.knots) { tot -= k.s; if (tot <= 0) { pick = k; break; } }
+          const e = engine.custom('starbirth', 'Star birth', [pick.x, pick.y, 0], ctx.time, 'PROCEDURAL', 8);
+          fx.add(e); born.push(e);
+        }
+        // chaos: now and then a rare one too (still labelled made up)
+        if (state.chaos && ctx.time > state.nextRare && !closeups.current) {
+          state.nextRare = ctx.time + 35 + 30 * engine.random();
+          const e = this.rare(engine.random() < 0.5 ? 'kilonova' : 'tde', ctx.time); void e;
+          state.selected = null;
+        }
+        for (const e of born) { if (e.kind !== 'starbirth' || state.log.length < 3 || engine.random() < 0.3) state.log.unshift(e); }
         if (state.log.length > 8) state.log.length = 8;
         if (born.length) onEventsChanged?.();
       }
@@ -185,6 +254,9 @@ export function createGalaxyMode({ url, skyDir, ra, dec, center, photo, onEvents
       };
       for (const e of fx.active(now)) test(toWorld(e.pos), { kind: 'event', e });
       meta.observed.forEach((o, i) => test(toWorld([o.x, o.y, 0]), { kind: 'observed', i }));
+      meta.features.forEach((f) => test(toWorld([f.x, f.y, f.z]), { kind: 'feature', id: f.id }));
+      const cu = closeups.current;
+      if (cu?.event) test(toWorld(cu.event.pos), { kind: 'event', e: cu.event });
       if (!best) { bestD = 12; meta.knots.forEach((kn, i) => test(toWorld([kn.x, kn.y, 0]), { kind: 'knot', i })); }
       return best;
     },
@@ -196,13 +268,19 @@ export function createGalaxyMode({ url, skyDir, ra, dec, center, photo, onEvents
       if (!state.ready) return '<p>Loading the structure…</p>';
       const sel = state.selected;
       let detail = '';
-      if (sel?.kind === 'supernova') detail = eventText(sel);
+      if (sel && ['supernova', 'kilonova', 'tde', 'starbirth'].includes(sel.kind)) detail = eventText(sel);
+      else if (sel?.kind === 'feature') detail = featureText(meta.features.find((f) => f.id === sel.id));
       else if (sel?.kind === 'knot') detail = `<div class="gx-ev"><h3>Star-forming region ${badge('INFERRED')}</h3><p style="margin:0">A compact knot bluer than its surroundings in the photograph: light from young, hot, massive stars, which live only a few million years — so stars are being born here now. Inferred from colour alone (no spectrum), so some may be foreground stars or clusters. The slow shimmer is ${badge('ARTISTIC')}.</p></div>`;
       else if (sel?.kind === 'observed') { const o = meta.observed[sel.i]; detail = `<div class="gx-ev"><h3>${o.name} ${badge('OBSERVED')}</h3><p style="margin:0 0 6px">${o.what}</p><p style="margin:0;color:#9aa3b5">Found ${dateText(o.date)}. Position from NED (${o.posRef}).</p>${o.type !== 'LRN' ? `<div class="gx-row"><button class="mz-btn" data-gx="replay" data-i="${sel.i}">▶ Replay it here</button></div>` : ''}</div>`; }
       const r = state.rate;
       return `${detail}
         <div class="gx-row"><button class="mz-btn gx-chaos ${state.chaos ? 'on' : ''}" data-gx="chaos">${state.chaos ? '◉ Chaos mode ×30' : '○ Chaos mode'}</button>
           <span style="color:#9aa3b5;font-size:12.5px">${state.chaos ? 'Explosions 30× more often than real. Still made up, still in the right places.' : `1 second = 1 year. About one supernova every ${Math.round(1 / r.perYear)} years, M51's real record: ${r.n} seen since ${r.since}.`}</span></div>
+        <p style="margin:10px 0 4px;font-weight:600">Too rare to wait for</p>
+        <div class="gx-row"><button class="mz-btn" data-gx="rare" data-k="kilonova">💥 Neutron stars collide</button><span style="color:#9aa3b5;font-size:12.5px">${waitText(RARE.kilonova.perYear)} in a galaxy like this</span></div>
+        <div class="gx-row"><button class="mz-btn" data-gx="rare" data-k="tde">🕳 A star meets the black hole</button><span style="color:#9aa3b5;font-size:12.5px">${waitText(RARE.tde.perYear)}</span></div>
+        <p style="margin:10px 0 4px;font-weight:600">Real things in M51</p>
+        <ul class="gx-list">${meta.features.map((f) => `<li><span class="n">${f.name} <span style="color:#9aa3b5">· ${f.id === 'agn' ? 'Seyfert 2 nucleus' : 'X-ray binary, candidate planet'}</span></span>${badge('OBSERVED')}<button class="mz-btn" data-gx="feature" data-id="${f.id}">ⓘ</button></li>`).join('')}</ul>
         <p style="margin:8px 0 4px;font-weight:600">Real supernovae seen in M51</p>
         <ul class="gx-list">${meta.observed.map((o, i) => `<li><span class="n">${o.name} <span style="color:#9aa3b5">· ${o.type === 'LRN' ? 'impostor (luminous red nova)' : 'Type ' + o.type} · ${o.date.slice(0, 4)}</span></span>${o.type !== 'LRN' ? `<button class="mz-btn" data-gx="replay" data-i="${i}">▶</button>` : ''}</li>`).join('')}</ul>
         <div data-gxlog>${this.logHTML()}</div>
@@ -212,8 +290,8 @@ export function createGalaxyMode({ url, skyDir, ra, dec, center, photo, onEvents
         <p style="color:#8a93a6;font-size:11.5px;margin:6px 0 0">Distance ${meta.distMpc.toFixed(2)} Mpc (${(meta.distMpc * 3.2616).toFixed(1)} million light-years): ${meta.distSource}. Pictures, positions: ${meta.credit}</p>`;
     },
     logHTML() {
-      return state.log.length ? `<p style="margin:8px 0 4px;font-weight:600">Recent explosions <span style="color:#9aa3b5;font-weight:400;font-size:12.5px">— click one in the galaxy, or ⓘ</span></p><ul class="gx-list">${state.log.slice(0, 5).map((e) => `<li><span class="n">${e.provenance === 'OBSERVED' ? e.name : SN_TYPES[e.type].label} <span style="color:#9aa3b5">· ${Math.hypot(e.pos[0], e.pos[1]).toFixed(1)} kpc out</span></span>${badge(e.provenance)}<button class="mz-btn" data-gx="ev" data-id="${e.id}">ⓘ</button></li>`).join('')}</ul>`
-        : '<p style="color:#9aa3b5;font-size:12.5px;margin:8px 0">Waiting for the next explosion…</p>';
+      return state.log.length ? `<p style="margin:8px 0 4px;font-weight:600">Recent events <span style="color:#9aa3b5;font-weight:400;font-size:12.5px">— click one in the galaxy, or ⓘ</span></p><ul class="gx-list">${state.log.slice(0, 5).map((e) => `<li><span class="n">${e.provenance === 'OBSERVED' ? e.name : e.kind === 'supernova' ? SN_TYPES[e.type].label + ' supernova' : e.label} <span style="color:#9aa3b5">· ${Math.hypot(e.pos[0], e.pos[1]).toFixed(1)} kpc out</span></span>${badge(e.provenance)}<button class="mz-btn" data-gx="ev" data-id="${e.id}">ⓘ</button></li>`).join('')}</ul>`
+        : '<p style="color:#9aa3b5;font-size:12.5px;margin:8px 0">Waiting for something to happen…</p>';
     },
     /** a camera position that shows the disk at an angle (its depth), and what to look at */
     pose(distKpc, camera) {
@@ -229,12 +307,15 @@ export function createGalaxyMode({ url, skyDir, ra, dec, center, photo, onEvents
       const a = btn.dataset.gx;
       if (a === 'chaos') { this.setChaos(!state.chaos); return { rerender: true }; }
       if (a === 'replay') { const p = this.replay(+btn.dataset.i, now); return { rerender: true, fly: p }; }
+      if (a === 'rare') { const p = this.rare(btn.dataset.k, now); return { rerender: true, fly: p, dist: CLOSE_KPC[btn.dataset.k] * 3.4 * unitsPerKpc }; }
+      if (a === 'feature') { state.selected = { kind: 'feature', id: btn.dataset.id }; const f = meta.features.find((x) => x.id === btn.dataset.id); return { rerender: true, fly: toWorld([f.x, f.y, f.z]) }; }
+      if (a === 'closeup') { const p = this.closeup(btn.dataset.id, now); state.selected = { kind: 'feature', id: btn.dataset.id }; return { rerender: true, fly: p, dist: (btn.dataset.id === 'agn' ? 0.75 * 4.5 : 0.45 * 7) * unitsPerKpc }; }
       if (a === 'ev') { const e = state.log.find((x) => x.id === +btn.dataset.id); if (e) { state.selected = e; return { rerender: true, fly: toWorld(e.pos) }; } }
       return { rerender: true };
     },
     get log() { return state.log; },
     dispose() {
-      style.remove(); fx.dispose();
+      style.remove(); fx.dispose(); closeups.dispose();
       starGeo?.dispose(); starMat?.dispose(); knotGeo?.dispose(); knotMat?.dispose();
       group.parent?.remove(group);
     },

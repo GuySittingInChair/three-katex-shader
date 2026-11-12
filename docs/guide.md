@@ -3089,7 +3089,14 @@ regions (knots bluer than their surroundings in the photo). Green rings mark the
 flashes are made up, and labelled so: supernovae at M51's real rate (three since 1994; one second here is one year),
 massive-star explosions in the young blue arms, Type Ia among old stars (so the old companion galaxy only ever gets
 Type Ia). *Chaos mode* makes them 30 times more frequent. Click any explosion, knot or ring to read what it is and
-how much of it is real. The details, and the plan for the rest of the galaxy engine, are in `docs/galaxy-engine.md`.
+how much of it is real. Some things are too rare to wait for — two neutron stars colliding happens in a galaxy like
+this about once every 7,000 to 1.2 million years, a star being torn apart by the central black hole once every
+10,000 to 100,000 — so they have buttons: each plays as a magnified close-up at its place in the galaxy (inside a
+dashed ring), with what's measured and what's drawn spelled out on the card. The torn-apart star's debris is moved
+by real Newtonian gravity in your browser: about half escapes, half falls back, and the flare is just how fast it
+arrives. M51's two real permanent residents, its active nucleus and the X-ray binary M51-ULS-1 (with a candidate
+planet), are purple rings with close-ups of their own. The details, and the plan for the rest of the galaxy
+engine, are in `docs/galaxy-engine.md`.
 
 ---
 

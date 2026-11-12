@@ -8,7 +8,7 @@ import * as THREE from 'three';
 // Type Ia rise fast and fade steadily; Type II-P stay bright on a plateau; their debris glows red (hydrogen).
 
 const SLOTS = 32, PER = 360;
-const TYPE_ID = { Ia: 0, Ibc: 1, II: 2 };
+const TYPE_ID = { Ia: 0, Ibc: 1, II: 2, starbirth: 3 };
 
 const VERT = /* glsl */ `
   attribute float aSlot;
@@ -33,6 +33,17 @@ const VERT = /* glsl */ `
     vec3 hot = vec3(0.85, 0.92, 1.0), red = vec3(1.0, 0.42, 0.3), teal = vec3(0.55, 0.9, 1.0);
     vec3 late = B.x < 0.5 ? vec3(1.0, 0.75, 0.45) : B.x < 1.5 ? teal : red;   // Ia: iron/cobalt; Ib/c: oxygen; II: hydrogen
     vCol = mix(hot, late, smoothstep(0.05, 0.6, u));
+    if (B.x > 2.5) {
+      // star birth: a pink cloud pulls in on itself, then young blue stars light up inside it (ARTISTIC timing)
+      r = B.w * aSpeed * mix(1.3, 0.22, smoothstep(0.0, 0.75, u));
+      p = E.xyz + aDir * vec3(1.0, 1.0, 0.35) * r;
+      mv = modelViewMatrix * vec4(p, 1.0);
+      vCol = mix(vec3(1.0, 0.42, 0.68), vec3(0.65, 0.82, 1.0), smoothstep(0.55, 0.85, u));
+      vA = smoothstep(0.0, 0.2, u) * (1.0 - smoothstep(1.3, 2.3, u)) * (0.4 + 0.6 * aSpeed) * 0.22;
+      gl_PointSize = uPx * (0.5 + aSpeed) / max(0.05, -mv.z);
+      gl_Position = projectionMatrix * mv;
+      return;
+    }
     // fade the debris in as the shell opens (all of it starts in one spot, which would add up to a white blob)
     vA = glow * (0.5 + 0.5 * aSpeed) * min(1.5, 0.4 + 0.3 * B.z) * 0.8 * smoothstep(0.01, 0.12, u);
     gl_PointSize = uPx * (0.6 + aSpeed) / max(0.05, -mv.z);
@@ -60,6 +71,14 @@ const FLASH_VERT = /* glsl */ `
     float age = uTime - E.w, u = age / B.y;
     if (age < 0.0 || u > 2.4 || B.z <= 0.0) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); gl_PointSize = 0.0; return; }
     // light curve, by type: rise; then Ia fades steadily, II-P holds a plateau then drops, Ib/c fades fast
+    if (B.x > 2.5) {   // star birth: a soft blue twinkle once the cluster has formed
+      vA = smoothstep(0.65, 0.85, u) * (1.0 - smoothstep(1.4, 2.3, u)) * 0.5;
+      vCol = vec3(0.7, 0.85, 1.0);
+      vec4 mv0 = modelViewMatrix * vec4(E.xyz, 1.0);
+      gl_PointSize = uPx * 1.6 * B.w / max(0.05, -mv0.z);
+      gl_Position = projectionMatrix * mv0;
+      return;
+    }
     float rise = smoothstep(0.0, 0.07, u);
     float fall = B.x < 0.5 ? exp(-2.0 * u) : B.x < 1.5 ? exp(-2.8 * u) : (u < 0.6 ? 0.85 : 0.85 * exp(-5.0 * (u - 0.6)));
     vA = rise * fall * min(1.6, 0.5 + 0.4 * B.z);
@@ -118,7 +137,7 @@ export function createSupernovaFx({ shellKpc = 0.35 } = {}) {
       if (k < 0) { k = rr; rr = (rr + 1) % SLOTS; }
       owner[k] = e;
       uniforms.uEv.value[k].set(e.pos[0], e.pos[1], e.pos[2], e.t0);
-      uniforms.uEvB.value[k].set(TYPE_ID[e.type] ?? 2, e.duration, e.intensity, shellKpc * (e.provenance === 'OBSERVED' ? 1.3 : 1));
+      uniforms.uEvB.value[k].set(TYPE_ID[e.type] ?? 2, e.duration, e.intensity, shellKpc * (e.provenance === 'OBSERVED' ? 1.3 : e.type === 'starbirth' ? 0.55 : 1));
     },
     /** events currently visible, with how bright they are now (for picking) */
     active(now) { return owner.filter((o, i) => o && now - uniforms.uEv.value[i].w < o.duration * 2.4); },

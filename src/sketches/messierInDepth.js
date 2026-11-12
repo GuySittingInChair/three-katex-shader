@@ -291,7 +291,7 @@ export default {
         panel.innerHTML = `<div class="mz-in"><div class="mz-head"><h2>M${o.m}${o.name ? ` · ${esc(o.name)}` : ''}<small><span class="mz-dot" style="background:${G.col}"></span>Structure and events</small></h2>
             <button class="mz-btn mz-min" data-act="min">▾</button><button class="mz-btn" data-act="close" title="back to the whole sky">✕</button></div>
           <div class="mz-body">${modesHTML()}
-          <p style="margin:8px 0;font-size:13.5px">The photograph, turned into a 3D disk of ${(90000).toLocaleString()} star points, tilted the way the galaxy really is tilted. Pink: regions where stars are forming. Green rings: where real supernovae were seen. Flashes: supernovae, at the rate this galaxy really has them. Drag to fly round it; click anything.</p>
+          <p style="margin:8px 0;font-size:13.5px">The photograph, turned into a 3D disk of ${(90000).toLocaleString()} star points, tilted the way the galaxy really is tilted. Pink: regions where stars are forming. Green rings: where real supernovae were seen; purple: the real active nucleus and X-ray binary. Flashes: supernovae at the rate this galaxy really has them, and new star clusters. Drag to fly round it; click anything.</p>
           ${gxFor(i).panel()}
           <div class="mz-nav"><button class="mz-btn" data-act="prev">← M${o.m === 1 ? 110 : o.m - 1}</button><button class="mz-btn" data-act="next">M${o.m === 110 ? 1 : o.m + 1} →</button><span style="flex:1"></span><button class="mz-btn" data-act="close">Whole sky</button></div></div></div>`;
       } else {
@@ -328,7 +328,8 @@ export default {
         if (r?.fly) {
           // move in to look at that spot, from where we are
           const dir = cam.position.clone().sub(controls.target).normalize();
-          s.fly = { t0: ctx.time, dur: 1.6, from: { p: cam.position.clone(), t: controls.target.clone() }, to: { t: r.fly.clone(), p: r.fly.clone().addScaledVector(dir, Math.max(0.12, cam.position.distanceTo(controls.target) * 0.55)) } };
+          const d = r.dist ?? Math.max(0.12, cam.position.distanceTo(controls.target) * 0.55);
+          s.fly = { t0: ctx.time, dur: 1.8, from: { p: cam.position.clone(), t: controls.target.clone() }, to: { t: r.fly.clone(), p: r.fly.clone().addScaledVector(dir, d) } };
         }
         if (r?.rerender) renderPanel();
         return;
@@ -528,21 +529,21 @@ export default {
     place(s.sunLab, w.set(0, 0, 0), -22);
     // real supernova sites, as rings that stay the same size on screen, with names
     const gmNow = s.mode === 'structure' ? s.gxFor(s.sel) : null;
-    const sites = gmNow ? gmNow.observedWorld() : [];
+    const sites = gmNow ? [...gmNow.observedWorld(), ...gmNow.featuresWorld().map(({ f, p }) => ({ o: { name: f.name, type: 'FEATURE' }, p }))] : [];
     s.snLab = s.snLab || [];
     while (s.snLab.length < sites.length) { const el = document.createElement('div'); el.className = 'mz-label'; s.dom.labels.appendChild(el); s.snLab.push(el); }
     s.snLab.forEach((el, j) => { if (j >= sites.length) el.style.display = 'none'; });
     if (sites.length) {
       const right = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 0), up = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 1);
       sites.forEach(({ o, p }, j) => {
-        const rad = (9 * cam.position.distanceTo(p)) / pxPerUnit, colr = o.type === 'LRN' ? 0xffd27a : 0x7dffc0;
+        const rad = (9 * cam.position.distanceTo(p)) / pxPerUnit, colr = o.type === 'LRN' ? 0xffd27a : o.type === 'FEATURE' ? 0xc9a0ff : 0x7dffc0;
         for (let q = 0; q < 20; q++) {
           const a0 = (q / 20) * Math.PI * 2, a1 = ((q + 1) / 20) * Math.PI * 2;
           v.copy(p).addScaledVector(right, Math.cos(a0) * rad).addScaledVector(up, Math.sin(a0) * rad);
           w.copy(p).addScaledVector(right, Math.cos(a1) * rad).addScaledVector(up, Math.sin(a1) * rad);
           lines.push(v, w, col(colr, 0.9));
         }
-        s.snLab[j].textContent = o.name; s.snLab[j].style.color = o.type === 'LRN' ? '#ffd27a' : '#7dffc0';
+        s.snLab[j].textContent = o.name; s.snLab[j].style.color = o.type === 'LRN' ? '#ffd27a' : o.type === 'FEATURE' ? '#c9a0ff' : '#7dffc0';
         place(s.snLab[j], p, 10);
       });
     }

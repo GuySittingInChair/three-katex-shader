@@ -15,7 +15,8 @@ policy blocks live archive requests, so everything is preprocessed).
 | Provenance labels | `src/lib/galaxy/provenance.js` | OBSERVED / SIMULATED / INFERRED / PROCEDURAL / ARTISTIC, with badges |
 | Event engine | `src/lib/galaxy/eventEngine.js` | no Three.js; decides when/where/what; seeded; tested |
 | Supernova drawing | `src/lib/galaxy/supernovaFx.js` | 32 GPU slots × 360 debris particles + flashes; pooled |
-| Galaxy STRUCTURE view | `src/lib/galaxy/galaxyMode.js` | 3D model, knots, real SN sites, picking, card content |
+| Galaxy STRUCTURE view | `src/lib/galaxy/galaxyMode.js` | 3D model, knots, real SN sites, features, rare events, picking, card content |
+| Close-ups | `src/lib/galaxy/closeupFx.js` | magnified scenes: kilonova, tidal disruption, active nucleus, X-ray binary |
 | Explorer | `src/sketches/messierInDepth.js` | `GALAXIES = { 51: … }` turns the view on per object |
 | M51 data | `tools/galaxies/build_m51.py` → `public/data/galaxies/m51/` | see below |
 | TNG fetcher | `tools/galaxies/tng_fetch.py` | written, not yet run (needs a key) |
@@ -39,12 +40,24 @@ policy blocks live archive requests, so everything is preprocessed).
 2. **First dynamic galaxy (M51) — done.** "Structure + explosions" view: 90,000 star points from the photo,
    140 star-forming regions, the four real transients at their NED positions with replays, procedural supernovae,
    clickable events with explanation and provenance, Chaos mode.
-3. **Event engine** — supernovae done; neutron-star mergers, black-hole accretion and jets, tidal disruption and
-   star-formation events next, each with its own rate model and provenance.
+3. **Event engine — done.** Supernovae; star birth at the star-forming knots; neutron-star mergers (inspiral with
+   the Peters chirp law, flash, short jets, blue + red kilonova as in GW170817) and tidal disruptions (debris moved
+   with Newtonian gravity in the browser, so the fallback flare is computed, not drawn) on "show me one" buttons
+   with their real rates; M51's real active nucleus (Seyfert 2, unified-model close-up) and its real X-ray binary
+   M51-ULS-1 (mass transfer, candidate planet) as permanent, clickable features. Chaos mode also triggers the rare
+   ones now and then, still labelled made up.
 4. **Galaxy interactions** — needs IllustrisTNG data (key) for a real simulated merger with a timeline.
 5. **Encyclopedia expansion** — NED makes this possible (Hoag's Object, NGC 4650A, NGC 1052-DF2, NGC 1569, IC 1101,
    NGC 1277, Arp galaxies …), with a "What we still don't know" section per object.
 6. **Integration.**
+
+## Rates of the rare events
+
+- Neutron-star mergers: LIGO-Virgo-KAGRA GWTC-3, 10–1700 binary-neutron-star mergers per Gpc³ per year, divided by
+  the density of Milky-Way-like galaxies, 0.0116 per Mpc³ (Kopparapu et al. 2008): one every ~7,000 to 1.2 million
+  years per galaxy.
+- Tidal disruptions: optical surveys, roughly 10⁻⁵–10⁻⁴ per galaxy per year (e.g. van Velzen 2018; Yao et al. 2023).
+- M51's black-hole mass is not taken from any source here, so the disruption close-up uses a generic hole and says so.
 
 ## M51: what is real
 
