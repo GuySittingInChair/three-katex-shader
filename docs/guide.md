@@ -2983,7 +2983,70 @@ not a sphere.
 
 ---
 
-## 73. My notes
+## 73. Six Thousand Worlds, annotated
+
+File: `src/sketches/exoplanets.js`
+
+Every confirmed planet in the NASA Exoplanet Archive's *Planetary Systems Composite Parameters* table
+(6,412 once the few flagged as disputed are left out; downloaded 12 November 2026), one dot each.
+`tools/exoplanets/build_exo.py` makes the data and works out every number below from it.
+
+**The census.** The years run from 1992 (the first planets, round a pulsar) to 2026, and each planet appears
+in the year it was announced, in its real direction from the Sun, with distance on a log scale (rings at
+10, 100 and 1000 parsecs; the dashed gold line points to the Galactic centre). The colour says how it was
+found. *Transit* (blue): it passed in front of its star and dimmed it. *Wobble* (orange; radial velocity):
+its pull made the star move back and forth. *Lensing* (pink; microlensing): it bent the light of a star far
+behind it. *Imaged* (green): it was photographed. Watch the blue cloud off to one side: that is the Kepler
+telescope's single patch of sky, where it stared for four years. The busiest years are 2016 (1,501 planets,
+mostly Kepler's confirmed in one batch) and 2014 (864). The pink cluster is towards the Galactic bulge,
+thousands of parsecs away, where microlensing surveys look because there are so many background stars.
+
+**The radius valley.** Size against orbit period, for the 1,589 transiting planets with periods under
+100 days whose radius is known to 10%. Big planets very close to their star are rare (the *hot-Neptune
+desert*), and small planets come in two sizes with a gap between. Measured along tilted lines
+R ∝ P^m, the gap is deepest at m = −0.125 (as deep anywhere from −0.19 to −0.07), with peaks at 1.26 and
+2.41 Earth radii and the gap at 1.60 ± 0.05 Earth radii for a 10-day orbit. The blue curve up the side is
+that distribution. Fulton et al. (2017) found peaks at about 1.3 and 2.4 with precise radii of Kepler
+stars; Van Eylen et al. (2018) a tilt of −0.09. The usual explanation: planets below the gap are bare rock
+whose thin atmospheres were blown away by their star's light; those above kept a few percent of their mass as
+a hydrogen envelope, which makes them much larger. The gap is shallower here than in those studies: the archive
+mixes radii from many surveys, which blurs it.
+
+**Mass and radius.** Only planets with a *measured* mass (not estimated from their size), the mass known to
+25% and the radius to 10%: 1,069 of them. Fitting three joined straight lines in log–log gives R ∝ M^0.45,
+then M^0.59 above 10 Earth masses, then M^−0.01 above 145: past about half a Jupiter mass, adding mass doesn't
+make a planet bigger, because the gas is squeezed more tightly. The gold dashed line is Chen & Kipping
+(2017): 0.28, 0.59 and −0.04, with breaks at 2 and 132 Earth masses. Our middle and top slopes agree; our first
+break is higher, because very few planets below a few Earth masses have measured masses yet.
+
+**The habitable zone.** Starlight received (log scale, less to the right; Earth = 1) against the star's
+temperature. The solid green lines are the conservative edges from Kopparapu et al. (2014): closer in than the
+left one, water would boil off in a runaway greenhouse; further out than the right one, even a thick CO₂
+atmosphere couldn't keep it warm. Each edge is a fourth-order polynomial in T = T★ − 5780 K. The dashed lines
+are the wider, optimistic limits (Venus and Mars as they were long ago). Inside the conservative zone: 181
+planets, 17 of them smaller than 1.6 Earth radii (gold), including TRAPPIST-1 e, f and g, Proxima Centauri b
+and TOI-700 d. Most orbit cool red dwarfs, which are common and whose habitable zone is close in, where planets
+are easier to find. Being in the zone only means the starlight is right; it says nothing about whether
+there is air or water. (Kopparapu's fits are for stars of 2600–7200 K; they are used down to 2500 K here so
+that TRAPPIST-1, at 2566 K, is included.)
+
+**What each method can see.** Mass against orbit size. Each method fills its own corner: transits find planets
+close in (they need a lucky alignment, and the closer the orbit the more likely it is), wobbles find heavy
+planets, imaging finds young, hot giants far out, and microlensing finds cold planets a few AU out around
+faint, distant stars. The rings are our own planets. A Jupiter twin is just within reach of the wobble surveys;
+a twin of Earth sits in a region that is still nearly empty. What has been found so far is what is easiest to
+find, not what is most common.
+
+| LaTeX | You write | Meaning |
+|---|---|---|
+| `R_\oplus` | `R_\oplus` | Earth's radius |
+| `M_\oplus` | `M_\oplus` | Earth's mass |
+| `\propto` | `\propto` | proportional to |
+| `T_\star` | `T_\star` | the star's surface temperature |
+
+---
+
+## 74. My notes
 
 Add your own findings, questions and discoveries here.
 
