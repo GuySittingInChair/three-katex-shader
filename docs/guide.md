@@ -3098,6 +3098,16 @@ arrives. M51's two real permanent residents, its active nucleus and the X-ray bi
 planet), are purple rings with close-ups of their own. The details, and the plan for the rest of the galaxy
 engine, are in `docs/galaxy-engine.md`.
 
+**The Unknown Universe.** A second collection, in gold: 36 stranger objects most people have never heard of —
+galaxies that seem to have almost no dark matter (NGC 1052-DF2 and DF4), a near-perfect ring (Hoag's Object), a ring
+over a galaxy's poles (NGC 4650A), giant faint disks (Malin 1), collisions (the Cartwheel, the Antennae, the Mice),
+a galaxy that may not exist (the Canis Major Dwarf), a quasar's fading light echo (Hanny's Voorwerp), the Bullet
+Cluster. Each card says why it's interesting and, separately, *what we still don't know* about it — the open
+questions, not just the textbook answer. Measurements come from the NASA/IPAC Extragalactic Database; where the
+distance itself is disputed, the card gives the competing values. For far objects the card gives the light's
+travel time, which is less than the distance in light-years because space stretched while the light was on its
+way. Type in the search box to find anything by name, catalogue number or theme ("dark matter", "ring").
+
 ---
 
 ## 75. My notes

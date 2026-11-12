@@ -47,8 +47,16 @@ policy blocks live archive requests, so everything is preprocessed).
    M51-ULS-1 (mass transfer, candidate planet) as permanent, clickable features. Chaos mode also triggers the rare
    ones now and then, still labelled made up.
 4. **Galaxy interactions** — needs IllustrisTNG data (key) for a real simulated merger with a timeline.
-5. **Encyclopedia expansion** — NED makes this possible (Hoag's Object, NGC 4650A, NGC 1052-DF2, NGC 1569, IC 1101,
-   NGC 1277, Arp galaxies …), with a "What we still don't know" section per object.
+5. **Encyclopedia expansion — first collection done.** *The Unknown Universe*: 36 unusual galaxies, groups and
+   clusters (`tools/deepsky/objects.py` → `build_deepsky.py` → `public/data/deepsky/`), placed in the same 3D map.
+   Measurements from NED with reference codes: position, type, redshift; distance = NED-D median where NED-D has
+   any, otherwise Hubble's law from the redshift (H₀ = 70), and for NGC 1052-DF2 the disputed published values
+   (13 vs ~20–22 Mpc) stated by hand. NGC 1052-DF4 isn't findable by name in NED, so it uses the NED entry at its
+   published position (SMDG J0239150-080657); its Wikipedia infobox repeats DF2's coordinates and wasn't used.
+   Each card: why it's interesting, *What we still don't know* (both written for the page, kept to well-established
+   statements, no invented numbers), distance with source, light-travel time (flat ΛCDM for z > 0.02), redshift
+   with refcode, Wikipedia summary, NED link. Search across all 146 objects (`src/lib/galaxy/catalog.js`, tested),
+   collection filters, a tour. Next collections: Arp's peculiar galaxies, the Local Group, record holders.
 6. **Integration.**
 
 ## Rates of the rare events

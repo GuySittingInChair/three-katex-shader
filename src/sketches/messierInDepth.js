@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { createFatLines, createDots } from '../lib/fatLines.js';
 import { createGalaxyMode } from '../lib/galaxy/galaxyMode.js';
+import { search, unknownHTML, lookbackYears } from '../lib/galaxy/catalog.js';
 
 // Messier's Sky, in depth. The 110 objects of Charles Messier's catalogue, each a real photograph (Digitized Sky
 // Survey 2, via NASA SkyView) placed in its true direction from the Sun at its measured distance, with distance on
@@ -10,11 +11,12 @@ import { createGalaxyMode } from '../lib/galaxy/galaxyMode.js';
 // tools/messier/build_messier.py makes the pictures and the facts file.
 
 const DATA_URL = '/data/messier/';
+const DEEP_URL = '/data/deepsky/';   // The Unknown Universe: tools/deepsky/build_deepsky.py
 // objects that also have a STRUCTURE view (3D model from the photo + event engine): tools/galaxies/build_<name>.py
 const GALAXIES = { 51: '/data/galaxies/m51/' };
 const RS = 1.6;                                  // scene units per factor of 10 in distance
 const R = (ly) => RS * Math.log10(Math.max(ly, 250) / 200);
-const RINGS = [[1e3, '1,000 light-years'], [1e4, '10,000 light-years'], [1e5, '100,000 ly: the Milky Way is about this wide'], [1e6, '1 million light-years'], [1e7, '10 million light-years'], [1e8, '100 million light-years']];
+const RINGS = [[1e3, '1,000 light-years'], [1e4, '10,000 light-years'], [1e5, '100,000 ly: the Milky Way is about this wide'], [1e6, '1 million light-years'], [1e7, '10 million light-years'], [1e8, '100 million light-years'], [1e9, '1 billion light-years']];
 const GROUPS = {
   galaxy: { label: 'Galaxies', col: '#9db4ff', what: 'A galaxy: a separate system of billions of stars, gas and dark matter, far beyond our own Milky Way. Messier took these for clouds of gas; only in the 1920s did Edwin Hubble show, from variable stars he found in Andromeda, that they are whole galaxies like ours.' },
   globular: { label: 'Globular clusters', col: '#ffd27a', what: 'A globular cluster: a tight ball of hundreds of thousands of stars, most of them 10–13 billion years old, among the oldest things in the Galaxy. They orbit in the halo around the Milky Way\'s centre; about 150 are known.' },
@@ -22,6 +24,7 @@ const GROUPS = {
   nebula: { label: 'Nebulae', col: '#ff7a9a', what: 'A nebula: a cloud of gas and dust where stars are being born. Young, hot stars inside light it up; the red glow is hydrogen.' },
   planetary: { label: 'Planetary nebulae', col: '#7dffc0', what: 'A planetary nebula: the outer layers shed by a dying Sun-like star, lit up by the hot core left behind, a white dwarf. Nothing to do with planets: in early telescopes they looked like a planet\'s disk. Each lasts only a few tens of thousands of years — our Sun will make one in about 5 billion years.' },
   remnant: { label: 'Supernova remnant', col: '#ff9f5a', what: 'A supernova remnant: the debris of a star that exploded, still flying outward.' },
+  group: { label: 'Groups & clusters', col: '#ff9fd0', what: 'A group or cluster of galaxies: several to thousands of galaxies held together by their combined gravity — most of it dark matter — and often by hot gas between them that shines in X-rays.' },
   other: { label: 'Other', col: '#d8d8d8', what: '' },
 };
 const OTHER_WHAT = {
@@ -43,9 +46,14 @@ const MILESTONES = [
   [7e6, 'before the human and chimpanzee lines split'],
   [25e6, 'before the first apes appeared'],
   [66e6, 'while dinosaurs still lived'],
+  [235e6, 'before the first dinosaurs'],
+  [390e6, 'before the first forests'],
+  [540e6, 'before the first animals with shells and skeletons'],
+  [2.4e9, 'before there was oxygen in Earth\'s air'],
+  [4.6e9, 'before the Sun and Earth formed'],
 ];
 const NOW = new Date().getFullYear();
-const HOME = { p: [11, 11, 25], t: [1.2, 2.2, 0] };   // the whole-sky view
+const HOME = { p: [12, 12, 28], t: [1.2, 2.2, 0] };   // the whole-sky view
 
 const VERT = /* glsl */ `
   attribute vec3 aCenter;
@@ -109,6 +117,15 @@ const css = `
 .mz-label.ring{color:#7f8ba3;font-size:11px}
 .mz-label.big{font-size:14px;font-weight:600}
 .mz-min{display:none}
+.mz-search{width:100%;margin:4px 0 0;padding:7px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#e9edf5;font:inherit;font-size:13.5px}
+.mz-results{display:flex;flex-direction:column;gap:2px;margin:4px 0 6px}
+.mz-res{display:block;text-align:left;background:transparent;border:0;border-bottom:1px solid rgba(255,255,255,.06);color:#e9edf5;padding:5px 2px;cursor:pointer;font:inherit;font-size:13px}
+.mz-res:hover{background:rgba(255,255,255,.06)}
+.mz-res span,.mz-res-none{color:#8a93a6;font-size:12px}
+.mz-unknown{border:1px solid #ffd27a44;background:#ffd27a10;border-radius:10px;padding:10px 12px;margin:10px 0}
+.mz-unknown-h{font-weight:600;color:#ffd27a;margin-bottom:4px;letter-spacing:.02em}
+.mz-unknown ul{margin:0;padding-left:18px}
+.mz-unknown li{margin:4px 0;font-size:13.5px}
 @media (max-width:700px){
   .mz-panel{left:10px;right:10px;width:auto;top:auto;bottom:84px;max-height:52vh}
   .mz-img{max-height:26vh;width:auto;margin-left:auto;margin-right:auto}
@@ -155,7 +172,9 @@ export default {
   description:
     "All 110 objects in Charles Messier's 18th-century catalogue — galaxies, star clusters and glowing clouds — as real telescope photographs, " +
     'each placed in its true direction at its measured distance (log scale: 440 light-years to 80 million). Click any of them to fly there and read ' +
-    'what it is, how big it really is and when the light you see left it. Pictures: Digitized Sky Survey 2 via NASA SkyView; facts: Wikipedia.',
+    'what it is, how big it really is and when the light you see left it. Plus the Unknown Universe: 36 stranger galaxies and clusters, ' +
+    'each with what we still don\'t know about it, and search across everything. Pictures: Digitized Sky Survey via NASA SkyView; ' +
+    'measurements: NASA/IPAC Extragalactic Database; summaries: Wikipedia.',
   tags: ['messier', 'galaxies', 'nebulae', 'star clusters', 'interactive', 'real data', 'explore'],
   category: 'Astronomy',
   mode: '3d',
@@ -175,7 +194,7 @@ export default {
     controls.autoRotate = true; controls.autoRotateSpeed = 0.35;
     ctx.scene.background = new THREE.Color(0x020306);
     const narrow = () => window.matchMedia('(max-width:700px)').matches;
-    const s = { ready: false, disposed: false, collapsed: narrow(), mode: 'photo', gx: {}, sel: -1, hover: -1, filter: new Set(Object.keys(GROUPS)), lastInput: -1e9, tourAt: 0, tourI: -1, fly: null };
+    const s = { ready: false, disposed: false, collapsed: narrow(), mode: 'photo', gx: {}, cats: new Set(['messier', 'unknown']), tourList: null, sel: -1, hover: -1, filter: new Set(Object.keys(GROUPS)), lastInput: -1e9, tourAt: 0, tourI: -1, fly: null };
     const lines = createFatLines({ maxSegments: 4000, width: 1.2 });
     ctx.scene.add(lines.object);
     const dots = createDots({ maxPoints: 8 });
@@ -234,9 +253,55 @@ export default {
       s.lab = objs.map((o) => { const el = document.createElement('div'); el.className = 'mz-label'; el.textContent = `M${o.m}${o.name ? ' · ' + o.name : ''}`; el.style.display = 'none'; labels.appendChild(el); return el; });
       s.ringLab = RINGS.map(([, t]) => { const el = document.createElement('div'); el.className = 'mz-label ring'; el.textContent = t; labels.appendChild(el); return el; });
       s.sunLab = document.createElement('div'); s.sunLab.className = 'mz-label'; s.sunLab.textContent = 'Sun — you are here'; labels.appendChild(s.sunLab);
+      for (const o of objs) o.cat = 'messier';
       s.ready = true;
       renderPanel();
+      return fetch(DEEP_URL + 'meta.json').then((r) => r.json()).then(addDeep);
     }).catch((err) => console.error('messier data', err));
+
+    // ---------- The Unknown Universe: a second set of cards, same shader, its own atlas ----------
+    const addDeep = (meta) => {
+      if (s.disposed) return;
+      const list = meta.objects, n = list.length, v = new THREE.Vector3();
+      const centers = new Float32Array(n * 3), tiles = new Float32Array(n * 2), misc = new Float32Array(n * 3);
+      list.forEach((o, k) => {
+        o.x = true; o.cat = 'unknown'; o.mi = k;
+        o.group = /GClstr|GGroup|GPair|GTrpl/.test(o.nedType || '') ? 'group' : 'galaxy';
+        o.card = 0.3;
+        skyDir(o.ra, o.dec, v).multiplyScalar(R(o.ly));
+        centers.set([v.x, v.y, v.z], k * 3);
+        tiles.set([o.tile % meta.cols, meta.rows - 1 - Math.floor(o.tile / meta.cols)], k * 2);
+        misc.set([o.card, 1, 0], k * 3);
+        s.pos.push(v.clone());
+        s.objs.push(o);
+        const el = document.createElement('div'); el.className = 'mz-label'; el.textContent = o.name; el.style.display = 'none'; labels.appendChild(el); s.lab.push(el);
+      });
+      const g = new THREE.InstancedBufferGeometry();
+      const quad = new THREE.PlaneGeometry(1, 1);
+      g.index = quad.index; g.attributes.position = quad.attributes.position; g.attributes.uv = quad.attributes.uv;
+      g.setAttribute('aCenter', new THREE.InstancedBufferAttribute(centers, 3));
+      g.setAttribute('aTile', new THREE.InstancedBufferAttribute(tiles, 2));
+      s.misc2 = new THREE.InstancedBufferAttribute(misc, 3); s.misc2.setUsage(THREE.DynamicDrawUsage);
+      g.setAttribute('aMisc', s.misc2);
+      g.instanceCount = n;
+      const tex = new THREE.TextureLoader().load(DEEP_URL + 'atlas.jpg');
+      tex.colorSpace = THREE.SRGBColorSpace;
+      s.mat2 = s.mat.clone();
+      s.mat2.uniforms.uMap = { value: tex }; s.mat2.uniforms.uTiles = { value: new THREE.Vector2(meta.cols, meta.rows) };
+      s.cards2 = new THREE.Mesh(g, s.mat2); s.cards2.frustumCulled = false;
+      ctx.scene.add(s.cards2);
+      s.geo2 = g; s.tex2 = tex; s.deep = list;
+      renderPanel();
+    };
+    const imgUrl = (o) => (o.x ? `${DEEP_URL}img/${o.id}.jpg` : `${DATA_URL}img/m${String(o.m).padStart(3, '0')}.jpg`);
+    // stepping through a collection: Messier by number, the Unknown Universe in list order
+    const step = (d) => {
+      const o = s.objs[s.sel];
+      if (!o.x) return s.objs.findIndex((x) => x.m === ((o.m - 1 + d + 110) % 110) + 1);
+      const k = (o.mi + d + s.deep.length) % s.deep.length;
+      return s.objs.indexOf(s.deep[k]);
+    };
+    const stepLabel = (d) => { const o = s.objs[step(d)]; return o.x ? o.name : `M${o.m}`; };
 
     // ---------- galaxies with a STRUCTURE view ----------
     const gxFor = (i) => {
@@ -271,20 +336,53 @@ export default {
     };
     const leaveStructure = () => { if (s.mode === 'structure') { for (const gm of Object.values(s.gx)) gm.show(false); s.mode = 'photo'; controls.minDistance = 0.15; } };
 
+    const NED_TYPES = { G: 'Galaxy', GPair: 'Pair of galaxies', GGroup: 'Group of galaxies', GClstr: 'Cluster of galaxies', QSO: 'Quasar', GTrpl: 'Triple galaxy' };
+    const deepCard = (o) => {
+      const z = o.z, lb = z && z > 0.02 ? lookbackYears(z) : o.ly;
+      const range = o.distLo && o.distHi && o.distHi / o.distLo > 1.05 ? `<br><span style="color:#8a93a6;font-size:12.5px">published values from ${lyText(o.distLo).replace(' light-years', '')} to ${lyText(o.distHi)}</span>` : '';
+      const paras = o.about.split(/\n+/).filter(Boolean).map((p) => `<p style="margin:0 0 8px">${esc(p)}</p>`).join('');
+      return `<div class="mz-in"><div class="mz-head"><h2>${esc(o.name)}<small><span class="mz-dot" style="background:#ffd27a"></span>${NED_TYPES[o.nedType] || esc(o.nedType || 'Galaxy')}${o.nedName && o.nedName !== o.name ? ' · ' + esc(o.nedName) : ''} · ✦ The Unknown Universe</small></h2>
+          <button class="mz-btn mz-min" data-act="min">▾</button><button class="mz-btn" data-act="close" title="back to the whole sky">✕</button></div>
+        <div class="mz-body"><img class="mz-img" src="${imgUrl(o)}" alt="${esc(o.name)}">
+        <div class="mz-cap">Real photograph, ${o.fovDeg >= 1 ? o.fovDeg.toFixed(1) + '°' : Math.round(o.fovDeg * 60) + '′'} across (the full Moon is 0.5°). Digitized Sky Survey (${esc(o.survey)}). Many of these are faint or small: a sky-survey plate may show little.</div>
+        <div class="mz-what"><b>Why it's interesting.</b> ${esc(o.why)}</div>
+        <dl class="mz-facts">
+          <dt>Distance</dt><dd>${lyText(o.ly)}${range}<br><span style="color:#8a93a6;font-size:12.5px">${esc(o.distSrc)}</span></dd>
+          <dt>Light left it</dt><dd>${lightLeft(lb)}${z && z > 0.02 ? '<br><span style="color:#8a93a6;font-size:12.5px">(less than its distance in light-years: space stretched while the light travelled)</span>' : ''}</dd>
+          ${z != null ? `<dt>Redshift</dt><dd>z = ${z.toFixed(z < 0.01 ? 5 : 4)}${z < 0 ? ' — negative: it is moving towards us' : ''}${o.zRef ? ` <span style="color:#8a93a6;font-size:12.5px">(${esc(o.zRef)})</span>` : ''}</dd>` : ''}
+          <dt>Position</dt><dd style="font-size:12.5px;color:#9aa3b5">${esc(o.posRef)}</dd>
+        </dl>
+        ${unknownHTML(o)}
+        <div class="mz-about">${paras}</div>
+        <div class="mz-chips">${(o.tags || []).map((t) => `<span class="mz-chip" style="color:#9aa3b5;border-color:#ffffff22;cursor:default">${esc(t)}</span>`).join('')}</div>
+        <div class="mz-src">Text: <a href="${esc(o.wikiUrl)}" target="_blank" rel="noopener">Wikipedia, “${esc(o.wikiTitle)}”</a> (CC BY-SA 4.0)${o.nedUrl ? `; measurements: <a href="${esc(o.nedUrl)}" target="_blank" rel="noopener">NED</a>` : ''}. Photo: DSS via NASA SkyView. “Why it's interesting” and “What we still don't know”: written for this page.</div>
+        <div class="mz-nav"><button class="mz-btn" data-act="prev">← ${esc(stepLabel(-1))}</button><button class="mz-btn" data-act="next">${esc(stepLabel(1))} →</button><span style="flex:1"></span><button class="mz-btn" data-act="close">Whole sky</button></div></div></div>`;
+    };
+    const showResults = () => {
+      const box = panel.querySelector('.mz-results'); if (!box) return;
+      const hits = s.query ? search(s.objs, s.query, 8) : [];
+      box.innerHTML = hits.map((o) => `<button class="mz-res" data-act="pick" data-i="${s.objs.indexOf(o)}"><b>${o.x ? esc(o.name) : 'M' + o.m}</b> ${o.x ? '' : esc(o.name)} <span>${o.x ? '✦ ' + esc((o.tags || [])[0] || '') : esc(o.type)}</span></button>`).join('') || (s.query ? '<div class="mz-res-none">Nothing found</div>' : '');
+    };
+    panel.addEventListener('input', (e) => { if (e.target.classList.contains('mz-search')) { s.query = e.target.value; touch(); showResults(); } });
+    panel.addEventListener('keydown', (e) => { if (e.target.classList.contains('mz-search') && e.key === 'Enter') { const hit = search(s.objs, s.query || '', 1)[0]; if (hit) select(s.objs.indexOf(hit)); } if (e.target.classList.contains('mz-search') && e.key !== 'Escape') e.stopPropagation(); });   // typing in search mustn't drive the page
+
     // ---------- panel ----------
     const renderPanel = () => {
       if (!s.ready) return;
       const i = s.sel;
       if (i < 0) {
         const counts = {};
-        for (const o of s.objs) counts[o.group] = (counts[o.group] || 0) + 1;
-        panel.innerHTML = `<div class="mz-in"><div class="mz-head"><h2>Messier's Sky<small>110 objects, at their real distances</small></h2><button class="mz-btn mz-min" data-act="min">▾</button></div>
+        for (const o of s.objs) if (s.cats.has(o.cat)) counts[o.group] = (counts[o.group] || 0) + 1;
+        panel.innerHTML = `<div class="mz-in"><div class="mz-head"><h2>Messier's Sky<small>110 Messier objects${s.deep ? ` + ${s.deep.length} from the Unknown Universe` : ''}, at their real distances</small></h2><button class="mz-btn mz-min" data-act="min">▾</button></div>
           <div class="mz-body"><p style="margin:10px 0">Charles Messier hunted comets from Paris in the 1700s. To stop himself and others mistaking fixed fuzzy patches for comets,
           he listed them. His list became the classic tour of the night sky. Every picture here is a real photograph of one of them. Each sits in its true
           direction from the Sun, and its distance is on a log scale, so each ring is ten times further out than the last.</p>
+          <p style="margin:10px 0"><b style="color:#ffd27a">✦ The Unknown Universe</b>: ${s.deep ? s.deep.length : 'more'} stranger objects most people have never heard of — galaxies that seem to lack dark matter, perfect rings, a galaxy that may not exist — each with what we still don't know about it.</p>
           <p style="margin:10px 0"><b>Click any picture</b> to fly there. Drag to turn, scroll or pinch to zoom.</p>
+          <input class="mz-search" type="search" placeholder="Search: M51, Whirlpool, NGC 1976, dark matter, ring…" value="${esc(s.query || '')}"><div class="mz-results"></div>
+          <div class="mz-chips"><button class="mz-chip ${s.cats.has('messier') ? '' : 'off'}" data-act="cat" data-k="messier" style="color:#dfe6f3;border-color:#dfe6f355">Messier's 110</button><button class="mz-chip ${s.cats.has('unknown') ? '' : 'off'}" data-act="cat" data-k="unknown" style="color:#ffd27a;border-color:#ffd27a55">✦ The Unknown Universe ${s.deep ? s.deep.length : ''}</button></div>
           <div class="mz-chips">${Object.entries(GROUPS).filter(([k]) => counts[k]).map(([k, G]) => `<button class="mz-chip ${s.filter.has(k) ? '' : 'off'}" data-g="${k}" style="color:${G.col};border-color:${G.col}55"><span class="mz-dot" style="background:${G.col}"></span>${G.label} ${counts[k]}</button>`).join('')}</div>
-          <div class="mz-nav"><button class="mz-btn" data-act="tour">▶ Take the tour</button><button class="mz-btn" data-act="names">${s.allNames ? 'Hide' : 'Show'} all names</button></div>
+          <div class="mz-nav" style="flex-wrap:wrap"><button class="mz-btn" data-act="tour">▶ Take the tour</button>${s.deep ? '<button class="mz-btn" data-act="tourdeep">✦ Tour the unknown</button>' : ''}<button class="mz-btn" data-act="names">${s.allNames ? 'Hide' : 'Show'} all names</button></div>
           <div class="mz-src">Pictures: Digitized Sky Survey (photographic plates, 1950s–90s), via NASA SkyView. Facts and summaries: Wikipedia, CC BY-SA 4.0.</div></div></div>`;
       } else if (s.mode === 'structure' && gxFor(i)) {
         const o = s.objs[i], G = GROUPS[o.group];
@@ -293,7 +391,9 @@ export default {
           <div class="mz-body">${modesHTML()}
           <p style="margin:8px 0;font-size:13.5px">The photograph, turned into a 3D disk of ${(90000).toLocaleString()} star points, tilted the way the galaxy really is tilted. Pink: regions where stars are forming. Green rings: where real supernovae were seen; purple: the real active nucleus and X-ray binary. Flashes: supernovae at the rate this galaxy really has them, and new star clusters. Drag to fly round it; click anything.</p>
           ${gxFor(i).panel()}
-          <div class="mz-nav"><button class="mz-btn" data-act="prev">← M${o.m === 1 ? 110 : o.m - 1}</button><button class="mz-btn" data-act="next">M${o.m === 110 ? 1 : o.m + 1} →</button><span style="flex:1"></span><button class="mz-btn" data-act="close">Whole sky</button></div></div></div>`;
+          <div class="mz-nav"><button class="mz-btn" data-act="prev">← ${stepLabel(-1)}</button><button class="mz-btn" data-act="next">${stepLabel(1)} →</button><span style="flex:1"></span><button class="mz-btn" data-act="close">Whole sky</button></div></div></div>`;
+      } else if (s.objs[i].x) {
+        panel.innerHTML = deepCard(s.objs[i]);
       } else {
         const o = s.objs[i], G = GROUPS[o.group];
         const what = o.group === 'other' ? (OTHER_WHAT[o.type] || (/star cloud/i.test(o.type) ? 'A star cloud: a stretch of the Milky Way\'s disk seen through a gap in the dust, crowded with stars thousands of light-years deep.' : '')) : G.what;
@@ -313,9 +413,10 @@ export default {
           ${what ? `<div class="mz-what">${what}</div>` : ''}
           <div class="mz-about">${paras}</div>
           <div class="mz-src">Text: <a href="${esc(o.wiki)}" target="_blank" rel="noopener">Wikipedia, “${esc(o.wikiTitle)}”</a> (CC BY-SA 4.0). Photo: DSS2 via NASA SkyView.</div>
-          <div class="mz-nav"><button class="mz-btn" data-act="prev">← M${o.m === 1 ? 110 : o.m - 1}</button><button class="mz-btn" data-act="next">M${o.m === 110 ? 1 : o.m + 1} →</button><span style="flex:1"></span><button class="mz-btn" data-act="close">Whole sky</button></div></div></div>`;
+          <div class="mz-nav"><button class="mz-btn" data-act="prev">← ${stepLabel(-1)}</button><button class="mz-btn" data-act="next">${stepLabel(1)} →</button><span style="flex:1"></span><button class="mz-btn" data-act="close">Whole sky</button></div></div></div>`;
       }
       if (s.collapsed) panel.classList.add('collapsed'); else panel.classList.remove('collapsed');
+      showResults();
     };
     s.renderPanel = renderPanel;
     const touch = () => { s.lastInput = ctx.time; };
@@ -339,9 +440,12 @@ export default {
       if (act !== 'tour') { touch(); s.touring = false; }
       if (b.dataset.g) { const k = b.dataset.g; if (s.filter.has(k)) s.filter.delete(k); else s.filter.add(k); renderPanel(); return; }
       if (act === 'close') select(-1);
-      else if (act === 'next') select(s.objs.findIndex((o) => o.m === (s.objs[s.sel].m % 110) + 1));
-      else if (act === 'prev') select(s.objs.findIndex((o) => o.m === ((s.objs[s.sel].m + 108) % 110) + 1));
-      else if (act === 'tour') { s.touring = true; s.tourI = -1; s.tourAt = -1e9; }
+      else if (act === 'next') select(step(1));
+      else if (act === 'prev') select(step(-1));
+      else if (act === 'tourdeep') { s.tourList = s.deep.map((o) => s.objs.indexOf(o)); s.touring = true; s.tourI = -1; s.tourAt = -1e9; }
+      else if (act === 'cat') { const k = b.dataset.k; if (s.cats.has(k)) s.cats.delete(k); else s.cats.add(k); renderPanel(); }
+      else if (act === 'pick') select(+b.dataset.i);
+      else if (act === 'tour') { s.tourList = null; s.touring = true; s.tourI = -1; s.tourAt = -1e9; }
       else if (act === 'names') { s.allNames = !s.allNames; renderPanel(); }
       else if (act === 'min') { s.collapsed = !s.collapsed; renderPanel(); }
     };
@@ -366,7 +470,7 @@ export default {
       } else {
         const o = s.objs[i];
         flyTo(i);
-        new THREE.TextureLoader().load(`${DATA_URL}img/m${String(o.m).padStart(3, '0')}.jpg`, (t) => {
+        new THREE.TextureLoader().load(imgUrl(o), (t) => {
           if (s.disposed || s.sel !== i) { t.dispose(); return; }
           t.colorSpace = THREE.SRGBColorSpace;
           s.big.material.uniforms.uMap.value?.dispose();
@@ -385,7 +489,7 @@ export default {
       const r = el.getBoundingClientRect(), v = new THREE.Vector3();
       let best = -1, bestD = radius;
       s.objs.forEach((o, i) => {
-        if (!s.filter.has(o.group)) return;
+        if (!s.filter.has(o.group) || !s.cats.has(o.cat)) return;
         v.copy(s.pos[i]).project(cam);
         if (v.z > 1) return;
         const sx = (v.x * 0.5 + 0.5) * r.width + r.left, sy = (0.5 - v.y * 0.5) * r.height + r.top;
@@ -413,8 +517,8 @@ export default {
     const onKey = (e) => {
       if (!s.ready || e.target.closest?.('input,textarea')) return;
       if (e.key === 'Escape' && s.sel >= 0) { select(-1); e.stopPropagation(); }
-      if ((e.key === ']' || e.key === '.') && s.sel >= 0) select(s.objs.findIndex((o) => o.m === (s.objs[s.sel].m % 110) + 1));
-      if ((e.key === '[' || e.key === ',') && s.sel >= 0) select(s.objs.findIndex((o) => o.m === ((s.objs[s.sel].m + 108) % 110) + 1));
+      if ((e.key === ']' || e.key === '.') && s.sel >= 0) select(step(1));
+      if ((e.key === '[' || e.key === ',') && s.sel >= 0) select(step(-1));
     };
     el.addEventListener('pointerdown', onDown); el.addEventListener('pointerup', onUp); el.addEventListener('pointermove', onMove);
     el.addEventListener('wheel', touch, { passive: true });
@@ -438,9 +542,10 @@ export default {
     // ---------- the tour: starts by itself after 40 s of nothing, or from the button ----------
     if (!s.touring && s.mode !== 'structure' && ctx.time - s.lastInput > 40 && ctx.time > 25) { s.touring = true; s.tourAt = -1e9; }
     if (s.touring && ctx.time - s.tourAt > 14) {
-      s.tourI = (s.tourI + 1) % TOUR.length;
+      const list = s.tourList ?? TOUR.map((m) => s.objs.findIndex((o) => o.m === m));
+      s.tourI = (s.tourI + 1) % list.length;
       s.tourAt = ctx.time;
-      s.select(s.objs.findIndex((o) => o.m === TOUR[s.tourI]));
+      s.select(list[s.tourI]);
     }
 
     // ---------- camera flight ----------
@@ -466,15 +571,17 @@ export default {
     const pxPerUnit = height / (2 * Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2));
     s.mat.uniforms.uPxPerUnit.value = pxPerUnit;
     s.mat.uniforms.uMinPx.value = Math.max(10, Math.min(width, height) / 55);
-    const M = s.misc.array;
+    if (s.mat2) { s.mat2.uniforms.uPxPerUnit.value = pxPerUnit; s.mat2.uniforms.uMinPx.value = s.mat.uniforms.uMinPx.value; }
     s.objs.forEach((o, i) => {
-      const on = s.filter.has(o.group) ? 1 : 0;
+      const M = o.x ? s.misc2.array : s.misc.array, j = o.x ? o.mi : i;
+      const on = s.filter.has(o.group) && s.cats.has(o.cat) ? 1 : 0;
       const hl = i === s.sel ? 1 : i === s.hover ? 0.6 : 0;
       const shown = on * (i === s.sel && (s.big.visible || s.mode === 'structure') ? (s.mode === 'structure' ? 0 : 1 - s.big.material.uniforms.uA.value) : 1);   // the full-size picture (or the 3D model) replaces it
-      M[i * 3 + 1] += (shown - M[i * 3 + 1]) * Math.min(1, ctx.delta * 6);
-      M[i * 3 + 2] += (hl - M[i * 3 + 2]) * Math.min(1, ctx.delta * 8);
+      M[j * 3 + 1] += (shown - M[j * 3 + 1]) * Math.min(1, ctx.delta * 6);
+      M[j * 3 + 2] += (hl - M[j * 3 + 2]) * Math.min(1, ctx.delta * 8);
     });
     s.misc.needsUpdate = true;
+    if (s.misc2) s.misc2.needsUpdate = true;
     // the selected one: full-resolution picture, facing the camera, fading in over the small card
     if (s.big.visible && s.sel >= 0) {
       const o = s.objs[s.sel];
@@ -498,7 +605,7 @@ export default {
     });
     for (let q = 0; q < 6; q++) { v.set(q * 0.35, 0, 0); w.set(q * 0.35 + 0.18, 0, 0); lines.push(v, w, col(0xffc46b, 0.35)); }   // toward the Galactic centre
     s.objs.forEach((o, i) => {
-      if (!s.filter.has(o.group) || (s.mode === 'structure' && i === s.sel)) return;
+      if (!s.filter.has(o.group) || !s.cats.has(o.cat) || (s.mode === 'structure' && i === s.sel)) return;
       const P = s.pos[i];
       v.copy(P); w.set(P.x, 0, P.z);
       lines.push(v, w, col(GROUPS[o.group].col, i === s.sel || i === s.hover ? 0.5 : 0.05));
@@ -517,7 +624,7 @@ export default {
     };
     s.objs.forEach((o, i) => {
       const el = s.lab[i];
-      const show = s.mode !== 'structure' && s.filter.has(o.group) && (i === s.sel || i === s.hover || s.allNames || (s.sel < 0 && o.name && cam.position.distanceTo(s.pos[i]) < 6));
+      const show = s.mode !== 'structure' && s.filter.has(o.group) && s.cats.has(o.cat) && (i === s.sel || i === s.hover || s.allNames || (s.sel < 0 && o.name && cam.position.distanceTo(s.pos[i]) < 6));
       if (!show) { el.style.display = 'none'; return; }
       const d = Math.max(0.01, cam.position.distanceTo(s.pos[i]));
       const half = Math.max(s.mat.uniforms.uMinPx.value, (o.card * 1.25 * pxPerUnit) / d) / 2;
@@ -560,6 +667,7 @@ export default {
     s.dom.style.remove(); s.dom.panel.remove(); s.dom.labels.remove();
     for (const gm of Object.values(s.gx || {})) gm.dispose();
     if (s.geo) { s.geo.dispose(); s.mat.dispose(); s.tex.dispose(); ctx.scene.remove(s.cards); }
+    if (s.geo2) { s.geo2.dispose(); s.mat2.dispose(); s.tex2.dispose(); ctx.scene.remove(s.cards2); }
     if (s.big) { s.big.material.uniforms.uMap.value?.dispose(); s.big.geometry.dispose(); s.big.material.dispose(); ctx.scene.remove(s.big); }
   },
 };
