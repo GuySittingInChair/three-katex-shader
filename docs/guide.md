@@ -3046,7 +3046,44 @@ find, not what is most common.
 
 ---
 
-## 74. My notes
+## 74. Messier's Sky, in Depth, annotated
+
+File: `src/sketches/messierInDepth.js`
+
+This one is for exploring rather than watching: there is no equation and no fixed timeline. The 110 objects of
+Charles Messier's catalogue (galaxies, star clusters, nebulae) are each a real photograph, placed in their true
+direction from the Sun at their measured distance. Click one and the camera flies there and a card opens:
+what kind of object it is, how far away (with the range of published measurements), when the light you are seeing
+left it and what was happening on Earth then, its real size (distance × the angle it covers), how bright it looks
+and whether you need binoculars or a telescope, a short explanation of that kind of object, and the opening of its
+Wikipedia article with a link to the rest. ← and → step through the catalogue in order; Esc goes back to the
+whole sky. Leave it alone for 40 seconds and it tours the highlights by itself.
+
+**Where things are.** Directions are turned so the plane of the Milky Way is flat (the faint gold dashes point
+to the Galactic centre). Distance is on a log scale, so each ring is ten times further out than the last:
+1,000 light-years, 10,000, 100,000 (about the width of the Milky Way), then 1, 10 and 100 million. Everything
+inside the third ring is in our own galaxy: star clusters, nebulae, the globular clusters in the halo. Everything
+outside it is another galaxy. The crowd far up out of the plane is the Virgo Cluster, 50–60 million light-years
+away. The thin lines drop each object to the plane, so you can read its height.
+
+**The pictures.** All from the Digitized Sky Survey: photographic plates taken with the Palomar and UK Schmidt
+telescopes (1950s–1990s) and scanned, fetched through NASA's SkyView. Each picture combines a red plate and a blue
+plate, balanced so that the stars in the field come out white; then red hydrogen gas looks red and dust lit by
+blue stars looks blue. Where the newer survey's plates meet in the middle of an object (M16, M31, M37, M45, M97,
+M106, M108), the older survey (POSS-I) is used instead. Three fields in the south have no blue plate at all (M7,
+M11, M19) and are shown from the red plate only. The caption under each picture says which plates it is from and
+how wide the field is.
+
+**The facts.** Distances, types, constellations, brightness and apparent sizes come from Wikipedia's table of
+Messier objects, which cites a source for each. The summaries are each article's lead section (CC BY-SA 4.0),
+linked from the card. A few objects are odd ones out: M40 is two unrelated stars, M73 four stars that only look
+like a group, M24 a stretch of the Milky Way, and M102 is disputed (it may be a duplicate of M101).
+
+`tools/messier/` has the scripts that fetched and built all of it.
+
+---
+
+## 75. My notes
 
 Add your own findings, questions and discoveries here.
 
