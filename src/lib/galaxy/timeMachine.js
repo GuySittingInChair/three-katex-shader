@@ -50,7 +50,7 @@ export function createTimeMachine({ url, labelLayer, onPanelChange }) {
 
   // ---------- the timeline bar ----------
   const bar = document.createElement('div'); bar.className = 'tm-bar'; bar.style.display = 'none';
-  bar.innerHTML = `<div class="tm-row"><button data-tm="play">▶</button><button data-tm="speed" title="speed">×1</button><button data-tm="today">Today</button><span class="tm-read">computing…</span></div>
+  bar.innerHTML = `<div class="tm-row"><button data-tm="play" title="play / pause (space)">▶</button><button data-tm="speed" title="speed">×1</button><button data-tm="today">Today</button><span class="tm-read">computing…</span></div>
     <div class="tm-track"><input type="range" min="-800" max="900" step="1" value="-800"></div>`;
   document.body.appendChild(bar);
   const slider = bar.querySelector('input'), read = bar.querySelector('.tm-read'), playBtn = bar.querySelector('[data-tm=play]'), speedBtn = bar.querySelector('[data-tm=speed]');
@@ -70,6 +70,8 @@ export function createTimeMachine({ url, labelLayer, onPanelChange }) {
     syncBar();
   });
   slider.addEventListener('input', () => { st.t = +slider.value; st.playing = false; syncBar(); });
+  const onKey = (e) => { if (st.on && st.ready && e.code === 'Space' && !e.target.closest?.('input,textarea,button')) { e.preventDefault(); if (st.t >= sim.t1 - 1) st.t = sim.t0; st.playing = !st.playing; syncBar(); } };
+  window.addEventListener('keydown', onKey);
   // keep keys on the slider from also flying round the catalogue
   slider.addEventListener('keydown', (e) => e.stopPropagation());
 
@@ -232,7 +234,7 @@ export function createTimeMachine({ url, labelLayer, onPanelChange }) {
     },
     act(btn) { if (btn.dataset.tmj != null) { this.jump(+btn.dataset.tmj); return true; } return false; },
     dispose() {
-      worker?.terminate(); style.remove(); bar.remove(); labels.forEach((l) => l.remove());
+      worker?.terminate(); style.remove(); bar.remove(); window.removeEventListener('keydown', onKey); labels.forEach((l) => l.remove());
       geo?.dispose(); mat?.dispose(); markGeo.dispose(); markMat.dispose(); pathGeo?.dispose(); pathFut?.dispose();
       mainPath?.geometry.dispose(); trackLine?.geometry.dispose();
       group.parent?.remove(group);

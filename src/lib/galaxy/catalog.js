@@ -10,7 +10,8 @@ export function namesOf(o) {
   if (o.arp) out.push(`Arp ${o.arp}`, `Arp${o.arp}`);
   for (const a of o.alsoArp ?? []) out.push(`Arp ${a}`);
   if (o.sub) out.push(o.sub);
-  for (const k of ['name', 'ngc', 'nedName', 'nedQuery', 'wikiTitle', 'type', 'nedType']) if (o[k]) out.push(...String(o[k]).split(/,\s*/));
+  for (const k of ['name', 'ngc', 'nedName', 'nedQuery', 'wikiTitle', 'type', 'nedType', 'desig', 'ascii']) if (o[k]) out.push(...String(o[k]).split(/,\s*/));
+  if (o.hip) out.push(`HIP ${o.hip}`);
   for (const t of o.tags ?? []) out.push(t);
   return out.filter(Boolean);
 }

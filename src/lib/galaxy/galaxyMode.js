@@ -80,7 +80,25 @@ export function createGalaxyMode({ url, skyDir, ra, dec, center, photo, onEvents
   const style = document.createElement('style'); style.textContent = css; document.head.appendChild(style);
   const group = new THREE.Group();
   group.visible = false;
-  const state = { ready: false, alpha: 0, chaos: false, selected: null, log: [], lastLog: 0, t: 0 };
+  const state = { ready: false, alpha: 0, chaos: false, selected: null, log: [], lastLog: 0, t: 0, clock: 0, speed: 1, years: 0 };
+  // the explosions run on their own clock, so they can be paused and sped up (the camera stays free)
+  const SPEEDS = [[0.25, '×¼'], [1, '×1'], [4, '×4'], [16, '×16']];
+  const bar = document.createElement('div'); bar.className = 'tm-bar gx-bar'; bar.style.display = 'none';
+  bar.innerHTML = `<div class="tm-row"><button data-gb="play" title="pause / play (space)">⏸</button><button data-gb="speed" title="speed">×1</button><span class="tm-read"></span></div>`;
+  document.body.appendChild(bar);
+  const syncBar = () => {
+    bar.querySelector('[data-gb=play]').textContent = state.speed === 0 ? '▶' : '⏸';
+    if (state.speed) bar.querySelector('[data-gb=speed]').textContent = SPEEDS.find((x) => x[0] === state.speed)[1];
+    bar.querySelector('.tm-read').textContent = `${state.speed === 0 ? 'Paused · ' : ''}${Math.floor(state.years).toLocaleString()} years have passed in M51 · 1 s = ${state.speed ? (state.speed === 1 ? '1 year' : state.speed + ' years') : '1 year'}${state.chaos ? ' · chaos ×30' : ''}`;
+  };
+  bar.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-gb]'); if (!b) return;
+    if (b.dataset.gb === 'play') { state.speed = state.speed === 0 ? state.lastSpeed || 1 : 0; if (state.speed) state.lastSpeed = state.speed; }
+    if (b.dataset.gb === 'speed') { const k = SPEEDS.findIndex((x) => x[0] === (state.speed || state.lastSpeed || 1)); state.speed = SPEEDS[(k + 1) % SPEEDS.length][0]; state.lastSpeed = state.speed; }
+    syncBar();
+  });
+  const onKey = (e) => { if (state.on && e.code === 'Space' && !e.target.closest?.('input,textarea,button')) { e.preventDefault(); state.speed = state.speed === 0 ? state.lastSpeed || 1 : 0; if (state.speed) state.lastSpeed = state.speed; syncBar(); } };
+  window.addEventListener('keydown', onKey);
   const fx = createSupernovaFx({ shellKpc: 0.8 });
   const closeups = createCloseups();
   const CLOSE_KPC = { kilonova: 0.7, tde: 0.7, agn: 0.75, xrb: 0.45 };   // kpc per close-up unit
@@ -168,10 +186,11 @@ export function createGalaxyMode({ url, skyDir, ra, dec, center, photo, onEvents
   return {
     group, ready,
     get ready_() { return state.ready; },
-    show(on) { state.on = on; if (on) group.visible = true; if (!on) { state.selected = null; } },
+    show(on) { state.on = on; bar.style.display = on ? '' : 'none'; if (on) { group.visible = true; syncBar(); } if (!on) { state.selected = null; } },
+    get now() { return state.clock; },
     get on() { return !!state.on; },
     get unitsPerKpc() { return unitsPerKpc; },
-    setChaos(on) { state.chaos = on; engine?.setChaos(on ? 30 : 1); },
+    setChaos(on) { state.chaos = on; engine?.setChaos(on ? 30 : 1); syncBar(); },
     replay(i, now) {
       const o = meta.observed[i];
       if (o.type === 'LRN') return null;
@@ -219,23 +238,28 @@ export function createGalaxyMode({ url, skyDir, ra, dec, center, photo, onEvents
       starMat.uniforms.uPx.value = pxPerUnit * unitsPerKpc * 0.06;
       knotMat.uniforms.uA.value = state.alpha;
       knotMat.uniforms.uPx.value = pxPerUnit * unitsPerKpc * 0.45;
-      knotMat.uniforms.uTime.value = ctx.time;
-      fx.update(ctx.time, pxPerUnit * unitsPerKpc * 0.05);
-      closeups.update(ctx.time, ctx.delta, pxPerUnit * unitsPerKpc, ctx.camera);
-      if (state.on) {
-        const born = engine.step(ctx.delta, ctx.time);
+      const dt = state.on ? ctx.delta * state.speed : 0;
+      state.clock += dt;
+      const now = state.clock;
+      knotMat.uniforms.uTime.value = now;
+      fx.update(now, pxPerUnit * unitsPerKpc * 0.05);
+      closeups.update(now, dt, pxPerUnit * unitsPerKpc, ctx.camera);
+      if (state.on && dt > 0) {
+        state.years += dt;                                     // 1 s of page time at ×1 = 1 year
+        if (Math.floor(state.years) !== Math.floor(state.years - dt)) syncBar();
+        const born = engine.step(dt, now);
         // star birth at the star-forming regions, every ~9 s (3 s in chaos): ARTISTIC timing, INFERRED places
-        if (ctx.time > state.nextBirth) {
-          state.nextBirth = ctx.time + (state.chaos ? 3 : 9) * (0.5 + engine.random());
+        if (now > state.nextBirth) {
+          state.nextBirth = now + (state.chaos ? 3 : 9) * (0.5 + engine.random());
           let pick = meta.knots[0], tot = meta.knots.reduce((a, k) => a + k.s, 0) * engine.random();
           for (const k of meta.knots) { tot -= k.s; if (tot <= 0) { pick = k; break; } }
-          const e = engine.custom('starbirth', 'Star birth', [pick.x, pick.y, 0], ctx.time, 'PROCEDURAL', 8);
+          const e = engine.custom('starbirth', 'Star birth', [pick.x, pick.y, 0], now, 'PROCEDURAL', 8);
           fx.add(e); born.push(e);
         }
         // chaos: now and then a rare one too (still labelled made up)
-        if (state.chaos && ctx.time > state.nextRare && !closeups.current) {
-          state.nextRare = ctx.time + 35 + 30 * engine.random();
-          const e = this.rare(engine.random() < 0.5 ? 'kilonova' : 'tde', ctx.time); void e;
+        if (state.chaos && now > state.nextRare && !closeups.current) {
+          state.nextRare = now + 35 + 30 * engine.random();
+          const e = this.rare(engine.random() < 0.5 ? 'kilonova' : 'tde', now); void e;
           state.selected = null;
         }
         for (const e of born) { if (e.kind !== 'starbirth' || state.log.length < 3 || engine.random() < 0.3) state.log.unshift(e); }
@@ -244,7 +268,8 @@ export function createGalaxyMode({ url, skyDir, ra, dec, center, photo, onEvents
       }
     },
     /** what's under the pointer: an explosion, a real supernova site, or a star-forming knot */
-    pick(cx, cy, camera, rect, now) {
+    pick(cx, cy, camera, rect) {
+      const now = state.clock;
       if (!state.ready || !state.on) return null;
       const v = new THREE.Vector3();
       let best = null, bestD = 22;
@@ -304,7 +329,8 @@ export function createGalaxyMode({ url, skyDir, ra, dec, center, photo, onEvents
       const dir = n.multiplyScalar(0.55).addScaledVector(toSun, 0.35).addScaledVector(ex, 0.75).normalize();
       return { t: c, p: c.clone().addScaledVector(dir, distKpc * unitsPerKpc) };
     },
-    act(btn, now) {
+    act(btn) {
+      const now = state.clock;
       const a = btn.dataset.gx;
       if (a === 'chaos') { this.setChaos(!state.chaos); return { rerender: true }; }
       if (a === 'replay') { const p = this.replay(+btn.dataset.i, now); return { rerender: true, fly: p }; }
@@ -316,7 +342,7 @@ export function createGalaxyMode({ url, skyDir, ra, dec, center, photo, onEvents
     },
     get log() { return state.log; },
     dispose() {
-      style.remove(); fx.dispose(); closeups.dispose();
+      style.remove(); fx.dispose(); closeups.dispose(); bar.remove(); window.removeEventListener('keydown', onKey);
       starGeo?.dispose(); starMat?.dispose(); knotGeo?.dispose(); knotMat?.dispose();
       group.parent?.remove(group);
     },
