@@ -11,6 +11,7 @@ def clean(s):
     s = re.sub(r'\{\{shy\|([^}]*)\}\}', lambda m: m.group(1).replace('|', ''), s)
     s = re.sub(r'\{\{(?:wbr|sdash[^}]*)\}\}', '', s)
     s = re.sub(r'\[\[(?:[^|\]]*\|)?([^\]]*)\]\]', r'\1', s)
+    s = re.sub(r'<br\s*/?>|\{\{br\}\}', ' ', s); s = re.sub(r'<[^>]+>', '', s)
     s = s.replace("''", '').strip()
     return s
 

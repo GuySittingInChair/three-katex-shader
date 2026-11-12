@@ -23,7 +23,7 @@ const GROUPS = {
 };
 const OTHER_WHAT = {
   Asterism: 'An asterism: a few stars that only look like a group from here. They are at different distances and unrelated.',
-  'Double star': 'Two unrelated stars that happen to line up as seen from Earth. Messier was looking for a nebula reported in this spot by Johannes Hevelius, found only this pair, and catalogued it anyway.',
+  'Optical Double': 'Two unrelated stars that happen to line up as seen from Earth. Messier was looking for a nebula reported in this spot by Johannes Hevelius, found only this pair, and catalogued it anyway.',
 };
 const TOUR = [45, 42, 1, 57, 13, 31, 51, 104, 87, 16, 27, 8, 44, 81, 82, 101, 33, 64, 97, 11, 92, 24, 40, 20];
 // what was happening on Earth when the light left: [years ago, words]
@@ -124,7 +124,7 @@ function rangeText(o) {
   return nums.length >= 2 ? `measurements range from ${lyText(nums[0]).replace(' light-years', '')} to ${lyText(nums[1])}` : '';
 }
 function lightLeft(ly) {
-  const when = ly < NOW - 50 ? `around AD ${fmt(sig(NOW - ly, 2))}` : ly < 1e4 ? `around ${fmt(sig(ly - NOW, 2))} BC` : '';
+  const when = ly < NOW - 50 ? `around AD ${sig(NOW - ly, 2)}` : ly < 1e4 ? `around ${fmt(sig(ly - NOW, 2))} BC` : '';
   const ago = ly >= 1e6 ? `${(ly / 1e6).toFixed(ly >= 1e7 ? 0 : 1)} million years ago` : `about ${fmt(sig(ly, 2))} years ago`;
   let mile = '';
   for (const [yrs, words] of MILESTONES) if (yrs < ly) mile = words;
@@ -249,7 +249,7 @@ export default {
           <p style="margin:10px 0"><b>Click any picture</b> to fly there. Drag to turn, scroll or pinch to zoom.</p>
           <div class="mz-chips">${Object.entries(GROUPS).filter(([k]) => counts[k]).map(([k, G]) => `<button class="mz-chip ${s.filter.has(k) ? '' : 'off'}" data-g="${k}" style="color:${G.col};border-color:${G.col}55"><span class="mz-dot" style="background:${G.col}"></span>${G.label} ${counts[k]}</button>`).join('')}</div>
           <div class="mz-nav"><button class="mz-btn" data-act="tour">▶ Take the tour</button><button class="mz-btn" data-act="names">${s.allNames ? 'Hide' : 'Show'} all names</button></div>
-          <div class="mz-src">Pictures: Digitized Sky Survey 2 (photographic plates, 1980s–90s), via NASA SkyView. Facts and summaries: Wikipedia, CC BY-SA 4.0.</div></div></div>`;
+          <div class="mz-src">Pictures: Digitized Sky Survey (photographic plates, 1950s–90s), via NASA SkyView. Facts and summaries: Wikipedia, CC BY-SA 4.0.</div></div></div>`;
       } else {
         const o = s.objs[i], G = GROUPS[o.group];
         const what = o.group === 'other' ? (OTHER_WHAT[o.type] || (/star cloud/i.test(o.type) ? 'A star cloud: a stretch of the Milky Way\'s disk seen through a gap in the dust, crowded with stars thousands of light-years deep.' : '')) : G.what;
@@ -386,8 +386,11 @@ export default {
     }
 
     // phone with the card open: shift the picture into the space above the card
+    // desktop: centre the scene in the space left of the card
     const lift = width < 700 && s.sel >= 0 && !s.collapsed ? Math.round(height * 0.24) : 0;
-    if (lift !== s.lift) { s.lift = lift; if (lift) cam.setViewOffset(width, height, 0, lift, width, height); else cam.clearViewOffset(); }
+    const side = width >= 700 ? Math.round(Math.min(400, width * 0.32) / 2) : 0;
+    const key = `${lift},${side},${width},${height}`;
+    if (key !== s.offKey) { s.offKey = key; if (lift || side) cam.setViewOffset(width, height, side, lift, width, height); else cam.clearViewOffset(); }
 
     // ---------- cards ----------
     const pxPerUnit = height / (2 * Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2));
