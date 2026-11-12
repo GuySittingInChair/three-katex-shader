@@ -170,6 +170,7 @@ export function createGalaxyMode({ url, skyDir, ra, dec, center, photo, onEvents
     get ready_() { return state.ready; },
     show(on) { state.on = on; if (on) group.visible = true; if (!on) { state.selected = null; } },
     get on() { return !!state.on; },
+    get unitsPerKpc() { return unitsPerKpc; },
     setChaos(on) { state.chaos = on; engine?.setChaos(on ? 30 : 1); },
     replay(i, now) {
       const o = meta.observed[i];

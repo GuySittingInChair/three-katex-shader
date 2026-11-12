@@ -7,6 +7,9 @@ const norm = (s) => String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-
 export function namesOf(o) {
   const out = [];
   if (o.m) out.push(`M${o.m}`, `M ${o.m}`, `Messier ${o.m}`);
+  if (o.arp) out.push(`Arp ${o.arp}`, `Arp${o.arp}`);
+  for (const a of o.alsoArp ?? []) out.push(`Arp ${a}`);
+  if (o.sub) out.push(o.sub);
   for (const k of ['name', 'ngc', 'nedName', 'nedQuery', 'wikiTitle', 'type', 'nedType']) if (o[k]) out.push(...String(o[k]).split(/,\s*/));
   for (const t of o.tags ?? []) out.push(t);
   return out.filter(Boolean);

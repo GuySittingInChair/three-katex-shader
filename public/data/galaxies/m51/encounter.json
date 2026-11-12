@@ -1,0 +1,39 @@
+{
+ "main": {
+  "v": 200,
+  "rc": 1,
+  "rt": 40
+ },
+ "comp": {
+  "v": 160,
+  "rc": 0.8,
+  "rt": 20
+ },
+ "compPos": [
+  -9.428,
+  4.157,
+  -10
+ ],
+ "depth": 10,
+ "compVel": [
+  -98.32,
+  -364.38,
+  31.73
+ ],
+ "spin": 1,
+ "t0": -800,
+ "t1": 900,
+ "score": 0.653,
+ "baseline": 0.017,
+ "diskOnly": 0.261,
+ "diskBaseline": -0.01,
+ "otherSpin": 0.111,
+ "closest": {
+  "t": -524.5,
+  "r": 14
+ },
+ "passes": 1,
+ "tried": 1200,
+ "sensible": 25,
+ "note": "Orbit chosen from random trial velocities as the one whose model disk today best matches the photograph (correlation of the non-round part of the star density; an undisturbed disk scores the baseline). Not a published fit."
+}
