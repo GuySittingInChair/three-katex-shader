@@ -3081,6 +3081,16 @@ like a group, M24 a stretch of the Milky Way, and M102 is disputed (it may be a 
 
 `tools/messier/` has the scripts that fetched and built all of it.
 
+**M51 in 3D, with explosions.** The Whirlpool's card has a second view, *Structure + explosions*. Its photograph is
+turned into a disk of 90,000 star points, tilted the way the galaxy really is (inclination 22°, from the PAWS survey),
+so from the Sun it still looks exactly like the photo, and flying round it shows the tilt. Pink dots are star-forming
+regions (knots bluer than their surroundings in the photo). Green rings mark the three supernovae really seen there
+— SN 1994I, SN 2005cs, SN 2011dh — and a yellow one the 2019 impostor; ▶ replays each at its real position. The other
+flashes are made up, and labelled so: supernovae at M51's real rate (three since 1994; one second here is one year),
+massive-star explosions in the young blue arms, Type Ia among old stars (so the old companion galaxy only ever gets
+Type Ia). *Chaos mode* makes them 30 times more frequent. Click any explosion, knot or ring to read what it is and
+how much of it is real. The details, and the plan for the rest of the galaxy engine, are in `docs/galaxy-engine.md`.
+
 ---
 
 ## 75. My notes

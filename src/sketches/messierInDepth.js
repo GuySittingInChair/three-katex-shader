@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createFatLines, createDots } from '../lib/fatLines.js';
+import { createGalaxyMode } from '../lib/galaxy/galaxyMode.js';
 
 // Messier's Sky, in depth. The 110 objects of Charles Messier's catalogue, each a real photograph (Digitized Sky
 // Survey 2, via NASA SkyView) placed in its true direction from the Sun at its measured distance, with distance on
@@ -9,6 +10,8 @@ import { createFatLines, createDots } from '../lib/fatLines.js';
 // tools/messier/build_messier.py makes the pictures and the facts file.
 
 const DATA_URL = '/data/messier/';
+// objects that also have a STRUCTURE view (3D model from the photo + event engine): tools/galaxies/build_<name>.py
+const GALAXIES = { 51: '/data/galaxies/m51/' };
 const RS = 1.6;                                  // scene units per factor of 10 in distance
 const R = (ly) => RS * Math.log10(Math.max(ly, 250) / 200);
 const RINGS = [[1e3, '1,000 light-years'], [1e4, '10,000 light-years'], [1e5, '100,000 ly: the Milky Way is about this wide'], [1e6, '1 million light-years'], [1e7, '10 million light-years'], [1e8, '100 million light-years']];
@@ -172,7 +175,7 @@ export default {
     controls.autoRotate = true; controls.autoRotateSpeed = 0.35;
     ctx.scene.background = new THREE.Color(0x020306);
     const narrow = () => window.matchMedia('(max-width:700px)').matches;
-    const s = { ready: false, disposed: false, collapsed: narrow(), sel: -1, hover: -1, filter: new Set(Object.keys(GROUPS)), lastInput: -1e9, tourAt: 0, tourI: -1, fly: null };
+    const s = { ready: false, disposed: false, collapsed: narrow(), mode: 'photo', gx: {}, sel: -1, hover: -1, filter: new Set(Object.keys(GROUPS)), lastInput: -1e9, tourAt: 0, tourI: -1, fly: null };
     const lines = createFatLines({ maxSegments: 4000, width: 1.2 });
     ctx.scene.add(lines.object);
     const dots = createDots({ maxPoints: 8 });
@@ -235,6 +238,39 @@ export default {
       renderPanel();
     }).catch((err) => console.error('messier data', err));
 
+    // ---------- galaxies with a STRUCTURE view ----------
+    const gxFor = (i) => {
+      const o = s.objs?.[i];
+      if (!o || !GALAXIES[o.m]) return null;
+      if (!s.gx[o.m]) {
+        const gm = createGalaxyMode({
+          url: GALAXIES[o.m], skyDir, ra: o.ra, dec: o.dec, center: s.pos[i].clone(), photo: { widthUnits: o.card * 1.25, fovDeg: o.fov },
+          onEventsChanged: () => { const el = panel.querySelector('[data-gxlog]'); if (el && s.mode === 'structure') el.innerHTML = gm.logHTML(); },
+        });
+        ctx.scene.add(gm.group);
+        s.gx[o.m] = gm;
+      }
+      return s.gx[o.m];
+    };
+    const modesHTML = () => (gxFor(s.sel) ? `<div class="gx-modes"><button class="mz-btn ${s.mode === 'photo' ? 'on' : ''}" data-act="photo">Photograph</button><button class="mz-btn ${s.mode === 'structure' ? 'on' : ''}" data-act="structure">Structure + explosions</button></div>` : '');
+    const setMode = (mode) => {
+      const gm = gxFor(s.sel);
+      if (!gm) return;
+      s.mode = mode;
+      gm.show(mode === 'structure');
+      controls.minDistance = mode === 'structure' ? 0.02 : 0.15;
+      if (mode === 'structure') {
+        controls.autoRotate = false;
+        gm.ready.then(() => {
+          if (s.mode !== 'structure' || s.disposed) return;
+          s.fly = { t0: ctx.time, dur: 2.4, from: { p: cam.position.clone(), t: controls.target.clone() }, to: gm.pose(narrow() ? 52 : 36, cam) };
+          renderPanel();
+        });
+      } else { flyTo(s.sel); s.bigAt = ctx.time; }
+      renderPanel();
+    };
+    const leaveStructure = () => { if (s.mode === 'structure') { for (const gm of Object.values(s.gx)) gm.show(false); s.mode = 'photo'; controls.minDistance = 0.15; } };
+
     // ---------- panel ----------
     const renderPanel = () => {
       if (!s.ready) return;
@@ -250,6 +286,14 @@ export default {
           <div class="mz-chips">${Object.entries(GROUPS).filter(([k]) => counts[k]).map(([k, G]) => `<button class="mz-chip ${s.filter.has(k) ? '' : 'off'}" data-g="${k}" style="color:${G.col};border-color:${G.col}55"><span class="mz-dot" style="background:${G.col}"></span>${G.label} ${counts[k]}</button>`).join('')}</div>
           <div class="mz-nav"><button class="mz-btn" data-act="tour">▶ Take the tour</button><button class="mz-btn" data-act="names">${s.allNames ? 'Hide' : 'Show'} all names</button></div>
           <div class="mz-src">Pictures: Digitized Sky Survey (photographic plates, 1950s–90s), via NASA SkyView. Facts and summaries: Wikipedia, CC BY-SA 4.0.</div></div></div>`;
+      } else if (s.mode === 'structure' && gxFor(i)) {
+        const o = s.objs[i], G = GROUPS[o.group];
+        panel.innerHTML = `<div class="mz-in"><div class="mz-head"><h2>M${o.m}${o.name ? ` · ${esc(o.name)}` : ''}<small><span class="mz-dot" style="background:${G.col}"></span>Structure and events</small></h2>
+            <button class="mz-btn mz-min" data-act="min">▾</button><button class="mz-btn" data-act="close" title="back to the whole sky">✕</button></div>
+          <div class="mz-body">${modesHTML()}
+          <p style="margin:8px 0;font-size:13.5px">The photograph, turned into a 3D disk of ${(90000).toLocaleString()} star points, tilted the way the galaxy really is tilted. Pink: regions where stars are forming. Green rings: where real supernovae were seen. Flashes: supernovae, at the rate this galaxy really has them. Drag to fly round it; click anything.</p>
+          ${gxFor(i).panel()}
+          <div class="mz-nav"><button class="mz-btn" data-act="prev">← M${o.m === 1 ? 110 : o.m - 1}</button><button class="mz-btn" data-act="next">M${o.m === 110 ? 1 : o.m + 1} →</button><span style="flex:1"></span><button class="mz-btn" data-act="close">Whole sky</button></div></div></div>`;
       } else {
         const o = s.objs[i], G = GROUPS[o.group];
         const what = o.group === 'other' ? (OTHER_WHAT[o.type] || (/star cloud/i.test(o.type) ? 'A star cloud: a stretch of the Milky Way\'s disk seen through a gap in the dust, crowded with stars thousands of light-years deep.' : '')) : G.what;
@@ -258,7 +302,7 @@ export default {
         const paras = o.about.split(/\n+/).filter(Boolean).map((p) => `<p style="margin:0 0 8px">${esc(p)}</p>`).join('');
         panel.innerHTML = `<div class="mz-in"><div class="mz-head"><h2>M${o.m}${o.name ? ` · ${esc(o.name)}` : ''}<small><span class="mz-dot" style="background:${G.col}"></span>${esc(o.type)} · in ${esc(o.const)}${o.ngc ? ' · ' + esc(o.ngc) : ''}</small></h2>
             <button class="mz-btn mz-min" data-act="min">▾</button><button class="mz-btn" data-act="close" title="back to the whole sky">✕</button></div>
-          <div class="mz-body"><img class="mz-img" src="${DATA_URL}img/m${String(o.m).padStart(3, '0')}.jpg" alt="M${o.m}">
+          <div class="mz-body">${modesHTML()}<img class="mz-img" src="${DATA_URL}img/m${String(o.m).padStart(3, '0')}.jpg" alt="M${o.m}">
           <div class="mz-cap">Real photograph, ${o.fov >= 1 ? o.fov.toFixed(1) + '°' : Math.round(o.fov * 60) + '′'} across (the full Moon is 0.5°). Digitized Sky Survey (${esc(o.survey)} plates, 1950s–90s), colour balanced on the stars in the field.</div>
           <dl class="mz-facts">
             <dt>Distance</dt><dd>${lyText(o.ly)}${range ? `<br><span style="color:#8a93a6;font-size:12.5px">${range}</span>` : ''}</dd>
@@ -276,9 +320,21 @@ export default {
     s.renderPanel = renderPanel;
     const touch = () => { s.lastInput = ctx.time; };
     const onPanel = (e) => {
-      const b = e.target.closest('[data-act],[data-g]');
+      const b = e.target.closest('[data-act],[data-g],[data-gx]');
       if (!b) return;
+      if (b.dataset.gx) {
+        touch(); s.touring = false;
+        const r = gxFor(s.sel)?.act(b, ctx.time);
+        if (r?.fly) {
+          // move in to look at that spot, from where we are
+          const dir = cam.position.clone().sub(controls.target).normalize();
+          s.fly = { t0: ctx.time, dur: 1.6, from: { p: cam.position.clone(), t: controls.target.clone() }, to: { t: r.fly.clone(), p: r.fly.clone().addScaledVector(dir, Math.max(0.12, cam.position.distanceTo(controls.target) * 0.55)) } };
+        }
+        if (r?.rerender) renderPanel();
+        return;
+      }
       const act = b.dataset.act;
+      if (act === 'photo' || act === 'structure') { touch(); s.touring = false; setMode(act); return; }
       if (act !== 'tour') { touch(); s.touring = false; }
       if (b.dataset.g) { const k = b.dataset.g; if (s.filter.has(k)) s.filter.delete(k); else s.filter.add(k); renderPanel(); return; }
       if (act === 'close') select(-1);
@@ -291,18 +347,24 @@ export default {
     panel.addEventListener('click', onPanel);
 
     // ---------- selecting: fly the camera there ----------
+    const flyTo = (i) => {
+      const from = { p: cam.position.clone(), t: controls.target.clone() };
+      const o = s.objs[i], P = s.pos[i];
+      // keep looking from roughly the same side, at a distance where the picture fills a good part of the screen
+      const dir = cam.position.clone().sub(P).normalize();
+      const dist = (o.card * 2.6) / (2 * Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2)) / (ctx.size.width < ctx.size.height ? 0.55 : 1);
+      s.fly = { t0: ctx.time, dur: 1.8, from, to: { p: P.clone().addScaledVector(dir, dist), t: P.clone() } };
+    };
     const select = (i) => {
+      leaveStructure();
       s.sel = i;
       const from = { p: cam.position.clone(), t: controls.target.clone() };
       if (i < 0) {
         s.fly = { t0: ctx.time, dur: 1.8, from, to: { p: new THREE.Vector3(...HOME.p), t: new THREE.Vector3(...HOME.t) } };
         s.big.visible = false;
       } else {
-        const o = s.objs[i], P = s.pos[i];
-        // keep looking from roughly the same side, at a distance where the picture fills a good part of the screen
-        const dir = cam.position.clone().sub(P).normalize();
-        const dist = (o.card * 2.6) / (2 * Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2)) / (ctx.size.width < ctx.size.height ? 0.55 : 1);
-        s.fly = { t0: ctx.time, dur: 1.8, from, to: { p: P.clone().addScaledVector(dir, dist), t: P.clone() } };
+        const o = s.objs[i];
+        flyTo(i);
         new THREE.TextureLoader().load(`${DATA_URL}img/m${String(o.m).padStart(3, '0')}.jpg`, (t) => {
           if (s.disposed || s.sel !== i) { t.dispose(); return; }
           t.colorSpace = THREE.SRGBColorSpace;
@@ -337,6 +399,12 @@ export default {
     const onUp = (e) => {
       if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) { down = null; return; }
       down = null;
+      if (s.mode === 'structure') {
+        // inside a galaxy: clicks go to its explosions, star-forming regions and supernova sites, not other objects
+        const gm = gxFor(s.sel), hit = gm?.pick(e.clientX, e.clientY, cam, el.getBoundingClientRect(), ctx.time);
+        if (hit) { gm.select(hit); if (narrow()) s.collapsed = false; renderPanel(); panel.scrollTop = 0; }
+        return;
+      }
       const i = pick(e.clientX, e.clientY, 14);
       if (i >= 0 && i !== s.sel) select(i);
     };
@@ -355,6 +423,7 @@ export default {
       el.removeEventListener('wheel', touch); window.removeEventListener('keydown', onKey); panel.removeEventListener('click', onPanel); el.style.cursor = '';
     };
     s.select = select;
+    s.gxFor = gxFor;
     return { s, lines, dots, v: new THREE.Vector3(), w: new THREE.Vector3(), c: new THREE.Color() };
   },
 
@@ -366,7 +435,7 @@ export default {
     if (!s.ready) { lines.commit(); dots.commit(); return; }
 
     // ---------- the tour: starts by itself after 40 s of nothing, or from the button ----------
-    if (!s.touring && ctx.time - s.lastInput > 40 && ctx.time > 25) { s.touring = true; s.tourAt = -1e9; }
+    if (!s.touring && s.mode !== 'structure' && ctx.time - s.lastInput > 40 && ctx.time > 25) { s.touring = true; s.tourAt = -1e9; }
     if (s.touring && ctx.time - s.tourAt > 14) {
       s.tourI = (s.tourI + 1) % TOUR.length;
       s.tourAt = ctx.time;
@@ -400,7 +469,7 @@ export default {
     s.objs.forEach((o, i) => {
       const on = s.filter.has(o.group) ? 1 : 0;
       const hl = i === s.sel ? 1 : i === s.hover ? 0.6 : 0;
-      const shown = on * (i === s.sel && s.big.visible ? 1 - s.big.material.uniforms.uA.value : 1);   // the full-size picture replaces it
+      const shown = on * (i === s.sel && (s.big.visible || s.mode === 'structure') ? (s.mode === 'structure' ? 0 : 1 - s.big.material.uniforms.uA.value) : 1);   // the full-size picture (or the 3D model) replaces it
       M[i * 3 + 1] += (shown - M[i * 3 + 1]) * Math.min(1, ctx.delta * 6);
       M[i * 3 + 2] += (hl - M[i * 3 + 2]) * Math.min(1, ctx.delta * 8);
     });
@@ -411,8 +480,10 @@ export default {
       s.big.position.copy(s.pos[s.sel]);
       s.big.quaternion.copy(cam.quaternion);
       s.big.scale.setScalar(o.card * 1.25);
-      s.big.material.uniforms.uA.value = Math.min(1, (ctx.time - s.bigAt) / 0.8);
+      const uA = s.big.material.uniforms.uA;
+      uA.value = s.mode === 'structure' ? Math.max(0, uA.value - ctx.delta * 1.5) : Math.min(1, (ctx.time - s.bigAt) / 0.8);
     }
+    for (const gm of Object.values(s.gx)) gm.update(ctx);
 
     // ---------- distance rings in the Galactic plane, drop lines, the Sun ----------
     const col = (hex, k) => c.set(hex).multiplyScalar(k);
@@ -426,7 +497,7 @@ export default {
     });
     for (let q = 0; q < 6; q++) { v.set(q * 0.35, 0, 0); w.set(q * 0.35 + 0.18, 0, 0); lines.push(v, w, col(0xffc46b, 0.35)); }   // toward the Galactic centre
     s.objs.forEach((o, i) => {
-      if (!s.filter.has(o.group)) return;
+      if (!s.filter.has(o.group) || (s.mode === 'structure' && i === s.sel)) return;
       const P = s.pos[i];
       v.copy(P); w.set(P.x, 0, P.z);
       lines.push(v, w, col(GROUPS[o.group].col, i === s.sel || i === s.hover ? 0.5 : 0.05));
@@ -445,7 +516,7 @@ export default {
     };
     s.objs.forEach((o, i) => {
       const el = s.lab[i];
-      const show = s.filter.has(o.group) && (i === s.sel || i === s.hover || s.allNames || (s.sel < 0 && o.name && cam.position.distanceTo(s.pos[i]) < 6));
+      const show = s.mode !== 'structure' && s.filter.has(o.group) && (i === s.sel || i === s.hover || s.allNames || (s.sel < 0 && o.name && cam.position.distanceTo(s.pos[i]) < 6));
       if (!show) { el.style.display = 'none'; return; }
       const d = Math.max(0.01, cam.position.distanceTo(s.pos[i]));
       const half = Math.max(s.mat.uniforms.uMinPx.value, (o.card * 1.25 * pxPerUnit) / d) / 2;
@@ -455,6 +526,26 @@ export default {
     });
     RINGS.forEach(([ly], j) => { const ok = place(s.ringLab[j], v.set(R(ly) * 0.7071, 0, R(ly) * 0.7071)); if (ok) s.ringLab[j].style.opacity = s.sel >= 0 ? 0.35 : 0.9; });
     place(s.sunLab, w.set(0, 0, 0), -22);
+    // real supernova sites, as rings that stay the same size on screen, with names
+    const gmNow = s.mode === 'structure' ? s.gxFor(s.sel) : null;
+    const sites = gmNow ? gmNow.observedWorld() : [];
+    s.snLab = s.snLab || [];
+    while (s.snLab.length < sites.length) { const el = document.createElement('div'); el.className = 'mz-label'; s.dom.labels.appendChild(el); s.snLab.push(el); }
+    s.snLab.forEach((el, j) => { if (j >= sites.length) el.style.display = 'none'; });
+    if (sites.length) {
+      const right = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 0), up = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 1);
+      sites.forEach(({ o, p }, j) => {
+        const rad = (9 * cam.position.distanceTo(p)) / pxPerUnit, colr = o.type === 'LRN' ? 0xffd27a : 0x7dffc0;
+        for (let q = 0; q < 20; q++) {
+          const a0 = (q / 20) * Math.PI * 2, a1 = ((q + 1) / 20) * Math.PI * 2;
+          v.copy(p).addScaledVector(right, Math.cos(a0) * rad).addScaledVector(up, Math.sin(a0) * rad);
+          w.copy(p).addScaledVector(right, Math.cos(a1) * rad).addScaledVector(up, Math.sin(a1) * rad);
+          lines.push(v, w, col(colr, 0.9));
+        }
+        s.snLab[j].textContent = o.name; s.snLab[j].style.color = o.type === 'LRN' ? '#ffd27a' : '#7dffc0';
+        place(s.snLab[j], p, 10);
+      });
+    }
     s.sunLab.style.opacity = s.sel >= 0 ? 0.4 : 0.9;
     lines.commit(); dots.commit();
   },
@@ -466,6 +557,7 @@ export default {
     s.unbind?.();
     state.lines.dispose(); state.dots.dispose?.();
     s.dom.style.remove(); s.dom.panel.remove(); s.dom.labels.remove();
+    for (const gm of Object.values(s.gx || {})) gm.dispose();
     if (s.geo) { s.geo.dispose(); s.mat.dispose(); s.tex.dispose(); ctx.scene.remove(s.cards); }
     if (s.big) { s.big.material.uniforms.uMap.value?.dispose(); s.big.geometry.dispose(); s.big.material.dispose(); ctx.scene.remove(s.big); }
   },
