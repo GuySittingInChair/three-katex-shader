@@ -220,7 +220,7 @@ export default {
 
     // ---------- which layouts, and how far between them ----------
     let A = 0, B = 0, K = 0, year = Y1, hz = 0, fade = 1, toChart = 1;
-    if (m.phase === 'census') { year = Y0 + (Y1 - Y0) * ramp(1.2, 19); toChart = 0; }
+    if (m.phase === 'census') { year = Y0 + (Y1 - Y0) * Math.min(1, Math.max(0, (local - 0.4) / 18)); toChart = 0; }   // steady: about two years a second
     else if (m.phase === 'valley') { A = 0; B = 1; K = ramp(0.3, 3.3); toChart = K; }
     else if (m.phase === 'massRadius') { A = 1; B = 2; K = ramp(0, 2.5); }
     else if (m.phase === 'hz') { A = 2; B = 3; K = ramp(0, 2.5); hz = ramp(6, 7.5); }
