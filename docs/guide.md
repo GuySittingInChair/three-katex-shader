@@ -3108,6 +3108,25 @@ distance itself is disputed, the card gives the competing values. For far object
 travel time, which is less than the distance in light-years because space stretched while the light was on its
 way. Type in the search box to find anything by name, catalogue number or theme ("dark matter", "ring").
 
+**Arp's Peculiar Galaxies.** Switch on the green chip for Halton Arp's 1966 *Atlas of Peculiar Galaxies*: 298 more
+galaxies with odd arms, rings, jets, tails and companions (the rest of his 338 are already on the map as Messier or
+Unknown Universe objects, which carry an "Also in Arp's Atlas" line; about twenty have no distance in NED and are
+left out). Each card gives Arp's class and Wikipedia's explanation of it, with NED's measurements.
+
+**M51's time machine.** M51's card has a third view, *⏳ Time machine*: the encounter with its companion NGC 5195,
+computed in your browser the way Toomre & Toomre did it in 1972 — the two galaxies as soft balls of mass, 7,000 test
+stars feeling their pull — from 800 million years ago to 900 million years from now. Play, pause (Space), change
+speed, drag the bar, jump to the moments (closest approach, disk crossings, today, the merger), and click any star to
+follow its whole path. The orbit was chosen from 1,200 trials as the one whose disk today best matches the photograph's
+arms; the card gives the match, what was assumed (the masses), what was fitted (the companion's depth) and what is
+still argued (one passage or two).
+
+**Stars around the Sun.** Press *☀ Stars around the Sun* (or search a star's name): all 8,785 stars you can see by
+eye, from the Hipparcos satellite, at their real distances, coloured by temperature, with the IAU's names. Click one
+for what is measured (distance, brightness, type) and what is worked out from it, approximately (temperature, power,
+size, mass, how long it lives, how it ends). *⏸ Hold still* (or Space) stops the slow turning; the explosions view has
+its own pause and speed bar.
+
 ---
 
 ## 75. My notes
