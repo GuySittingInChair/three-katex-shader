@@ -46,7 +46,16 @@ policy blocks live archive requests, so everything is preprocessed).
    with their real rates; M51's real active nucleus (Seyfert 2, unified-model close-up) and its real X-ray binary
    M51-ULS-1 (mass transfer, candidate planet) as permanent, clickable features. Chaos mode also triggers the rare
    ones now and then, still labelled made up.
-4. **Galaxy interactions** — needs IllustrisTNG data (key) for a real simulated merger with a timeline.
+4. **Galaxy interactions — M51 and 67 Arp pairs done; TNG still to come.** M51's time machine (orbit fitted to the
+   photo, `fit_m51_orbit.mjs`). Arp's pairs: `tools/pairs/build_pairs.py` (NED positions + redshifts per member;
+   light ratio, half-light radius and shape from the DSS red plate; the plate binned 64×64) → `fit_pairs.mjs`
+   (random orbits through the measured sky offset and line-of-sight speed difference, kept if they passed within
+   ~2× their combined sizes in the last 1000 Myr; tilted test-star disks for both; scored outside the centres on
+   0.5·total + tidal, where tidal = correlation of (model − undisturbed) with (photo − undisturbed); refined; checked
+   with 4,000 stars; control: the tidal score of a dozen sensible-but-random orbits, median stored per pair —
+   typically 0.1–0.2 vs 0.4–0.8 for the chosen ones) → `public/data/pairs/encounters.json`. 22 multi-galaxy Arp entries skipped (reasons listed in
+   pairs.json: wider than the 5′ plate, no redshifts, or redshifts > 1200 km/s apart). A real simulated merger from
+   IllustrisTNG still needs the API key.
 5. **Encyclopedia expansion — first collection done.** *The Unknown Universe*: 36 unusual galaxies, groups and
    clusters (`tools/deepsky/objects.py` → `build_deepsky.py` → `public/data/deepsky/`), placed in the same 3D map.
    Measurements from NED with reference codes: position, type, redshift; distance = NED-D median where NED-D has

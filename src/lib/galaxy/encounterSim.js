@@ -37,6 +37,9 @@ export function rng(seed) { let s = seed >>> 0 || 1; return () => ((s = (s * 166
  * @param {number} o.nDisk, o.nComp    test particles
  * @param {number} [o.every=10]        snapshot spacing, Myr
  * @param {number} [o.dt=0.5]          integration step, Myr
+ * @param {object} [o.mainDisk, o.compDisk]  {n: unit normal, rd: scale length, rmax} — a disk of test stars at any
+ *                                     tilt, turning right-handed about n (used for pairs; without them, M51's set-up:
+ *                                     the main disk in the x–y plane with o.spin, the companion a round cloud)
  */
 export function runEncounter(o) {
   const { main, comp, t0, t1, spin = 1, nDisk = 9000, nComp = 1500, every = 10, dt = 0.5, lnL = 3, seed = 51 } = o;
@@ -83,10 +86,30 @@ export function runEncounter(o) {
   // ---- stars: a disk round the main galaxy, a puffy cloud round the companion, at t0 ----
   const R = rng(seed), n = nDisk + nComp;
   const x = new Float64Array(n * 3), v = new Float64Array(n * 3), born = new Float32Array(n * 2);
+  // a disk at any tilt: in-plane axes e1, e2 round its normal
+  const basis = (nv) => {
+    const nn = Math.hypot(...nv), N = nv.map((x) => x / nn), ref = Math.abs(N[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0];
+    let e1 = [N[1] * ref[2] - N[2] * ref[1], N[2] * ref[0] - N[0] * ref[2], N[0] * ref[1] - N[1] * ref[0]];
+    const l = Math.hypot(...e1); e1 = e1.map((x) => x / l);
+    const e2 = [N[1] * e1[2] - N[2] * e1[1], N[2] * e1[0] - N[0] * e1[2], N[0] * e1[1] - N[1] * e1[0]];
+    return { N, e1, e2 };
+  };
+  const tilted = (d, h, out) => {
+    const B = d.B || (d.B = basis(d.n)), rmin = Math.min(0.8, d.rd * 0.3);
+    let rr; do { rr = -d.rd * Math.log(R() * R() + 1e-12); } while (rr < rmin || rr > d.rmax);
+    const th = R() * 2 * Math.PI, vc = Math.sqrt((G * h.M(rr)) / rr), c = Math.cos(th), sn = Math.sin(th), hz = (R() - 0.5) * 0.1 * d.rd;
+    for (let k = 0; k < 3; k++) { out[k] = rr * (c * B.e1[k] + sn * B.e2[k]) + hz * B.N[k]; out[3 + k] = vc * (-sn * B.e1[k] + c * B.e2[k]); }
+    return rr;
+  };
+  const tmp = [0, 0, 0, 0, 0, 0];
   for (let i = 0; i < n; i++) {
     const disk = i < nDisk, h = disk ? main : comp, ci = disk ? cM : cC;
     let px, py, pz, ux, uy, uz;
-    if (disk) {
+    const D = disk ? o.mainDisk : o.compDisk;
+    if (D) {
+      born[i * 2] = tilted(D, h, tmp); born[i * 2 + 1] = disk ? 0 : 1;
+      [px, py, pz, ux, uy, uz] = tmp;
+    } else if (disk) {
       // exponential disk, scale length 3 kpc, 0.8–18 kpc; circular orbits in the main halo
       let rr; do { rr = -3 * Math.log(R() * R() + 1e-12); } while (rr < 0.8 || rr > 18);
       const th = R() * 2 * Math.PI, vc = Math.sqrt((G * h.M(rr)) / rr);
@@ -138,7 +161,10 @@ export function runEncounter(o) {
   for (let i = 1; i < nT - 1; i++) {
     const r0 = Math.hypot(...rel[i - 1].p), r1 = Math.hypot(...rel[i].p), r2 = Math.hypot(...rel[i + 1].p);
     if (r1 < r0 && r1 <= r2 && r1 > 0.6) moments.push({ t: tOf(i), kind: 'closest', r: r1 });
-    if (rel[i - 1].p[2] * rel[i].p[2] < 0 && Math.hypot(rel[i].p[0], rel[i].p[1]) < 40) moments.push({ t: tOf(i), kind: 'crossing', r: Math.hypot(rel[i].p[0], rel[i].p[1]) });
+    // the companion passing through the main disk's plane (its normal: o.mainDisk.n, else z)
+    const nn = o.mainDisk ? basis(o.mainDisk.n).N : [0, 0, 1], dot = (q) => q[0] * nn[0] + q[1] * nn[1] + q[2] * nn[2];
+    const d0 = dot(rel[i - 1].p), d1 = dot(rel[i].p), inPlane = Math.sqrt(Math.max(0, Math.hypot(...rel[i].p) ** 2 - d1 * d1));
+    if (d0 * d1 < 0 && inPlane < 40) moments.push({ t: tOf(i), kind: 'crossing', r: inPlane });
   }
   const mi = rel.findIndex((q, i) => i > nBack && Math.hypot(...q.p) < 0.61);
   if (mi > 0) moments.push({ t: tOf(mi), kind: 'merger' });

@@ -67,7 +67,7 @@ const dateText = (d) => { const [y, m, dd] = d.split('-').map(Number); return dd
 const suns = (M) => { const L = 10 ** (0.4 * (4.83 - M)); return L >= 1e9 ? `${(L / 1e9).toFixed(L >= 1e10 ? 0 : 1)} billion` : `${Math.round(L / 1e6 / 10) * 10} million`; };
 
 /** east and north unit vectors on the sky at (ra, dec), in scene coordinates, given the scene's direction function */
-function skyBasis(skyDir, ra, dec) {
+export function skyBasis(skyDir, ra, dec) {
   const v = (a, d) => skyDir(a, d, new THREE.Vector3());
   const L = v(ra, dec).normalize();
   const E = v(ra + 1e-3, dec).sub(v(ra - 1e-3, dec)).normalize();

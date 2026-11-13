@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createFatLines, createDots } from '../lib/fatLines.js';
-import { createGalaxyMode } from '../lib/galaxy/galaxyMode.js';
+import { createGalaxyMode, skyBasis } from '../lib/galaxy/galaxyMode.js';
 import { createTimeMachine } from '../lib/galaxy/timeMachine.js';
 import { createStarsLayer } from '../lib/sky/starsLayer.js';
 import { search, unknownHTML, lookbackYears } from '../lib/galaxy/catalog.js';
@@ -18,6 +18,9 @@ const ARP_URL = '/data/arp/';
 const STARS_URL = '/data/stars/';  // Hipparcos stars and IAU names: tools/stars/build_stars.py     // Arp's Atlas of Peculiar Galaxies: tools/arp/build_arp.py   // The Unknown Universe: tools/deepsky/build_deepsky.py
 // objects that also have a STRUCTURE view (3D model from the photo + event engine): tools/galaxies/build_<name>.py
 const GALAXIES = { 51: '/data/galaxies/m51/' };
+// Arp's colliding pairs with an automatically fitted orbit (a TIME MACHINE each): tools/pairs/build_pairs.py, then
+// tools/galaxies/fit_pairs.mjs
+const PAIRS_URL = '/data/pairs/';
 const RS = 1.6;                                  // scene units per factor of 10 in distance
 const R = (ly) => RS * Math.log10(1 + ly / 100);   // log scale that starts at zero: nearby stars spread out, galaxies stay put
 const RINGS = [[1e3, '1,000 light-years'], [1e4, '10,000 light-years'], [1e5, '100,000 ly: the Milky Way is about this wide'], [1e6, '1 million light-years'], [1e7, '10 million light-years'], [1e8, '100 million light-years'], [1e9, '1 billion light-years']];
@@ -272,6 +275,18 @@ export default {
           for (const [id, arps] of Object.entries(m.alsoArp.deep)) { const o = s.objs.find((x) => x.id === id); if (o) o.alsoArp = arps; }
           s.arpSource = m.source;
           renderPanel();
+        })
+        .then(() => fetch(PAIRS_URL + 'encounters.json')).then((r) => (r.ok && /json/.test(r.headers.get('content-type') || '') ? r.json() : null)).then((m) => {
+          if (!m || s.disposed) return;
+          // each fitted pair goes on the card it belongs to: its Arp card, or the Messier / Unknown Universe card it is shown as
+          for (const f of m.pairs) {
+            if (!f.ok) continue;
+            const h = f.host || {};
+            const o = s.objs.find((x) => (h.arp != null ? x.cat === 'arp' && x.arp === h.arp : h.messier != null ? x.cat === 'messier' && x.m === h.messier : x.cat === 'unknown' && x.id === h.deep));
+            if (o) o.pair = f;
+          }
+          s.pairs = m.pairs.filter((f) => f.ok);
+          renderPanel();
         });
     }).catch((err) => console.error('messier data', err));
 
@@ -336,19 +351,56 @@ export default {
       }
       return s.gx[o.m];
     };
-    const modesHTML = () => (gxFor(s.sel) ? `<div class="gx-modes" style="flex-wrap:wrap"><button class="mz-btn ${s.mode === 'photo' ? 'on' : ''}" data-act="photo">Photograph</button><button class="mz-btn ${s.mode === 'structure' ? 'on' : ''}" data-act="structure">Structure + explosions</button><button class="mz-btn ${s.mode === 'time' ? 'on' : ''}" data-act="time">⏳ Time machine</button></div>` : '');
+    const modesHTML = () => (gxFor(s.sel) ? `<div class="gx-modes" style="flex-wrap:wrap"><button class="mz-btn ${s.mode === 'photo' ? 'on' : ''}" data-act="photo">Photograph</button><button class="mz-btn ${s.mode === 'structure' ? 'on' : ''}" data-act="structure">Structure + explosions</button><button class="mz-btn ${s.mode === 'time' ? 'on' : ''}" data-act="time">⏳ Time machine</button></div>`
+      : s.objs?.[s.sel]?.pair ? `<div class="gx-modes" style="flex-wrap:wrap"><button class="mz-btn ${s.mode === 'photo' ? 'on' : ''}" data-act="photo">Photograph</button><button class="mz-btn ${s.mode === 'time' ? 'on' : ''}" data-act="time" style="${s.mode === 'time' ? '' : 'border-color:#9db4ff;color:#cfdaff'}">⏳ The collision, past and future</button></div>` : '');
+    const tmKey = (o) => (o && GALAXIES[o.m] ? o.m : o?.pair ? 'p' + o.pair.arp : null);
+    s.tmKey = tmKey;
+    // a pair's model sits in the sky frame of its photograph: x west (right on the picture), y north (up), z towards us
+    const pairFrame = (i) => {
+      const o = s.objs[i], f = o.pair, m = f.measured;
+      const { L, E, N } = skyBasis(skyDir, o.ra, o.dec);
+      const kpcPerArcmin = m.sepKpc / m.sepArcmin;
+      const fovArcmin = o.cat === 'messier' ? o.fov * 60 : o.fovDeg ? o.fovDeg * 60 : 5;
+      const upk = (o.card * 1.25) / (fovArcmin * kpcPerArcmin);
+      // the model's origin is the main galaxy; the card is centred on NED's position for the object as a whole
+      const ex = E.clone().negate(), ey = N.clone(), ez = L.clone().negate();
+      const nm = f.mainNed || null;
+      const dx = -(f.mainRa - o.ra) * Math.cos(THREE.MathUtils.degToRad(o.dec)) * 60 * kpcPerArcmin, dy = (f.mainDec - o.dec) * 60 * kpcPerArcmin;
+      const c = s.pos[i].clone().addScaledVector(ex, dx * upk).addScaledVector(ey, dy * upk);
+      return { matrix: new THREE.Matrix4().makeBasis(ex, ey, ez).scale(new THREE.Vector3(upk, upk, upk)).setPosition(c), upk, ex, ey, ez, nm };
+    };
+    s.pairFrames = {};
     const tmFor = (i) => {
-      const o = s.objs?.[i];
-      if (!o || !GALAXIES[o.m]) return null;
-      if (!s.tm[o.m]) {
-        const tm = createTimeMachine({ url: GALAXIES[o.m], labelLayer: labels, onPanelChange: () => { if (s.mode === 'time') renderPanel(); } });
+      const o = s.objs?.[i], key = tmKey(o);
+      if (key == null) return null;
+      if (!s.tm[key]) {
+        const tm = o.pair && !GALAXIES[o.m] ? createTimeMachine({ pair: o.pair, labelLayer: labels, onPanelChange: () => { if (s.mode === 'time') renderPanel(); } })
+          : createTimeMachine({ url: GALAXIES[o.m], labelLayer: labels, onPanelChange: () => { if (s.mode === 'time') renderPanel(); } });
+        if (o.pair && !GALAXIES[o.m]) s.pairFrames[key] = pairFrame(i);
         ctx.scene.add(tm.group);
-        s.tm[o.m] = tm;
+        s.tm[key] = tm;
       }
-      return s.tm[o.m];
+      return s.tm[key];
     };
     const setMode = (mode) => {
       const gm = gxFor(s.sel);
+      const o = s.objs[s.sel];
+      if (!gm && o?.pair) {
+        // a pair: photograph or time machine
+        s.mode = mode === 'structure' ? 'photo' : mode;
+        tmFor(s.sel).show(s.mode === 'time');
+        controls.minDistance = s.mode !== 'photo' ? 0.005 : 0.15;
+        if (s.mode === 'time') {
+          controls.autoRotate = false;
+          const F = s.pairFrames[tmKey(o)], T = new THREE.Vector3().setFromMatrixPosition(F.matrix);
+          // the origin of the simulation is the pair's centre of mass; look from nearly our direction, a little to one side
+          const dir = F.ez.clone().multiplyScalar(0.8).addScaledVector(F.ey, 0.42).addScaledVector(F.ex, 0.42).normalize();
+          const d = Math.max(45, 3.2 * o.pair.measured.sepKpc) * F.upk * (narrow() ? 1.5 : 1);
+          s.fly = { t0: ctx.time, dur: 2.4, from: { p: cam.position.clone(), t: controls.target.clone() }, to: { t: T, p: T.clone().addScaledVector(dir, d) } };
+        } else { flyTo(s.sel); s.bigAt = ctx.time; }
+        renderPanel();
+        return;
+      }
       if (!gm) return;
       s.mode = mode;
       gm.show(mode === 'structure');
@@ -380,7 +432,7 @@ export default {
       const paras = (o.about || '').split(/\n+/).filter(Boolean).map((p) => `<p style="margin:0 0 8px">${esc(p)}</p>`).join('');
       return `<div class="mz-in"><div class="mz-head"><h2>${esc(o.name)}<small><span class="mz-dot" style="background:#9fe0c0"></span>Arp ${o.arp} · ${esc(o.cls)} › ${esc(o.sub)}</small></h2>
           <button class="mz-btn mz-min" data-act="min">▾</button><button class="mz-btn" data-act="close" title="back to the whole sky">✕</button></div>
-        <div class="mz-body"><img class="mz-img" src="${imgUrl(o)}" alt="${esc(o.name)}">
+        <div class="mz-body">${modesHTML()}<img class="mz-img" src="${imgUrl(o)}" alt="${esc(o.name)}">
         <div class="mz-cap">Real photograph, 5′ across, centred on NED's position for Arp ${o.arp}. Digitized Sky Survey (${esc(o.survey)}). Arp photographed these with the 200-inch Palomar telescope; these survey plates show less.</div>
         <div class="mz-what"><b>Arp's class: ${esc(o.sub)}.</b> ${esc(o.clsText)}${o.notes ? `<br><span style="color:#9aa3b5">Note: ${esc(o.notes)}</span>` : ''}</div>
         <dl class="mz-facts">
@@ -399,7 +451,7 @@ export default {
       const paras = o.about.split(/\n+/).filter(Boolean).map((p) => `<p style="margin:0 0 8px">${esc(p)}</p>`).join('');
       return `<div class="mz-in"><div class="mz-head"><h2>${esc(o.name)}<small><span class="mz-dot" style="background:#ffd27a"></span>${NED_TYPES[o.nedType] || esc(o.nedType || 'Galaxy')}${o.nedName && o.nedName !== o.name ? ' · ' + esc(o.nedName) : ''} · ✦ The Unknown Universe</small></h2>
           <button class="mz-btn mz-min" data-act="min">▾</button><button class="mz-btn" data-act="close" title="back to the whole sky">✕</button></div>
-        <div class="mz-body"><img class="mz-img" src="${imgUrl(o)}" alt="${esc(o.name)}">
+        <div class="mz-body">${modesHTML()}<img class="mz-img" src="${imgUrl(o)}" alt="${esc(o.name)}">
         <div class="mz-cap">Real photograph, ${o.fovDeg >= 1 ? o.fovDeg.toFixed(1) + '°' : Math.round(o.fovDeg * 60) + '′'} across (the full Moon is 0.5°). Digitized Sky Survey (${esc(o.survey)}). Many of these are faint or small: a sky-survey plate may show little.</div>
         <div class="mz-what"><b>Why it's interesting.</b> ${esc(o.why)}</div>
         <dl class="mz-facts">
@@ -448,7 +500,8 @@ export default {
           <div class="mz-src">Pictures: Digitized Sky Survey (photographic plates, 1950s–90s), via NASA SkyView. Facts and summaries: Wikipedia, CC BY-SA 4.0.</div></div></div>`;
       } else if (s.mode === 'time' && tmFor(i)) {
         const o = s.objs[i], G = GROUPS[o.group];
-        panel.innerHTML = `<div class="mz-in"><div class="mz-head"><h2>M${o.m}${o.name ? ` · ${esc(o.name)}` : ''}<small><span class="mz-dot" style="background:${G.col}"></span>Its past and future, modelled</small></h2>
+        const title = o.cat === 'arp' ? `Arp ${o.arp} · ${esc(o.name)}` : o.x ? esc(o.name) : `M${o.m}${o.name ? ` · ${esc(o.name)}` : ''}`;
+        panel.innerHTML = `<div class="mz-in"><div class="mz-head"><h2>${title}<small><span class="mz-dot" style="background:${G?.col || '#9fe0c0'}"></span>Its past and future, modelled</small></h2>
             <button class="mz-btn mz-min" data-act="min">▾</button><button class="mz-btn" data-act="close" title="back to the whole sky">✕</button></div>
           <div class="mz-body">${modesHTML()}${tmFor(i).panel()}
           <div class="mz-nav"><span style="flex:1"></span><button class="mz-btn" data-act="close">Whole sky</button></div></div></div>`;
@@ -729,10 +782,14 @@ export default {
     RINGS.forEach(([ly], j) => { const ok = place(s.ringLab[j], v.set(R(ly) * 0.7071, 0, R(ly) * 0.7071)); if (ok) s.ringLab[j].style.opacity = s.sel >= 0 ? 0.35 : 0.9; });
     place(s.sunLab, w.set(0, 0, 0), -22);
     s.starsLayer?.update(ctx, (el2, P, dy) => place(el2, P, dy));
-    for (const [m, tm] of Object.entries(s.tm)) { const gm = s.gx[m]; if (gm) tm.update(ctx, gm.group.matrix, gm.unitsPerKpc, (el, P, dy) => place(el, P, dy)); }
+    for (const [m, tm] of Object.entries(s.tm)) {
+      const gm = s.gx[m], F = s.pairFrames[m];
+      if (gm) tm.update(ctx, gm.group.matrix, gm.unitsPerKpc, (el, P, dy) => place(el, P, dy));
+      else if (F) tm.update(ctx, F.matrix, F.upk, (el, P, dy) => place(el, P, dy));
+    }
     // time machine: keep M51 in view as both galaxies move — shift camera and target together, so dragging still works
     if (s.mode === 'time' && !s.fly) {
-      const f = s.tm[s.objs[s.sel]?.m]?.focusWorld();
+      const f = s.tm[s.tmKey(s.objs[s.sel])]?.focusWorld();
       if (f) {
         if (!s.tmFocus) s.tmFocus = controls.target.clone();
         v.copy(f).sub(s.tmFocus).multiplyScalar(Math.min(1, ctx.delta * 3));

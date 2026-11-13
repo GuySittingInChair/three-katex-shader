@@ -3121,6 +3121,18 @@ follow its whole path. The orbit was chosen from 1,200 trials as the one whose d
 arms; the card gives the match, what was assumed (the masses), what was fitted (the companion's depth) and what is
 still argued (one passage or two).
 
+**Colliding pairs, past and future.** Sixty-seven of Arp's interacting pairs (including the Antennae, on its Unknown
+Universe card, and M60 with NGC 4647) have the same kind of time machine, found automatically: *⏳ The collision, past
+and future* on the card. For each pair, NED gives both galaxies' positions and redshifts — so their separation across
+the sky and one of the three components of their relative speed — and the red plate gives their light ratio, sizes and
+shapes. A script (`tools/galaxies/fit_pairs.mjs`) tries a few thousand orbits through those measurements, keeps the ones
+where the two passed close within the last billion years, simulates each with two spinning disks of test stars at many
+tilts, and keeps the one whose tails and bridges best match the photograph. The card says how well: the correlation of
+what the collision changed with what the photo shows beyond two undisturbed disks (1 = perfect), next to what orbits
+picked at random from those fitting the measurements score (typically 0.1–0.2; the chosen ones mostly 0.4–0.8). Where
+the chosen orbit isn't clearly ahead, the card says it is a plausible guess rather than something the photo pins down. Masses come from the
+sizes and light ratio, and the photos are only 5′ wide, so the longest tails of nearby pairs fall outside them.
+
 **Stars around the Sun.** Press *☀ Stars around the Sun* (or search a star's name): all 8,785 stars you can see by
 eye, from the Hipparcos satellite, at their real distances, coloured by temperature, with the IAU's names. Click one
 for what is measured (distance, brightness, type) and what is worked out from it, approximately (temperature, power,
