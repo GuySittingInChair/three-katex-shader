@@ -56,6 +56,22 @@ policy blocks live archive requests, so everything is preprocessed).
    typically 0.1–0.2 vs 0.4–0.8 for the chosen ones) → `public/data/pairs/encounters.json`. 22 multi-galaxy Arp entries skipped (reasons listed in
    pairs.json: wider than the 5′ plate, no redshifts, or redshifts > 1200 km/s apart). A real simulated merger from
    IllustrisTNG still needs the API key.
+4b. **Where every galaxy is moving — done.** `tools/motion/build_motion.py`: for all 372 galaxies on the map with a
+   redshift — the line-of-sight speed (OBSERVED, NED), split into expansion and the galaxy's own motion in the CMB frame
+   when the distance is redshift-independent (NED-D median, error from the spread of the published moduli, ≥10%), and
+   the full 3D motion predicted by the Cosmicflows-4 velocity field (Courtois et al. 2023; Zenodo 20653238, 128³,
+   1000 Mpc/h, supergalactic, observer at the centre). Axis order checked against Coma/Shapley/Perseus/Hercules
+   densities; the velocity unit isn't stated in the file and was calibrated to 54 km/s per unit from the continuity
+   equation (53.8) and the paper's published bulk flows (52–59). Check: for galaxies with ≥20 published distances
+   outside big clusters, measured vs predicted line-of-sight motion correlate at 0.9 (n = 22, median difference
+   ~100 km/s); with fewer distances the measurements are too noisy to say. Cards: "Where it's moving"; map: arrows
+   (`src/lib/galaxy/motion.js`, `tests/motion.test.mjs`).
+   **The Local Group** (`tools/motion/build_lg.py` → `public/data/motion/lg.json`, viewer `src/lib/galaxy/localGroup.js`):
+   MW, M31, M33, LMC from published proper motions (Salomon+2021 EDR3; van der Marel+2019 DR2+VLBA; Kallivayalil+2013),
+   astropy Galactocentric v4.0, the two mass scenarios of van der Marel+2019 §IV.2, Hernquist halos + Chandrasekhar
+   friction (once per pair, reaction on the host; forces symmetric), 1000 draws × 2 scenarios, −6 to +10 Gyr.
+   Result: M31 collides on first approach in 82% / 93% of runs at ~5.5–5.75 Gyr (16–84%: 4.7–7.4), the rest miss
+   widely. Known limit: the friction is too blunt to show the swing-out after first passage; stated on the page.
 5. **Encyclopedia expansion — first collection done.** *The Unknown Universe*: 36 unusual galaxies, groups and
    clusters (`tools/deepsky/objects.py` → `build_deepsky.py` → `public/data/deepsky/`), placed in the same 3D map.
    Measurements from NED with reference codes: position, type, redshift; distance = NED-D median where NED-D has

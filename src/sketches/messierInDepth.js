@@ -4,6 +4,8 @@ import { createGalaxyMode, skyBasis } from '../lib/galaxy/galaxyMode.js';
 import { createTimeMachine } from '../lib/galaxy/timeMachine.js';
 import { createStarsLayer } from '../lib/sky/starsLayer.js';
 import { search, unknownHTML, lookbackYears } from '../lib/galaxy/catalog.js';
+import { loadMotion, motionKey, motionHTML, motionRaDec, MOTION_CSS } from '../lib/galaxy/motion.js';
+import { createLocalGroupView } from '../lib/galaxy/localGroup.js';
 
 // Messier's Sky, in depth. The 110 objects of Charles Messier's catalogue, each a real photograph (Digitized Sky
 // Survey 2, via NASA SkyView) placed in its true direction from the Sun at its measured distance, with distance on
@@ -21,6 +23,9 @@ const GALAXIES = { 51: '/data/galaxies/m51/' };
 // Arp's colliding pairs with an automatically fitted orbit (a TIME MACHINE each): tools/pairs/build_pairs.py, then
 // tools/galaxies/fit_pairs.mjs
 const PAIRS_URL = '/data/pairs/';
+// where every galaxy is moving (redshift, its own motion, the Cosmicflows-4 prediction) and the Local Group model:
+// tools/motion/build_motion.py, tools/motion/build_lg.py
+const MOTION_URL = '/data/motion/';
 const RS = 1.6;                                  // scene units per factor of 10 in distance
 const R = (ly) => RS * Math.log10(1 + ly / 100);   // log scale that starts at zero: nearby stars spread out, galaxies stay put
 const RINGS = [[1e3, '1,000 light-years'], [1e4, '10,000 light-years'], [1e5, '100,000 ly: the Milky Way is about this wide'], [1e6, '1 million light-years'], [1e7, '10 million light-years'], [1e8, '100 million light-years'], [1e9, '1 billion light-years']];
@@ -202,13 +207,13 @@ export default {
     ctx.scene.background = new THREE.Color(0x020306);
     const narrow = () => window.matchMedia('(max-width:700px)').matches;
     const s = { ready: false, disposed: false, collapsed: narrow(), mode: 'photo', gx: {}, tm: {}, selStar: -1, cats: new Set(['messier', 'unknown']), sets: [], tourList: null, sel: -1, hover: -1, filter: new Set(Object.keys(GROUPS)), lastInput: -1e9, tourAt: 0, tourI: -1, fly: null };
-    const lines = createFatLines({ maxSegments: 4000, width: 1.2 });
+    const lines = createFatLines({ maxSegments: 6000, width: 1.2 });
     ctx.scene.add(lines.object);
     const dots = createDots({ maxPoints: 8 });
     ctx.scene.add(dots.object);
 
     // ---------- DOM: panel and labels ----------
-    const style = document.createElement('style'); style.textContent = css; document.head.appendChild(style);
+    const style = document.createElement('style'); style.textContent = css + MOTION_CSS; document.head.appendChild(style);
     const panel = document.createElement('div'); panel.className = 'mz-panel'; document.body.appendChild(panel);
     const labels = document.createElement('div'); labels.className = 'mz-labels'; document.body.appendChild(labels);
     s.dom = { style, panel, labels };
@@ -286,6 +291,18 @@ export default {
             if (o) o.pair = f;
           }
           s.pairs = m.pairs.filter((f) => f.ok);
+          renderPanel();
+        })
+        .then(() => loadMotion(MOTION_URL + 'motion.json')).then((m) => {
+          if (!m || s.disposed) return;
+          s.motion = m;
+          for (const o of s.objs) {
+            const rec = m.byKey[motionKey(o)];
+            if (!rec) continue;
+            o.motion = rec;
+            const rd = !rec.localGroup && motionRaDec(rec);
+            if (rd) o.mvDir = skyDir(rd[0], rd[1], new THREE.Vector3());
+          }
           renderPanel();
         });
     }).catch((err) => console.error('messier data', err));
@@ -441,6 +458,7 @@ export default {
           ${z != null ? `<dt>Redshift</dt><dd>z = ${z.toFixed(z < 0.01 ? 5 : 4)}${o.zRef ? ` <span style="color:#8a93a6;font-size:12.5px">(${esc(o.zRef)})</span>` : ''}</dd>` : ''}
           <dt>NED name</dt><dd style="font-size:13px">${esc(o.nedName)} · ${NED_TYPES[o.nedType] || esc(o.nedType)}</dd>
         </dl>
+        ${motionHTML(o.motion, s.motion)}
         ${paras ? `<div class="mz-about">${paras}</div>` : ''}
         <div class="mz-src">Class description: Wikipedia, “Atlas of Peculiar Galaxies” (CC BY-SA 4.0)${o.wikiUrl ? `; summary: <a href="${esc(o.wikiUrl)}" target="_blank" rel="noopener">Wikipedia, “${esc(o.wikiTitle)}”</a>` : ''}; measurements: <a href="${esc(o.nedUrl)}" target="_blank" rel="noopener">NED</a>. Photo: DSS via NASA SkyView.</div>
         <div class="mz-nav"><button class="mz-btn" data-act="prev">← ${esc(stepLabel(-1))}</button><button class="mz-btn" data-act="next">${esc(stepLabel(1))} →</button><span style="flex:1"></span><button class="mz-btn" data-act="close">Whole sky</button></div></div></div>`;
@@ -460,6 +478,7 @@ export default {
           ${z != null ? `<dt>Redshift</dt><dd>z = ${z.toFixed(z < 0.01 ? 5 : 4)}${z < 0 ? ' — negative: it is moving towards us' : ''}${o.zRef ? ` <span style="color:#8a93a6;font-size:12.5px">(${esc(o.zRef)})</span>` : ''}</dd>` : ''}
           <dt>Position</dt><dd style="font-size:12.5px;color:#9aa3b5">${esc(o.posRef)}</dd>
         </dl>
+        ${motionHTML(o.motion, s.motion)}
         ${unknownHTML(o)}
         <div class="mz-about">${paras}</div>
         <div class="mz-chips">${(o.tags || []).map((t) => `<span class="mz-chip" style="color:#9aa3b5;border-color:#ffffff22;cursor:default">${esc(t)}</span>`).join('')}</div>
@@ -496,7 +515,7 @@ export default {
           <input class="mz-search" type="search" placeholder="Search: M51, Whirlpool, NGC 1976, dark matter, ring…" value="${esc(s.query || '')}"><div class="mz-results"></div>
           <div class="mz-chips"><button class="mz-chip ${s.cats.has('messier') ? '' : 'off'}" data-act="cat" data-k="messier" style="color:#dfe6f3;border-color:#dfe6f355">Messier's 110</button><button class="mz-chip ${s.cats.has('unknown') ? '' : 'off'}" data-act="cat" data-k="unknown" style="color:#ffd27a;border-color:#ffd27a55">✦ The Unknown Universe ${s.deep ? s.deep.length : ''}</button>${s.arp ? `<button class="mz-chip ${s.cats.has('arp') ? '' : 'off'}" data-act="cat" data-k="arp" style="color:#9fe0c0;border-color:#9fe0c055">Arp's Peculiar Galaxies ${s.arp.length}</button>` : ''}</div>
           <div class="mz-chips">${Object.entries(GROUPS).filter(([k]) => counts[k]).map(([k, G]) => `<button class="mz-chip ${s.filter.has(k) ? '' : 'off'}" data-g="${k}" style="color:${G.col};border-color:${G.col}55"><span class="mz-dot" style="background:${G.col}"></span>${G.label} ${counts[k]}</button>`).join('')}</div>
-          <div class="mz-nav" style="flex-wrap:wrap"><button class="mz-btn" data-act="hold" title="stop the slow turning and the tour (space)">${s.hold ? '▶ Let it move' : '⏸ Hold still'}</button><button class="mz-btn" data-act="tour">▶ Take the tour</button>${s.deep ? '<button class="mz-btn" data-act="tourdeep">✦ Tour the unknown</button>' : ''}<button class="mz-btn" data-act="names">${s.allNames ? 'Hide' : 'Show'} all names</button>${s.starsLayer?.ready_ ? '<button class="mz-btn" data-act="sun">☀ Stars around the Sun</button>' : ''}</div>
+          <div class="mz-nav" style="flex-wrap:wrap"><button class="mz-btn" data-act="hold" title="stop the slow turning and the tour (space)">${s.hold ? '▶ Let it move' : '⏸ Hold still'}</button><button class="mz-btn" data-act="tour">▶ Take the tour</button>${s.deep ? '<button class="mz-btn" data-act="tourdeep">✦ Tour the unknown</button>' : ''}<button class="mz-btn" data-act="names">${s.allNames ? 'Hide' : 'Show'} all names</button>${s.motion ? `<button class="mz-btn" data-act="motion" title="where each galaxy is heading, predicted from gravity (Cosmicflows-4)">${s.showMotion ? 'Hide' : '→ Show'} motions</button><button class="mz-btn" data-act="lg">⏳ The Local Group</button>` : ''}${s.starsLayer?.ready_ ? '<button class="mz-btn" data-act="sun">☀ Stars around the Sun</button>' : ''}</div>
           <div class="mz-src">Pictures: Digitized Sky Survey (photographic plates, 1950s–90s), via NASA SkyView. Facts and summaries: Wikipedia, CC BY-SA 4.0.</div></div></div>`;
       } else if (s.mode === 'time' && tmFor(i)) {
         const o = s.objs[i], G = GROUPS[o.group];
@@ -531,6 +550,7 @@ export default {
             ${sizeRow}
             <dt>Looks</dt><dd>${esc(o.dims)} across in our sky${o.mag != null ? `; ${brightness(o.mag)}` : ''}</dd>
           </dl>
+          ${motionHTML(o.motion, s.motion)}
           ${what ? `<div class="mz-what">${what}</div>` : ''}
           <div class="mz-about">${paras}</div>
           ${alsoArpHTML(o)}<div class="mz-src">Text: <a href="${esc(o.wiki)}" target="_blank" rel="noopener">Wikipedia, “${esc(o.wikiTitle)}”</a> (CC BY-SA 4.0). Photo: DSS2 via NASA SkyView.</div>
@@ -576,6 +596,8 @@ export default {
       }
       else if (act === 'tour') { s.tourList = null; s.touring = true; s.tourI = -1; s.tourAt = -1e9; }
       else if (act === 'names') { s.allNames = !s.allNames; renderPanel(); }
+      else if (act === 'motion') { s.showMotion = !s.showMotion; renderPanel(); }
+      else if (act === 'lg') { s.touring = false; s.lg = s.lg || createLocalGroupView({ url: MOTION_URL + 'lg.json' }); s.lg.open(); }
       else if (act === 'min') { s.collapsed = !s.collapsed; renderPanel(); }
     };
     panel.addEventListener('click', onPanel);
@@ -758,6 +780,20 @@ export default {
       lines.push(v, w, col(GROUPS[o.group].col, i === s.sel || i === s.hover ? 0.5 : 0.05));
     });
     dots.push(v.set(0, 0, 0), col(0xffe08a, 1), 0.035);
+    // where each galaxy is heading (Cosmicflows-4 prediction): an arrow, length ∝ speed; always for the selected one
+    if (s.motion && s.mode === 'photo') {
+      const side = state.side || (state.side = new THREE.Vector3()), tip = state.tip || (state.tip = new THREE.Vector3());
+      s.objs.forEach((o, i) => {
+        if (!o.mvDir || !s.filter.has(o.group) || !s.cats.has(o.cat) || !(s.showMotion || i === s.sel)) return;
+        const P = s.pos[i], len = i === s.sel ? o.card * 1.3 * Math.min(1.4, o.motion.cf4.v / 600) : Math.min(1.2, 0.35 * (o.motion.cf4.v / 500));   // the selected one: sized to its picture, seen from close up
+        const k = i === s.sel ? 1 : i === s.hover ? 0.8 : 0.45;
+        tip.copy(P).addScaledVector(o.mvDir, len);
+        lines.push(P, tip, col(0x7dffc0, k * 0.5), col(0x7dffc0, k));
+        side.copy(cam.position).sub(tip).cross(o.mvDir).normalize().multiplyScalar(len * 0.18);
+        v.copy(tip).addScaledVector(o.mvDir, -len * 0.25).add(side); lines.push(tip, v, col(0x7dffc0, k));
+        v.copy(tip).addScaledVector(o.mvDir, -len * 0.25).sub(side); lines.push(tip, v, col(0x7dffc0, k));
+      });
+    }
 
     // ---------- labels ----------
     const r = ctx.domElement.getBoundingClientRect();
@@ -830,6 +866,7 @@ export default {
     for (const gm of Object.values(s.gx || {})) gm.dispose();
     for (const tm of Object.values(s.tm || {})) tm.dispose();
     s.starsLayer?.dispose();
+    s.lg?.dispose();
     if (s.geo) { s.geo.dispose(); s.mat.dispose(); s.tex.dispose(); ctx.scene.remove(s.cards); }
     for (const st of s.sets || []) { st.geo.dispose(); st.mat.dispose(); st.tex.dispose(); ctx.scene.remove(st.mesh); }
     if (s.big) { s.big.material.uniforms.uMap.value?.dispose(); s.big.geometry.dispose(); s.big.material.dispose(); ctx.scene.remove(s.big); }

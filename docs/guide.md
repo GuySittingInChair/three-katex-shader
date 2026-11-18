@@ -3133,6 +3133,15 @@ picked at random from those fitting the measurements score (typically 0.1–0.2;
 the chosen orbit isn't clearly ahead, the card says it is a plausible guess rather than something the photo pins down. Masses come from the
 sizes and light ratio, and the photos are only 5′ wide, so the longest tails of nearby pairs fall outside them.
 
+**Where it's moving.** Every galaxy card now has a "→ Where it's moving" box. The redshift gives only the speed along
+our line of sight (Observed). Where the distance was measured without the redshift, the box splits that speed into the
+expansion of the universe (distance × 70 km/s/Mpc) and the galaxy's own motion (Inferred, with an error bar from how
+much the published distances disagree). Then the full 3D motion that gravity predicts there, read off the Cosmicflows-4
+map of the nearby universe (Inferred), with the cluster it's heading towards. "→ Show motions" on the whole-sky panel
+draws them all as arrows. For the Local Group the sideways motions have actually been measured, so "⏳ The Local Group"
+runs the Milky Way, Andromeda, Triangulum and the Large Magellanic Cloud from 6 billion years ago to 10 billion years
+ahead, 1000 times within the errors, for two mass scenarios.
+
 **Stars around the Sun.** Press *☀ Stars around the Sun* (or search a star's name): all 8,785 stars you can see by
 eye, from the Hipparcos satellite, at their real distances, coloured by temperature, with the IAU's names. Click one
 for what is measured (distance, brightness, type) and what is worked out from it, approximately (temperature, power,
