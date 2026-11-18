@@ -61,10 +61,11 @@ export function motionHTML(rec, meta) {
   // 2. expansion vs its own motion
   if (rec.vpec != null) {
     const tooBig = rec.vpecErr > 500;
-    parts.push(`<p>The expansion of the universe alone would carry it away at about <b>${fmt(rec.hubble)} km/s</b> (its distance × 70 km/s per megaparsec). ${tooBig
+    parts.push(`<p>Measured against the cosmic microwave background, the universe's own rest frame (taking out the Sun's own 370 km/s through it), it ${rec.czCmb >= 0 ? `recedes at ${fmt(rec.czCmb)}` : `approaches at ${fmt(-rec.czCmb)}`} km/s.
+      The expansion of the universe alone would carry it away at about <b>${fmt(rec.hubble)} km/s</b> (its distance × 70 km/s per megaparsec). ${tooBig
       ? `What's left over is its own motion, but its distance is too uncertain (±${Math.round(rec.distErrFrac * 100)}%) to pin that down: ${sgn(rec.vpec)} ± ${fmt(rec.vpecErr)} km/s.`
       : `What's left over, <b>${sgn(rec.vpec)} ± ${fmt(rec.vpecErr)} km/s</b>, is the galaxy's own motion along our line of sight${rec.vpec > 0 ? ' (away)' : ' (towards us)'}.`} ${badge('INFERRED')}<br>
-      <span class="mv-n">Measured against the cosmic microwave background — the universe's own rest frame — after taking out the Sun's 370 km/s through it. The ± comes from the spread of ${rec.nedd?.n ? `the ${rec.nedd.n} published distance${rec.nedd.n > 1 ? 's' : ''}` : 'its distance'}${rec.nedd?.n && rec.nedd.n < 3 ? ' (too few to judge, so we assume ±20%)' : ''}.</span></p>`);
+      <span class="mv-n">The ± comes from the spread of ${rec.nedd?.n ? `the ${rec.nedd.n} published distance${rec.nedd.n > 1 ? 's' : ''}` : 'its distance'}${rec.nedd?.n && rec.nedd.n < 3 ? ' (too few to judge, so we assume ±20%)' : ''}.</span></p>`);
     if (rec.cluster) parts.push(`<p>It's in <b>${esc(rec.cluster)}</b>, where galaxies swarm around at random speeds of hundreds of km/s, so this mostly shows its orbit inside the cluster.</p>`);
   } else if (!rec.indep) {
     parts.push(`<p class="mv-n">Its distance comes from its redshift, so here the expansion and its own motion can't be told apart.</p>`);
