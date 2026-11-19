@@ -111,6 +111,7 @@ One line per word, in alphabetical order, with a link to the page that explains 
 - **normalise**: shrink or stretch an arrow to length 1, keeping only its direction. → [sketches/audioReactiveMesh.md](sketches/audioReactiveMesh.md)
 - **object**: a set of labelled values, written `{ }`. → [js-arrays-and-objects.md](js-arrays-and-objects.md)
 - **octave**: one layer of fbm noise, twice the detail of the last (as an octave doubles a note's pitch). → [noise.md](noise.md)
+- **Ollama**: a program that runs AI models on your own computer, with no internet and no account. → [getting-a-second-opinion.md](getting-a-second-opinion.md)
 - **orbit controls**: drag to turn the camera around the scene's centre. → [camera-and-controls.md](camera-and-controls.md)
 - **orbit trap**: a tally of how often a point passes near a chosen shape while being folded; used for colour. → [sketches/chatgpt-quantum.md](sketches/chatgpt-quantum.md)
 - **orthographic camera**: a camera with no perspective; used by flat `shader` sketches. → [scene-and-camera.md](scene-and-camera.md)

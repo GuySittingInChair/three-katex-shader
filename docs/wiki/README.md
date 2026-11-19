@@ -11,7 +11,8 @@ also appears in its Explain panel. In the Code panel's Read view, underlined cod
 **💬 This is unclear** button that pops up (or use **Something here unclear?** at the bottom of any page).
 Say what confused you, and it opens a GitHub issue with the page and sentence filled in; press **Submit
 new issue**. Those issues carry the label `wiki-feedback`, and Claude reads them and rewrites the page.
-They're public, like the rest of the project.
+They're public, like the rest of the project. To have an AI find the confusing bits for you, see
+[getting a second opinion](getting-a-second-opinion.md).
 
 It sits alongside the expert material, and doesn't replace it. `docs/guide.md` (the field guide shown in
 the app's Explain panel) and its "annotated" sections are still there for the deep detail.
@@ -142,6 +143,8 @@ Written oldest first, about ten at a time. The full list, with which ones are do
 
 ## 17. Asking Claude for help *(planned)*
 How to ask for a change, how to ask "what does this line do?", and how to undo a change.
+- [Getting a second opinion on an explanation](getting-a-second-opinion.md): a beginner AI on your own
+  computer finds where a page loses people, Claude fixes it, another AI checks the fix.
 
 ---
 
