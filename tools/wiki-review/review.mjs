@@ -3,6 +3,7 @@
 // Claude, and the rewrite goes to another AI for review.
 //
 //   wikicritic <page>          1. local critic reads the page → questions for Claude
+//   wikicritic all             1. read every wiki page; ranked list in out/ALL.md
 //   wikicritic paste           1. same, on whatever text is on the clipboard
 //   wikicritic review <page>   2. after Claude's rewrite → a review prompt for any AI
 //   wikicritic review <page> --local   …and also run a second local AI as reviewer
@@ -11,7 +12,7 @@
 // file path. Results land in tools/wiki-review/out/ and the copy-paste part
 // is put on the clipboard. Needs Ollama (localhost:11434).
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, statSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -26,19 +27,20 @@ const REVIEW_MODEL = process.env.REVIEW_MODEL || 'qwen3:14b'; // qwen3:32b is be
 const args = process.argv.slice(2);
 const flags = new Set(args.filter((a) => a.startsWith('--')));
 const pos = args.filter((a) => !a.startsWith('--'));
-const mode = pos[0] === 'review' ? 'review' : 'critic';
+const mode = pos[0] === 'review' ? 'review' : pos[0] === 'all' ? 'all' : 'critic';
 const target = mode === 'review' ? pos[1] : pos[0];
 
 function usage() {
   console.log(`Usage:
   wikicritic <page>                 a beginner AI reads the page and asks questions (for Claude)
+  wikicritic all                    read every wiki page (about 1.5 hours); worst first in tools/wiki-review/out/ALL.md
   wikicritic paste                  same, for text you copied (e.g. one of Claude's replies)
   wikicritic review <page>          make a copy-paste prompt asking another AI to review the rewrite
   wikicritic review <page> --local  …and also have a second local AI review it
 <page> examples: sketches/kuramotoSivashinsky, sketches/kuramotoSivashinsky-fix, glossary, shaders`);
   process.exit(1);
 }
-if (!target) usage();
+if (!target && mode !== 'all') usage();
 
 // ---------- reading the page ----------
 function load(t) {
@@ -86,7 +88,7 @@ async function ask(model, system, user, schema) {
       stream: true,
       think: false,
       format: schema,
-      keep_alive: 0, // give the GPU back when done
+      keep_alive: mode === 'all' ? '2m' : 0, // give the GPU back when done
       options: { temperature: 0.4, num_ctx: 12288, num_predict: 1500 },
       messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
     }),
@@ -165,7 +167,7 @@ function copy(text) {
 }
 
 // ---------- step 1: critic ----------
-async function critic(page) {
+async function critic(page, quiet = false) {
   console.log(`📖 ${CRITIC_MODEL} is reading ${page.label} as a beginner…`);
   const t0 = Date.now();
   const res = await ask(CRITIC_MODEL, READER,
@@ -203,6 +205,7 @@ ${page.slug ? '' : `\n----- THE TEXT -----\n${page.text}\n`}`;
   writeFileSync(join(OUT, `${page.name}.critic.json`), JSON.stringify({ page: page.label, model: CRITIC_MODEL, ...res, problems: kept, before: page.text }, null, 2));
   const file = join(OUT, `${page.name}.1-for-claude.md`);
   writeFileSync(file, forClaude);
+  if (quiet) return { score: res.clarity_score, count: kept.length, file };
   console.log(`\n${forClaude}\n`);
   console.log(`📋 ${copy(forClaude) ? 'Copied to your clipboard. Paste it to Claude.' : 'Copy the text above and paste it to Claude.'}`);
   console.log(`   Also saved as ${file.slice(ROOT.length + 1)}`);
@@ -291,8 +294,77 @@ ${res.errors.length ? res.errors.map((x) => `- ${x}`).join('\n') : '- none found
   }
 }
 
+// ---------- all pages ----------
+// Reads every page in turn, skipping ones already read and unchanged since
+// (add --fresh to redo them). Pauses while fake chat is live. After each page
+// it rewrites out/ALL.md, worst first, so a half-finished run is still useful.
+function wikiPages(dir = join(ROOT, 'docs/wiki')) {
+  const out = [];
+  for (const f of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, f.name);
+    if (f.isDirectory()) out.push(...wikiPages(p));
+    else if (f.name.endsWith('.md') && !['_survey.md', 'glossary.md'].includes(f.name)) out.push(p);
+  }
+  return out.sort();
+}
+
+function writeIndex(pages) {
+  const rows = [];
+  for (const f of pages) {
+    const page = load(f);
+    const cf = join(OUT, `${page.name}.critic.json`);
+    if (!existsSync(cf)) continue;
+    const c = JSON.parse(readFileSync(cf, 'utf8'));
+    rows.push({ slug: page.slug, score: c.clarity_score, n: c.problems.length, stale: c.before !== page.text, name: page.name });
+  }
+  rows.sort((a, b) => a.score - b.score || b.n - a.n);
+  const md = `# Wiki critic: every page, least clear first
+
+${rows.length} of ${pages.length} pages read by ${CRITIC_MODEL} playing a beginner. Updated ${new Date().toLocaleString('en-GB')}.
+To fix: tell Claude "fix the wiki" (it works down this list), or paste one page's \`*.1-for-claude.md\` to Claude.
+"changed since" means the page was edited after it was read.
+
+| Clarity | Problems | Page | |
+|---:|---:|---|---|
+${rows.map((r) => `| ${r.score}/10 | ${r.n} | ${r.slug} | ${r.stale ? 'changed since' : ''} |`).join('\n')}
+`;
+  writeFileSync(join(OUT, 'ALL.md'), md);
+}
+
+async function all() {
+  const pages = wikiPages();
+  mkdirSync(OUT, { recursive: true });
+  let done = 0, skipped = 0, failed = 0;
+  const t0 = Date.now();
+  for (const [i, f] of pages.entries()) {
+    const page = load(f);
+    const cf = join(OUT, `${page.name}.critic.json`);
+    if (!flags.has('--fresh') && existsSync(cf) && JSON.parse(readFileSync(cf, 'utf8')).before === page.text) { skipped++; continue; }
+    while (!flags.has('--force') && await fakeChatLive()) {
+      console.log(`⏸  ${new Date().toLocaleTimeString('en-GB')} fake chat is live; waiting so it keeps the GPU…`);
+      await new Promise((r) => setTimeout(r, 120000));
+    }
+    process.stdout.write(`[${i + 1}/${pages.length}] `);
+    try {
+      await critic(page, true);
+      done++;
+    } catch (e) {
+      failed++;
+      console.log(`   ✗ ${e.message}`);
+    }
+    writeIndex(pages);
+  }
+  writeIndex(pages);
+  console.log(`\n✅ Finished in ${((Date.now() - t0) / 60000).toFixed(0)} min: ${done} read, ${skipped} already up to date, ${failed} failed.`);
+  console.log(`   Ranked list: ${join(OUT, 'ALL.md').slice(ROOT.length + 1)}. Tell Claude "fix the wiki".`);
+}
+
 // ---------- go ----------
 try {
+  if (mode === 'all') {
+    await all(); // waits for fake chat itself
+    process.exit(0);
+  }
   if (await fakeChatLive() && !flags.has('--force')) {
     console.log('Fake chat looks live, and this would take the GPU from it. Run again when you\'re off stream (or add --force).');
     process.exit(2);

@@ -31,6 +31,11 @@ already understands a thing can't easily see the gap a beginner falls into. A se
    Add `--local` to the end to also have the AI on your computer do the review, this time playing a
    strict editor (about a minute). It saves its verdict as a message for Claude too.
 
+To check every page at once, type `wikicritic all`. The classmate reads all of them, one after another
+(about an hour and a half; it pauses while fake chat is live, and skips pages it has already read that
+haven't changed). It keeps a list, least clear first, in `tools/wiki-review/out/ALL.md`. Then tell
+Claude "fix the wiki".
+
 To check something Claude said in the chat instead of a page: copy Claude's reply, then type
 `wikicritic paste`.
 
