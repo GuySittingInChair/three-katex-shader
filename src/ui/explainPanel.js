@@ -4,6 +4,7 @@ import guideSource from '../../docs/guide.md?raw';
 import { listNotes, addNote, deleteNote, onAuthChange, getUser, isAdmin } from '../core/community.js';
 import { promptSignIn } from './signIn.js';
 import { walkthroughSlug, loadWikiPage, renderWiki, wikiUrl } from '../core/wiki.js';
+import { attachWikiFeedback } from './wikiFeedback.js';
 import { soundUrl, uploadSound, MAX_SOUND_BYTES } from '../core/sounds.js';
 
 // Right-docked reading panel built entirely from docs/guide.md:
@@ -189,6 +190,10 @@ export function createExplainPanel(container, manager) {
   views.guide.innerHTML = marked.parse(guideSource);
   withHeadingIds(views.guide);
 
+  // Highlight-to-complain on the plain-English walkthrough. see docs/wiki/README.md
+  let currentWikiSlug = null;
+  const walkFeedback = attachWikiFeedback($('walkthrough'), () => currentWikiSlug);
+
   let tab = 'sketch';
   function showTab(name) {
     tab = name;
@@ -250,6 +255,7 @@ export function createExplainPanel(container, manager) {
     const section = sections.find((s) => s.sketchId === sketch.id);
     const walk = $('walkthrough');
     const wikiSlug = walkthroughSlug(sketch.id);
+    currentWikiSlug = wikiSlug;
     if (wikiSlug) {
       // The plain-English wiki walkthrough comes first; the expert guide section, if any, follows.
       walk.innerHTML = '<p class="explain-hint">Loading the walkthrough…</p>';
@@ -260,6 +266,7 @@ export function createExplainPanel(container, manager) {
           `<a href="/wiki" data-link>Wiki home</a></p>` +
           renderWiki(md, wikiSlug) +
           (section ? `<details class="explain-expert"><summary>Expert notes (field guide)</summary>${marked.parse(section.body)}</details>` : '');
+        walk.appendChild(walkFeedback.footer());
         withHeadingIds(walk);
       });
     } else if (section) {

@@ -7,6 +7,12 @@ from the project and explains them one at a time.
 You can read it on the site at [aiship.lol/wiki](https://aiship.lol/wiki), and each sketch's walkthrough
 also appears in its Explain panel. In the Code panel's Read view, underlined code links to these pages.
 
+**If an explanation is bad, say so.** On the site, highlight the sentence that lost you and press the
+**💬 This is unclear** button that pops up (or use **Something here unclear?** at the bottom of any page).
+Say what confused you, and it opens a GitHub issue with the page and sentence filled in; press **Submit
+new issue**. Those issues carry the label `wiki-feedback`, and Claude reads them and rewrites the page.
+They're public, like the rest of the project.
+
 It sits alongside the expert material, and doesn't replace it. `docs/guide.md` (the field guide shown in
 the app's Explain panel) and its "annotated" sections are still there for the deep detail.
 

@@ -1,5 +1,6 @@
 import { loadWikiPage, renderWiki, wikiUrl } from '../core/wiki.js';
 import { sketches } from '../core/registry.js';
+import { attachWikiFeedback } from './wikiFeedback.js';
 
 // /wiki and /wiki/<page>: the beginner wiki (docs/wiki), read on the site.
 export function createWikiPage(el) {
@@ -19,11 +20,15 @@ export function createWikiPage(el) {
   const doc = el.querySelector('.wiki-doc');
   const openBar = el.querySelector('.wiki-open');
   let token = 0;
+  let current = '';
+  const feedback = attachWikiFeedback(doc, () => current);
 
   async function show(slug, hash) {
     const mine = ++token;
     const md = await loadWikiPage(slug);
     if (mine !== token) return;
+    feedback.close();
+    current = slug || 'README';
     if (md == null) {
       doc.innerHTML = `<h1>Page not found</h1><p>There's no wiki page called <code></code>. <a href="/wiki" data-link>Back to the wiki home</a>.</p>`;
       doc.querySelector('code').textContent = slug;
@@ -32,6 +37,7 @@ export function createWikiPage(el) {
       return;
     }
     doc.innerHTML = renderWiki(md, slug || 'README');
+    doc.appendChild(feedback.footer());
     const title = doc.querySelector('h1')?.textContent || 'Wiki';
     document.title = `${title} · aiship wiki`;
 
