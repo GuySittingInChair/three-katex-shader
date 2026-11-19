@@ -45,7 +45,7 @@ float f = fbm(uv + r * uWarpStrength);
 ```
 
 - `fbm(…)` reads [noise](../noise.md): a smooth, cloudy random number that changes gently from place to
-  place. `uv` is this pixel's spot on screen, and `uWarpStrength` the **Warp strength** slider.
+  place, stacked in layers of big and small detail (*fbm* is short for "fractal Brownian motion"). `uv` is this pixel's spot on screen, and `uWarpStrength` the **Warp strength** slider.
 - `q` is a first push: two noise values, one for across and one for up. The odd offsets like
   `vec2(5.2, 1.3)` make sure the two aren't the same noise. `t` slides them over time, so it flows.
 - `r` is a second push, worked out at the position *already pushed by `q`*.

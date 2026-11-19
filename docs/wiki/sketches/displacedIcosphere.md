@@ -11,7 +11,9 @@ highest points. You can drag it around.
 (ocean) by that much. Then paint each corner by its height, like the colours on a relief map.
 
 The equation on screen says: each corner's new position 𝐩 is its direction from the centre (𝐧̂), times 1
-plus the strength `s` times the height `h` at that spot. "Layered sin/cos noise" is how `h` is made.
+plus the strength `s` (the **Displacement** slider) times the height `h` at that spot. Bold letters are
+arrows in 3D; the hat on 𝐧̂ means "length 1, pure direction". "Layered sin/cos noise" is how `h` is made:
+several [waves](../sine-and-cosine.md) stacked, like the [noise](../noise.md) recipe.
 
 **Where the data comes from:** no data. The terrain is made up by the noise recipe.
 

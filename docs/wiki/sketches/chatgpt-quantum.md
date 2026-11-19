@@ -13,8 +13,11 @@ The edges are slightly darker.
 Radian628, an artist known for fractal shaders. All of them bend space over and over. The recipe has
 four ideas:
 1. **Spiral warping.** Space is twisted along a *logarithmic spiral*, the curve of a snail shell or a
-   galaxy arm, which looks the same at every size. The equation on screen is this twist: it mixes the
-   distance from the centre (via its logarithm, ln r) with the angle θ.
+   galaxy arm, which looks the same at every size: each time round, it gets the same number of times
+   wider (that steady "times wider" growth is what *logarithmic* means). The equation on screen is this
+   twist. It mixes the distance from the centre, r, with the angle θ (theta, which direction from the
+   centre). It uses r through its logarithm, ln r, which counts "how many times bigger" instead of "how
+   much further", so the twist looks the same close in and far out.
 2. **Folding, repeated.** The picture is cut into wedges, like slices of a cake, and each wedge is folded
    onto the first one: that makes the kaleidoscope. Then space is pushed out and turned inside-out near the
    centre. Repeating this 20 times builds fractal detail.

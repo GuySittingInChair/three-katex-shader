@@ -1,7 +1,7 @@
 # Uniforms: knobs passed in from JavaScript
 
-**In one sentence:** a *uniform* is a number (or a few numbers) that JavaScript hands to a shader, the same
-value for every pixel, so the shader can react to sliders, time and sound.
+**In one sentence:** a *uniform* is a number (or a few numbers) that JavaScript hands to a shader (a small program on
+the graphics chip that colours each pixel), the same value for every pixel, so the shader can react to sliders, time and sound.
 
 **Picture it:** the stadium card display again (see [Shaders: two questions](shaders.md)). The instruction sheet says
 "if the scoreboard shows more than 50, hold up red". The scoreboard is a uniform. Everyone sees the same
@@ -65,7 +65,8 @@ In `shader` mode the app adds two uniforms itself, in `src/core/SketchRunner.js`
 uv.x *= uResolution.x / uResolution.y;
 ```
 
-  This stretches the across direction by how much wider the screen is than it is tall.
+  `uv` is this pixel's position (across, up). This stretches the across direction by how much wider the
+  screen is than it is tall.
 
 ## Knobs that hold more than one number
 

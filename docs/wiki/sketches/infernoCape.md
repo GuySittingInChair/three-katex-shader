@@ -55,10 +55,11 @@ float crack = 1.0 - abs(sin((f + r.x * 0.5) * uCrackSharpness));
 crack = pow(crack, 4.0);
 ```
 
+- `uCrackSharpness` is the **Crack sharpness** slider, and `r.x` the across part of the second shove.
 - Line 1: a [sine](../sine-and-cosine.md) wave goes up and down; `abs` folds it so it only touches zero at sharp V-shaped
   points. `1.0 −` turns those points into bright peaks: thin glowing lines.
-- Line 2: raising to the 4th power (multiplying it by itself 4 times) shrinks everything below 1, so
-  only the very peaks stay bright: thinner, sharper lines.
+- Line 2: raising to the 4th power (multiplying it by itself 4 times) shrinks everything below 1: 0.9
+  becomes 0.66, but 0.5 becomes 0.06. So only the very peaks stay bright: thinner, sharper lines.
 
 Then four colours are blended in order as the heat rises: obsidian black, embers, flame orange, and a
 white-hot core.

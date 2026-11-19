@@ -13,7 +13,8 @@ are too many. The *logistic map* is the simplest rule for that:
 **next year's population = r × this year's × (1 − this year's)**
 
 Population is measured from 0 (none) to 1 (as many as the land can hold). `r` is how fast they breed.
-That is the equation on screen: x₍ₙ₊₁₎ = r xₙ (1 − xₙ).
+That is the equation on screen: x₍ₙ₊₁₎ = r xₙ (1 − xₙ). The small n is the year number: "next year's
+population (n + 1) is r times this year's (n), times the room left to grow (1 minus this year's)".
 
 Run the rule for many years and see where the population ends up:
 - At a modest `r`, it settles on one value: one line.
@@ -46,7 +47,8 @@ for (int i = 0; i < 100; i++) {
 }
 ```
 
-- Line 1: this pixel's column decides `r`. At the left edge (`vUv.x` = 0) it is 2.4, and at the right
+- Line 1: this pixel's column decides `r`. `vUv.x` is how far across the screen the pixel is, from 0 to
+  1. At the left edge (`vUv.x` = 0) it is 2.4, and at the right
   edge (1) it is 4.0. `mix` blends between them (see
   [Blending, adding, dimming and gain](../colour-blending-and-gain.md)).
 - Line 2: start with the population at half.
@@ -77,7 +79,8 @@ The yellow line:
 float rHighlight = 2.4 + mod(uTime * uHighlightSpeed, 1.6);
 ```
 
-It moves right at the "highlightSpeed" slider rate, and `mod` wraps it back to the left edge after
+It moves right at the "highlightSpeed" slider rate, and `mod` (the remainder after dividing, which counts up and then wraps round like a clock) brings it
+back to the left edge after
 covering the whole width of 1.6.
 
 **Numbers worth knowing:**

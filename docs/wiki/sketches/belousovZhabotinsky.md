@@ -25,15 +25,19 @@ The activator also spreads to neighbouring spots (*diffusion*), so a spark becom
 equation on screen is the standard simplified model of this chemistry. `u` is the activator, `v` is the
 catalyst, and `f` controls how strongly the catalyst holds things back. Large `f` means the dish waits
 quietly until sparked (*excitable*). Small `f` means it pulses on its own (*oscillatory*). The number λ
-shown on screen tells which: negative means excitable.
+(the Greek letter lambda) shown on screen tells which. Think of it as a test of the dish's resting
+state: nudge it slightly, and λ says whether the nudge dies away (negative: it settles back and waits,
+excitable) or grows (positive: it can't sit still, oscillatory).
 
 **Where the data comes from:** no data. It is a simulation.
 
 **How it's built:**
 - The dish is 512 × 512 cells. Their amounts live in a hidden picture on the graphics chip, updated by
-  [ping-pong rendering](../render-targets.md).
-- A step shader updates every cell; event shaders make the spark and the cut.
-- A display shader turns amounts into colours.
+  [ping-pong rendering](../render-targets.md): two hidden pictures, each step reading one and writing
+  the other, like two whiteboards used in turn.
+- Three kinds of [shader](../shaders.md) (small programs on the graphics chip): a *step* shader updates
+  every cell by one tick, *event* shaders make the spark and the cut, and a *display* shader turns the
+  amounts into the colours you see.
 - `motion(t)` runs the script: what time it is in the experiment, and the current `f`.
   See [Motion and the live equation](../motion-and-latex.md).
 
@@ -88,7 +92,8 @@ Then the ticks run, as described in [Simulating on the graphics chip](../render-
 - **25 seconds**: one experiment (100 units ÷ 4 a second).
 - **262,144**: cells in the square holding the dish, each updated 200 times a second.
 - **About 5**: the dish's own pulse period, in chemical time, when it oscillates.
-- **137.5°**: the golden angle, the same angle sunflowers use to space their seeds.
+- **137.5°**: the golden angle, the same angle sunflowers use to space their seeds. Turning by it again
+  and again never lands exactly on an earlier direction, so the cuts keep finding new angles.
 
 **Words on this page:** [reaction–diffusion](../glossary.md), [diffusion](../glossary.md),
 [render target](../glossary.md), [ping-pong](../glossary.md), [excitable](../glossary.md),

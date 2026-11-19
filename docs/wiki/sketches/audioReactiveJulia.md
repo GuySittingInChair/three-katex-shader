@@ -16,8 +16,9 @@ Change `c` a little and the whole shape changes. Here `c` slowly travels round a
 sound makes the circle bigger or smaller.
 
 How do you square a point? Picture an arrow from the centre of the screen to the point, like a clock
-hand. To square it, double the angle the hand points at, and square its length. A hand at 1 o'clock
-swings to 2 o'clock; a hand half a unit long shrinks to a quarter, one 3 units long grows to 9. So points
+hand. Measure its angle from the 3 o'clock direction (pointing right), going anticlockwise. To square
+it, double that angle, and square its length. A hand at 2 o'clock (30° up from 3) swings to 1 o'clock
+(60° up); a hand half a unit long shrinks to a quarter, one 3 units long grows to 9. So points
 near the centre shrink inwards and far points fly outwards, while everything swirls round. Points
 handled this way are called *complex numbers*: two numbers bundled together, across and up.
 
@@ -79,7 +80,9 @@ colour depending on how many rounds it lasted.
 **Numbers worth knowing:**
 - **120**: rounds per pixel. A full-screen picture has about two million pixels, so that is up to 240
   million squarings, 60 times a second. Only a graphics chip can do that.
-- **2**: the escape distance. Once a point is further than 2 from the centre, it can never come back.
+- **2**: the escape distance. Once a point is further than 2 from the centre, it can never come back:
+  squaring then stretches it by more than adding `c` (which here is always less than 1 from the centre)
+  can pull it back, so every round takes it further out.
 - **0.25**: with speed at its default 0.6, `c` takes about 42 seconds to go once round its circle.
 
 **Words on this page:** [Julia set](../glossary.md), [complex number](../glossary.md),

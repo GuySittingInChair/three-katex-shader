@@ -64,7 +64,8 @@ float glow = 0.03 / (0.02 + abs(ringPos));
 - The ring sits 0.4 from the centre, pushed in and out by the wobble.
 - `abs` drops the minus sign, so inside and outside the ring count the same. `smoothstep(0.02, 0.0, …)`
   is 1 right on the ring and fades to 0 by 0.02 away: the sharp line.
-- `glow` fades gently with distance: the soft halo.
+- `glow` fades gently with distance: the soft halo. Right on the ring it's 0.03 ÷ 0.02 = 1.5 (bright);
+  0.1 away it's 0.03 ÷ 0.12 = 0.25; further out it keeps shrinking but never quite reaches zero.
 
 Finally, in JavaScript, `update` passes in the loudness. With no sound, it makes up a gentle pulse:
 
@@ -72,7 +73,8 @@ Finally, in JavaScript, `update` passes in the loudness. With no sound, it makes
 state.uniforms.uBass.value = 0.5 + 0.5 * Math.sin(ctx.time * 0.9);
 ```
 
-That is a slow swell from 0 to 1 and back, about every 7 seconds.
+`ctx.time` is seconds since the sketch started. That is a slow swell from 0 to 1 and back, about every 7
+seconds (one full wave takes 6.28 ÷ 0.9 ≈ 7).
 
 **Numbers worth knowing:**
 - **0.4**: the ring's size, 40% of the way from the centre to the edge of the screen.

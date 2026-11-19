@@ -63,7 +63,8 @@ if (potential[i] > threshold) {
 After firing, the neuron adds its splash to every neuron it connects to, scaled by its region's health.
 
 **Numbers worth knowing:**
-- **848** neurons in 10 regions. The biggest is a 420-neuron pool of general-purpose *interneurons*.
+- **848** neurons in 10 regions. The biggest is a 420-neuron pool of general-purpose *interneurons* (go-betweens that connect
+neurons to other neurons, rather than to the senses or the muscles).
 - **10,018** connections.
 - **24 ticks a second** in the worker.
 - **About 165 times smaller** than the real fly brain's roughly 140,000 neurons.

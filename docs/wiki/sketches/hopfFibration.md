@@ -65,13 +65,14 @@ return q.yzw / max(1.0 - q.x, 1e-3);
 - `th` and `ph` are the dot's place on the ball (how far down, how far round); `c` and `sn` are worked out
   from `th`. `vec4` is a bundle of four numbers: one point in four dimensions.
 - Lines 1–2: a point on the four-dimensional circle. As `t` goes round once, it traces the whole ring.
-- Line 3: the shadow. Drop one of the four numbers and divide by how close it is to the lamp. Near the
-  lamp, that division makes things huge. (`max(…, 1e-3)` stops it dividing by zero: `1e-3` is 0.001.)
+- Line 3: the shadow. `q.yzw` keeps the last three of the four numbers, dropping the first (`q.x`),
+  and divides by how close the point is to the lamp. Near the lamp, that division makes things huge. (`max(…, 1e-3)` stops it dividing by zero: `1e-3` is 0.001.)
 
 **Numbers worth knowing:**
 - **28 seconds** per loop: about 7 to gather, 14 sweeping, 7 to scatter.
 - **60 rings** by default, up to **128**.
-- **1,770**: how many pairs of rings there are at 60. Every one of them is linked.
+- **1,770**: how many pairs of rings there are at 60 (each of 60 rings pairs with 59 others, and each pair
+  is counted from both ends: 60 × 59 ÷ 2). Every one of them is linked.
 
 **Try this (funky):** in Params, drag **Fiber count** to 128 (the rings rebuild when you let go) and
 **Width** to its smallest. You get a dense, shimmering bird's nest of 8,128 linked pairs. Then drag

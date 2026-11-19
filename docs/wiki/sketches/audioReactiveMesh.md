@@ -12,8 +12,9 @@ the highest hiss, like the bouncing bars on an old stereo. Here the bars are wra
 round the ball's middle, you walk from low pitches to high ones, and each slice pushes outward by its
 loudness.
 
-The equation says: each corner of the ball (𝐩ᵢ) sits along its own direction from the centre (𝐝̂ᵢ), at
-distance 1 plus the slider `s` times the loudness of its slice (X).
+The equation says: each corner of the ball (written 𝐩ᵢ, "point number i") sits along its own direction
+from the centre (𝐝̂ᵢ, "direction number i"; the hat means length 1), at distance 1 plus the
+**Displacement** slider `s` times the loudness of its slice (X).
 
 **Where the data comes from:** live sound, split into 64 pitch slices by `src/core/audioEngine.js`. With no
 sound, the sketch invents gentle waves.
@@ -63,7 +64,8 @@ posAttr.setXYZ(i, dx * scale, dy * scale, dz * scale);
 paletteColor(0.55 + value * 0.5, colorTmp);
 ```
 
-- Line 1: how far out to push, depending on the slice's loudness (`value`) and the slider.
+- Line 1: how far out to push, depending on the slice's loudness (`value`, 0 to 1) and the
+  **Displacement** slider (`ctx.params.displacement`).
 - Line 2 moves the corner out along its direction.
 - Line 3 picks its colour with the [cosine palette](../cosine-palette.md) (`paletteColor` writes the
   answer into `colorTmp`): quiet spots are a blue-green, and loud spots shift round the rainbow.

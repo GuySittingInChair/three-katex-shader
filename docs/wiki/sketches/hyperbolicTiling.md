@@ -8,7 +8,8 @@ rim. Every tile is cut into 14 thin triangles, alternately lighter
 and darker. The whole window turns slowly.
 
 **The idea behind it:** try tiling a floor with seven-sided tiles, three meeting at every corner. You
-can't: there's too much tile at each corner, so the floor buckles up into frilly lettuce. On a flat floor
+can't: each corner of a seven-sided tile is about 129°, so three of them make about 386°, more than the
+360° of a full turn. There's too much tile at each corner, so the floor buckles up into frilly lettuce. On a flat floor
 it's impossible. But it *does* work in **hyperbolic space**, a world where there's always more room the
 further out you go, like a coral reef or a crocheted lettuce leaf.
 
@@ -17,8 +18,11 @@ it has to distort. Here, things look smaller the nearer they are to the rim. **E
 same size.** The rim itself is infinitely far away: walk towards it and you'd never arrive, because the
 ground keeps growing under your feet.
 
-The equation on screen is the map's scale bar: how far a step on the map really is. Near the rim the
-bottom of the fraction nears zero, so a tiny step there is a huge real distance.
+The equation on screen is the map's scale bar: how far a step on the map really is. On the left, `ds` is
+the real distance; on the right, `dx` and `dy` are a small step across and up on the map, and `x` and
+`y` are where you are (0 at the centre, distance 1 at the rim). Near the rim, `1 − x² − y²`, the bottom
+of the fraction, nears zero, and dividing by almost nothing gives a huge number: a tiny step on the
+map there is a huge real distance.
 
 M.C. Escher loved this picture: his *Circle Limit* woodcuts fill the same map with fish, and with angels
 and devils.

@@ -66,11 +66,13 @@ const points = new THREE.Points(geometry, material);
 discs that always face the camera:
 
 ```js
-dots.push(level[i], color, 0.05);
+dots.push(level[i], k === 0 ? color.clone().multiplyScalar(1.7) : color, k === DEGREE ? 0.09 : k === 0 ? 0.07 : 0.05);
 ```
 
 `level` is the list of points in the current round of the construction, and `level[i]` point number
-`i` of it. This puts one dot there, in that colour, 0.05 units across.
+`i` of it. This puts one dot there. `k` counts the rounds of the construction: the first round's dots (`k === 0`,
+the control points) are drawn 1.7 times brighter and 0.07 units across, the final dot (`k === DEGREE`,
+the point on the curve) is the biggest at 0.09, and the in-between dots are 0.05.
 
 **Try this:** in `bezierDeCasteljau.js`, the "width" slider sets the line width directly. In the code, change
 `width: { value: 3, ...}` to `value: 8`. The curve opens with lines nearly three times as thick.

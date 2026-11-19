@@ -68,6 +68,8 @@ float fade = exp(-age * 1.1);
 ```
 
 - Each ring grows 0.9 screen-units a second.
+- `age` is how many seconds since this ring's note played; `ringDist` is how far this pixel is from the
+  ring's circle.
 - `ring` is bright right on the circle and fades softly either side: a glowing line.
 - `fade` dims it as it ages: `exp(-age * 1.1)` shrinks by the same fraction every moment, like a cooling
   cup of tea. After a second it's down to a third; after 3 seconds it's gone.

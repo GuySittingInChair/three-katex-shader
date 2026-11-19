@@ -71,7 +71,7 @@ color = sin(color * 67.0) * 0.5 + 0.5;
 
 Multiplying by 67 means tiny differences in distance swing the colour right round. That gives the
 detail. It's also why the Life blobs fizz: under a live square, 14 enlargements of 1.43 blow the point up
-about 150 times (against 3 times elsewhere), so neighbouring pixels land on wildly different colours.
+about 150 times (1.43 multiplied by itself 14 times; against 1.08¹⁴, about 3 times, elsewhere), so neighbouring pixels land on wildly different colours.
 That's static.
 
 **Numbers worth knowing:**

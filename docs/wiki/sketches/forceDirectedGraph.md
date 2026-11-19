@@ -73,7 +73,8 @@ instead of wobbling forever.
 
 **Numbers worth knowing:**
 - **40** balls and about 75 threads (it varies a little each time, since the links are random).
-- **780** pairs of balls checked for repulsion every frame.
+- **780** pairs of balls (40 × 39 ÷ 2), each checked twice every frame, once from each ball: **1,560**
+  repulsion sums a frame.
 - **90%**: the speed kept each step. At 99% the web would wobble for ages; at 50% it would freeze almost
   immediately, often in a tangle.
 - One step happens per frame, so on a 120 Hz screen it settles twice as fast as on a 60 Hz one.

@@ -1,6 +1,7 @@
 # Textures: pictures a shader can look things up in
 
-**In one sentence:** a *texture* is a picture handed to a shader, which can ask "what colour is at this
+**In one sentence:** a *texture* is a picture handed to a [shader](shaders.md) (the small program on
+the graphics chip that colours each pixel), which can ask "what colour is at this
 spot?" at any position.
 
 **Picture it:** a printed map and a pin. Put the pin anywhere and read off what's there. The shader puts its
@@ -30,7 +31,8 @@ vec3 uk = t * uRange;
   once it has loaded (see [Loading data (`fetch`, `Promise`, `await`)](js-promises-and-fetch.md)).
 - `texture2D(uSky, vUv)` puts the pin at this pixel's spot `vUv` and reads the picture.
 - `.rgb` takes its red, green and blue, each a number from 0 to 1.
-- `* 2.0 - 1.0` turns 0…1 into −1…+1. So pure black means "as cold as it gets", and pure white "as hot".
+- `* 2.0 - 1.0` turns 0…1 into −1…+1, because the map stores how much *hotter or colder than average*
+  each spot is, which can go either way, but a picture can only hold 0 to 1. So pure black means "as cold as it gets", and pure white "as hot".
 - `t * uRange` turns that into real temperature differences, in millionths of a degree.
 
 ## A picture that is really data

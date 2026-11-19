@@ -18,7 +18,10 @@ shape of people's heights, exam marks and measurement errors. Francis Galton bui
 wooden pegs and lead shot, in the 1870s to show this. It's also called a *bean machine*.
 
 The equation on screen: the chance of landing in slot k is (ways to choose k rights out of 10) × (½)¹⁰.
-The `binom` symbol, the one that looks like a fraction without a line, counts the ways.
+The `binom` symbol, the one that looks like a fraction without a line, counts the ways. For example,
+to land in slot 1 you need exactly one "right" among the 10 bounces; it could be the 1st bounce, or the
+2nd, … or the 10th: 10 ways. For the middle slot (5 rights) there are 252 ways, which is why the middle
+bar is tallest.
 
 **Where the data comes from:** no data. [Coin flips](../randomness.md) from `Math.random()`.
 
@@ -63,7 +66,9 @@ let k = Math.round(ballState.xTarget[i] / PEG_SPACING + ROWS / 2);
 histogram[k] += 1;
 ```
 
-`Math.round` rounds to the nearest whole number, so `k` is the slot (0 to 10) it ended in.
+`PEG_SPACING` is the gap between pegs, so dividing by it counts how many gaps from the middle the ball
+ended up (negative for left). Adding `ROWS / 2` (5) shifts that so the far left is 0. `Math.round`
+rounds to the nearest whole number, so `k` is the slot (0 to 10) it ended in.
 `histogram[k] += 1` adds one to that bar's count. (A *histogram* is a bar chart of counts.) Bars are drawn relative to the
 tallest one, so the hill always fills the same height.
 

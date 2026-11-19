@@ -17,12 +17,14 @@ In ordinary 3D space you can't do this without the sheet passing through itself.
 it in 3D with some self-crossing, like a drawing of a cube on paper has lines that cross. The Roman surface
 and Boy's surface are two such drawings. The Roman surface has 6 *pinch points*, places where the sheet
 comes to a sharp crease. Boy's surface has none: it is smooth everywhere, crossing itself along curves
-that meet at a single *triple point*.
+that meet at a single *triple point* (one spot where three sheets pass through each other at once).
 
 Both are recipes that take a point of the same disc and say where to put it in space. So you can blend the
 two recipes: put each point a fraction `s` of the way from where the Roman surface puts it to where Boy's
 surface puts it. That is the first line of the equation:
-**r_s(w) = (1 − s)·R(w) + s·B(w)**. As `s` slides from 0 to 1, the pinch points open up.
+**r_s(w) = (1 − s)·R(w) + s·B(w)**. In words: for each point `w` of the disc, R(w) is where the Roman
+surface puts it and B(w) where Boy's surface puts it; take a fraction `s` of the way from the first to
+the second. As `s` slides from 0 to 1, the pinch points open up.
 
 **Where the data comes from:** no data. Both shapes are formulas: Steiner's from the 1840s, and the
 Bryant–Kusner formula for Boy's surface from the 1980s.
@@ -60,7 +62,8 @@ return mix(roman(w), b, m_s);
 ```
 
 - The grid of points (`uv`, each part from 0 to 1) is turned into a disc. `rho` is the distance from the
-  centre, nudged a hair away from 0. `phi` is the angle, all the way round.
+  centre, nudged a hair away from 0 (at exactly 0, every direction meets in one spot, which can make
+  the shading glitch). `phi` is the angle, all the way round.
 - `w` is the point on the disc.
 - `roman(w)` and `boy(w)` (recipes earlier in the file) work out where each surface puts it; the line
   left out (`...`) stores the Boy's surface answer in `b`.

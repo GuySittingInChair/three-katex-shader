@@ -35,7 +35,8 @@ out that exact percentage for every wave, once:
 for (let i = 0; i < size; i++) { E[i] = Math.exp(dt * lin[i]); E2[i] = Math.exp(0.5 * dt * lin[i]); }
 ```
 
-`Math.exp` is the calculator's "compound growth" button: give it a growth rate and a time, and it tells
+`lin[i]` is wave number `i`'s growth rate, `dt` the length of one step, and `size` how many waves there
+are. `Math.exp` is the calculator's "compound growth" button: give it a growth rate and a time, and it tells
 you how many times bigger (or smaller) something ends up. So `E` is each wave's exact growth over one step:
 no striding, nothing to overshoot. The third push,
 "slopes sink", is gentle enough to stride through, using a careful stride that tests the ground four times and
@@ -64,7 +65,8 @@ isn't part of the landscape at all. Now look at what each push works on:
 const r = 0.5 * (hRe[i] + hRe[j]), m = 0.5 * (hIm[i] - hIm[j]);
 ```
 
-Average the two copies and write the result into both, so the ghost is erased the moment it appears.
+`i` and `j` are the two copies of one wave. Each copy is two numbers (a wave's size and its position
+along, stored as `hRe` and `hIm`). Average the two copies and write the result into both, so the ghost is erased the moment it appears.
 
 **Checked:** it ran for 20 minutes, and about 7 minutes at each end of the sliders, without slowing.
 

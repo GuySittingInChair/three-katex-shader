@@ -24,7 +24,7 @@ physics with a sperm cell cast as the drone.
    A warhead blast grows like a classic point explosion, and its fragments fly out at the speed
    explosives can throw metal.
 
-**Where the data comes from:** no data, only real numbers. The drone is sized like a Shahed (3.5 m long,
+**Where the data comes from:** no data, only real numbers. The drone is sized like a Shahed (a common long-range attack drone; 3.5 m long,
 about 200 kg), and the gun's rate of fire, round speed and drag are those of a twin 35 mm autocannon.
 
 **How it's built:**
@@ -50,7 +50,8 @@ acc = mul(cross(Om, norm(v)), 3 * Vc);
 - `Om` is how fast that arrow is swinging round: how fast the target drifts across the drone's view
   (it's Ω, the Greek letter omega, in the equation on screen).
 - `Vc` is how fast the gap is closing.
-- Line 4 turns the drone to cancel that drift, 3 times as hard, and harder when closing faster. If the
+- Line 4 sets `acc`, the drone's acceleration (how it speeds up and turns). It turns the drone to cancel
+  that drift, 3 times as hard, and harder when closing faster. If the
   target stays still in your view while it grows, you're on course to hit it.
 
 Until 2026-11-18 this last line had a minus sign, so the drone turned *away* in the dive. It was found

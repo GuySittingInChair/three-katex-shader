@@ -75,7 +75,7 @@ round has one point fewer, until one is left.
 
 **Numbers worth knowing:**
 - **18 seconds**: one loop. The dot makes six trips along the curve in that time.
-- **0.9 radians**: the largest twist per step, about 52°. Point 4 ends up turned about 206°, more than
+- **0.9 radians**: the largest twist per step, about 52°. Point 4 ends up turned 4 × 0.9 = 3.6 radians, about 206°, more than
   half a turn.
 - **128**: short line pieces that make up the curve.
 
