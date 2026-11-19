@@ -5,6 +5,7 @@ import { compileSketch } from '../core/sketchCompiler.js';
 import { getUser, shareSketch, updateSharedSketch } from '../core/community.js';
 import { shaderStarterSource, geometryStarterSource } from '../core/starterTemplates.js';
 import { getGroupForCategory, getAllCategories } from '../core/taxonomy.js';
+import { lineTerms, commentStart, similarLines, walkthroughSlug, wikiUrl } from '../core/wiki.js';
 
 export function createCodePanel(container, manager, { onShared } = {}) {
   container.innerHTML = `
@@ -27,7 +28,16 @@ export function createCodePanel(container, manager, { onShared } = {}) {
         <button class="code-panel-new-cancel" type="button">Cancel</button>
       </div>
     </div>
-    <textarea class="code-panel-editor" spellcheck="false"></textarea>
+    <div class="code-view-bar">
+      <div class="code-view-toggle" role="tablist">
+        <button type="button" class="code-view-btn active" data-view="read" title="Click any underlined code to learn what it does">Read</button>
+        <button type="button" class="code-view-btn" data-view="edit">Edit</button>
+      </div>
+      <a class="code-view-walk hidden" data-link>Plain-English walkthrough →</a>
+    </div>
+    <div class="code-read" tabindex="0"></div>
+    <div class="code-term-card hidden" role="dialog" aria-label="What this code does"></div>
+    <textarea class="code-panel-editor hidden" spellcheck="false"></textarea>
     <div class="code-panel-footer">
       <button class="code-panel-run" type="button">Run &#9654; (Ctrl+Enter)</button>
       <button class="code-panel-share" type="button" title="Share this sketch on the site. Others see it after it has been reviewed.">⇪ Share</button>
@@ -42,6 +52,11 @@ export function createCodePanel(container, manager, { onShared } = {}) {
   const shareBtn = container.querySelector('.code-panel-share');
   const resetBtn = container.querySelector('.code-panel-reset');
   const status = container.querySelector('.code-panel-status');
+  const readEl = container.querySelector('.code-read');
+  const card = container.querySelector('.code-term-card');
+  const walkLink = container.querySelector('.code-view-walk');
+  const viewBtns = container.querySelectorAll('.code-view-btn');
+  let view = 'read';
 
   const newBtn = container.querySelector('.code-panel-new');
   const newForm = container.querySelector('.code-panel-new-form');
@@ -74,7 +89,119 @@ export function createCodePanel(container, manager, { onShared } = {}) {
   function loadIntoEditor(id) {
     editor.value = getEditableSource(id);
     setStatus(hasEdit(id) ? 'edited (previously applied)' : '');
+    const walk = walkthroughSlug(id);
+    walkLink.classList.toggle('hidden', !walk);
+    if (walk) walkLink.href = wikiUrl(walk);
+    if (view === 'read') renderRead();
   }
+
+  // --- Read view: the code with every recognised piece clickable ---
+  // see docs/wiki/README.md: each term opens a card naming its wiki page,
+  // plus the same kind of line in other sketches.
+  const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  let lineTermsCache = [];
+
+  function renderRead() {
+    closeCard();
+    const lines = editor.value.split('\n');
+    lineTermsCache = lines.map((l) => lineTerms(l));
+    readEl.innerHTML = lines
+      .map((line, i) => {
+        const cut = commentStart(line);
+        let html = '';
+        let at = 0;
+        // Plain text from..to, with any part past the comment start dimmed.
+        const plain = (from, to) => {
+          let out = '';
+          if (from < Math.min(to, cut)) out += esc(line.slice(from, Math.min(to, cut)));
+          if (to > Math.max(from, cut)) out += `<span class="tok-comment">${esc(line.slice(Math.max(from, cut), to))}</span>`;
+          return out;
+        };
+        lineTermsCache[i].forEach((t, k) => {
+          html += plain(at, t.start);
+          const cls = t.see ? 'code-term code-term-see' : 'code-term';
+          const inComment = t.start >= cut ? ' tok-comment' : '';
+          html += `<button type="button" class="${cls}${inComment}" data-line="${i}" data-term="${k}">${esc(line.slice(t.start, t.end))}</button>`;
+          at = t.end;
+        });
+        html += plain(at, line.length);
+        return `<div class="code-line" data-n="${i + 1}">${html || ' '}</div>`;
+      })
+      .join('');
+  }
+
+  function closeCard() {
+    card.classList.add('hidden');
+    readEl.querySelector('.code-term.open')?.classList.remove('open');
+  }
+
+  function openCard(btn) {
+    const term = lineTermsCache[+btn.dataset.line]?.[+btn.dataset.term];
+    if (!term) return;
+    readEl.querySelector('.code-term.open')?.classList.remove('open');
+    btn.classList.add('open');
+    if (term.see) {
+      card.innerHTML = `<div class="code-term-head"><strong>Wiki page</strong><button type="button" class="code-term-close" aria-label="Close">×</button></div>
+        <p>This comment points to the page that explains the code below it.</p>
+        <a class="code-term-wiki" data-link href="${wikiUrl(term.page)}">Read ${esc(term.page)} →</a>`;
+    } else {
+      const { total, picks } = similarLines(term, currentId);
+      const list = picks
+        .map((h) => `<li><button type="button" class="code-term-similar" data-id="${esc(h.id)}" data-line="${h.line}">
+            <span class="code-term-similar-name">${esc(h.name)} · line ${h.line}</span>
+            <code>${esc(h.text.length > 90 ? h.text.slice(0, 88) + '…' : h.text)}</code></button></li>`)
+        .join('');
+      card.innerHTML = `<div class="code-term-head"><strong>${esc(term.concept.label)}</strong>
+          <code class="code-term-text">${esc(term.text)}</code>
+          <button type="button" class="code-term-close" aria-label="Close">×</button></div>
+        <p>${esc(term.concept.blurb)}</p>
+        <a class="code-term-wiki" data-link href="${wikiUrl(term.concept.page)}">Read the wiki page →</a>
+        ${total ? `<div class="code-term-similar-head">Similar lines in ${total} other sketch${total === 1 ? '' : 'es'}:</div><ul>${list}</ul>` : ''}`;
+    }
+    card.classList.remove('hidden');
+    card.scrollTop = 0;
+  }
+
+  // Jump to a line in this panel's read view and flash it.
+  function showLine(n) {
+    const el = readEl.querySelector(`.code-line[data-n="${n}"]`);
+    if (!el) return;
+    el.scrollIntoView({ block: 'center' });
+    el.classList.remove('flash');
+    void el.offsetWidth;
+    el.classList.add('flash');
+  }
+
+  readEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.code-term');
+    if (btn) {
+      if (btn.classList.contains('open')) closeCard();
+      else openCard(btn);
+    }
+  });
+  card.addEventListener('click', (e) => {
+    if (e.target.closest('.code-term-close')) return closeCard();
+    if (e.target.closest('.code-term-wiki')) return; // the page-wide router follows the link
+    const hit = e.target.closest('.code-term-similar');
+    if (hit) {
+      const line = +hit.dataset.line;
+      selectSketch(hit.dataset.id, { jump: true });
+      requestAnimationFrame(() => showLine(line));
+    }
+  });
+
+  function setView(next) {
+    view = next;
+    viewBtns.forEach((b) => b.classList.toggle('active', b.dataset.view === next));
+    editor.classList.toggle('hidden', next !== 'edit');
+    readEl.classList.toggle('hidden', next !== 'read');
+    if (next === 'read') renderRead();
+    else {
+      closeCard();
+      editor.focus();
+    }
+  }
+  viewBtns.forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
 
   function selectSketch(id, { jump = false } = {}) {
     currentId = id;

@@ -3,6 +3,7 @@ import { marked } from 'marked';
 import guideSource from '../../docs/guide.md?raw';
 import { listNotes, addNote, deleteNote, onAuthChange, getUser, isAdmin } from '../core/community.js';
 import { promptSignIn } from './signIn.js';
+import { walkthroughSlug, loadWikiPage, renderWiki, wikiUrl } from '../core/wiki.js';
 import { soundUrl, uploadSound, MAX_SOUND_BYTES } from '../core/sounds.js';
 
 // Right-docked reading panel built entirely from docs/guide.md:
@@ -248,7 +249,20 @@ export function createExplainPanel(container, manager) {
 
     const section = sections.find((s) => s.sketchId === sketch.id);
     const walk = $('walkthrough');
-    if (section) {
+    const wikiSlug = walkthroughSlug(sketch.id);
+    if (wikiSlug) {
+      // The plain-English wiki walkthrough comes first; the expert guide section, if any, follows.
+      walk.innerHTML = '<p class="explain-hint">Loading the walkthrough…</p>';
+      loadWikiPage(wikiSlug).then((md) => {
+        if (manager.getCurrent().id !== sketch.id || md == null) return;
+        walk.innerHTML =
+          `<p class="explain-hint"><a href="${wikiUrl(wikiSlug)}" data-link>Open this walkthrough in the wiki</a> · ` +
+          `<a href="/wiki" data-link>Wiki home</a></p>` +
+          renderWiki(md, wikiSlug) +
+          (section ? `<details class="explain-expert"><summary>Expert notes (field guide)</summary>${marked.parse(section.body)}</details>` : '');
+        withHeadingIds(walk);
+      });
+    } else if (section) {
       walk.innerHTML = marked.parse(section.body);
       withHeadingIds(walk);
     } else {

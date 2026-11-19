@@ -4,6 +4,9 @@ This wiki explains the sketches on aiship.lol in plain English. You don't need t
 math or physics to read it. Every page starts with an everyday picture of the idea, then shows real lines
 from the project and explains them one at a time.
 
+You can read it on the site at [aiship.lol/wiki](https://aiship.lol/wiki), and each sketch's walkthrough
+also appears in its Explain panel. In the Code panel's Read view, underlined code links to these pages.
+
 It sits alongside the expert material, and doesn't replace it. `docs/guide.md` (the field guide shown in
 the app's Explain panel) and its "annotated" sections are still there for the deep detail.
 

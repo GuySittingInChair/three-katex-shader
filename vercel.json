@@ -19,6 +19,14 @@
     {
       "source": "/games/:id",
       "destination": "/index.html"
+    },
+    {
+      "source": "/wiki",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/wiki/:path*",
+      "destination": "/index.html"
     }
   ],
   "headers": [

@@ -3271,3 +3271,165 @@ body.is-recording.rec-panel-open #rec-indicator {
   color: #ffb454;
   border-color: color-mix(in srgb, #ffb454 55%, transparent);
 }
+
+/* ---- Code panel: Read view (clickable code) and Edit toggle ---- */
+.code-view-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.code-view-toggle {
+  display: inline-flex;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.code-view-btn {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  border: 0;
+  padding: 5px 14px;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.code-view-btn.active {
+  background: var(--accent);
+  color: #08121c;
+  font-weight: 600;
+}
+.code-view-walk {
+  color: var(--accent);
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+.code-view-walk:hover { text-decoration: underline; }
+.code-read {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: #0e0e12;
+  color: #d7e0e8;
+  font-family: 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 8px 0;
+  counter-reset: none;
+  outline: none;
+}
+.code-read.hidden,
+.code-term-card.hidden,
+.code-panel-editor.hidden { display: none; }
+.code-line {
+  white-space: pre;
+  padding: 0 10px 0 0;
+  tab-size: 2;
+}
+.code-line::before {
+  content: attr(data-n);
+  display: inline-block;
+  width: 3.2em;
+  padding-right: 0.9em;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.22);
+  user-select: none;
+}
+.code-line.flash { animation: code-flash 1.6s ease-out; }
+@keyframes code-flash {
+  from { background: rgba(124, 196, 255, 0.35); }
+  to { background: transparent; }
+}
+.tok-comment { color: #7d8794; font-style: italic; }
+.code-term {
+  all: unset;
+  cursor: pointer;
+  border-bottom: 1px dotted rgba(124, 196, 255, 0.55);
+  color: #bfe2ff;
+  border-radius: 2px;
+}
+.code-term:hover,
+.code-term:focus-visible,
+.code-term.open {
+  background: rgba(124, 196, 255, 0.2);
+  border-bottom-style: solid;
+}
+.code-term-see { color: #ffd166; border-bottom-color: rgba(255, 209, 102, 0.7); font-style: normal; }
+.code-term-card {
+  max-height: 36%;
+  overflow: auto;
+  background: #15161d;
+  border: 1px solid rgba(124, 196, 255, 0.35);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  flex-shrink: 0;
+}
+.code-term-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.code-term-text {
+  color: #bfe2ff;
+  font-size: 0.78rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.code-term-close {
+  margin-left: auto;
+  background: none;
+  border: 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.2rem;
+  cursor: pointer;
+  line-height: 1;
+}
+.code-term-card p { margin: 6px 0 8px; color: rgba(255, 255, 255, 0.85); }
+.code-term-wiki { color: var(--accent); font-weight: 600; text-decoration: none; }
+.code-term-wiki:hover { text-decoration: underline; }
+.code-term-similar-head { margin: 10px 0 4px; color: var(--muted); font-size: 0.78rem; }
+.code-term-card ul { list-style: none; margin: 0; padding: 0; }
+.code-term-similar {
+  all: unset;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.code-term-similar:hover,
+.code-term-similar:focus-visible { background: rgba(255, 255, 255, 0.06); }
+.code-term-similar-name { display: block; font-size: 0.76rem; color: var(--muted); }
+.code-term-similar code {
+  display: block;
+  font-size: 0.74rem;
+  color: #d7e0e8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- Wiki page (/wiki) ---- */
+.wiki-inner { max-width: 780px; }
+.wiki-page .explain-doc { font-size: 1rem; line-height: 1.65; }
+.wiki-page .explain-doc h1 { font-size: clamp(1.5rem, 4vw, 2rem); margin-bottom: 18px; }
+.wiki-page .explain-doc a { color: var(--accent); }
+.wiki-page .explain-doc pre { overflow-x: auto; }
+.wiki-open {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.wiki-open.hidden { display: none; }
+.explain-expert { margin-top: 22px; }
+.explain-expert summary { cursor: pointer; color: var(--muted); }

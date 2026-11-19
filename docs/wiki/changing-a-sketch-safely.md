@@ -12,7 +12,9 @@ easy to understand and easy to undo.
 ## Two ways to change a sketch
 
 **1. In the browser, with the Code panel.** Open a sketch and press **Code** in the dock at the bottom.
-The sketch's file appears in an editor. Change it and the sketch reruns.
+The sketch's file opens in **Read** view: click any underlined piece of code to see what it does, a link
+to its wiki page, and the same kind of line in other sketches. Switch to **Edit** to change it, then press
+**Run** (or Ctrl+Enter) to restart the sketch with it.
 - On aiship.lol itself, your edits are only stored in your own browser. Nobody else sees them, and the
   real file doesn't change.
 - When the site is running on your computer (see below), the Code panel also saves your edit into the

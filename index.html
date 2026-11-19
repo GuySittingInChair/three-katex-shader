@@ -31,6 +31,7 @@
             <button class="btn btn-primary" type="button" data-role="create-account">Create account</button>
             <a class="btn btn-primary hidden" data-role="my-profile" data-link href="/">Your profile</a>
             <a class="btn btn-ghost" data-link href="/sketches">Browse sketches</a>
+            <a class="btn btn-ghost" data-link href="/wiki">How it works (wiki)</a>
           </div>
         </div>
       </section>
@@ -42,6 +43,7 @@
         <header class="page-head">
           <a class="brand" href="/" data-link>aiship</a>
           <nav class="page-nav">
+            <a href="/wiki" data-link>Wiki</a>
             <a href="/games" data-link>Games</a>
             <button class="bar-btn account-btn" type="button" data-role="page-account">Log in</button>
           </nav>
@@ -57,6 +59,9 @@
 
     <!-- Games (/games, /games/<id>) -->
     <main id="games-page" class="landing sketches-page" hidden></main>
+
+    <!-- Beginner wiki (/wiki, /wiki/<page>) -->
+    <main id="wiki-page" class="landing sketches-page wiki-page" hidden></main>
 
     <!-- Profile (/u/<username>) -->
     <main id="profile" class="landing profile-page" hidden></main>
@@ -101,7 +106,7 @@
       <button id="explain-toggle" class="dock-btn" type="button" title="What the symbols mean (E)"></button>
       <button id="params-toggle" class="dock-btn" type="button" title="Sliders"></button>
       <button id="comments-toggle" class="dock-btn" type="button" title="Comments"></button>
-      <button id="code-toggle" class="dock-btn" type="button" title="Edit the code"></button>
+      <button id="code-toggle" class="dock-btn" type="button" title="Read and edit the code (click any underlined code to learn what it does)"></button>
       <button id="sound-toggle" class="dock-btn hidden" type="button" title="Sound on / off (Space)"></button>
       <button id="hide-toggle" class="dock-btn" type="button" title="Hide everything but the animation (H)"></button>
       <button id="more-toggle" class="dock-btn" type="button" aria-haspopup="true" aria-expanded="false"></button>

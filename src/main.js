@@ -32,6 +32,7 @@ import { promptSignIn } from './ui/signIn.js';
 import { createFeed } from './ui/feed.js';
 import { createProfilePage } from './ui/profilePage.js';
 import { createGamesPage } from './ui/gamesPage.js';
+import { createWikiPage } from './ui/wikiPage.js';
 import { createToast, createViewMode } from './ui/viewMode.js';
 import { createRecorder } from './core/recorder.js';
 import { enableAudio, updateAudio, setSketchSound, setSoundOn, isSoundOn } from './core/audioEngine.js';
@@ -54,6 +55,8 @@ function parseRoute() {
   if (/^\/sketches\/?$/.test(location.pathname)) return { page: 'sketches' };
   const g = /^\/games(?:\/([^/]+))?\/?$/.exec(location.pathname);
   if (g) return { page: 'games', game: g[1] ? decodeURIComponent(g[1]) : null };
+  const w = /^\/wiki(?:\/([\w/-]+?))?\/?$/.exec(location.pathname);
+  if (w) return { page: 'wiki', slug: w[1] || 'README' };
   return { page: 'landing' };
 }
 const initialRoute = parseRoute();
@@ -437,6 +440,8 @@ const profileEl = $('profile');
 const sketchesEl = $('sketches-page');
 const gamesEl = $('games-page');
 const gamesPage = createGamesPage(gamesEl);
+const wikiEl = $('wiki-page');
+const wikiPage = createWikiPage(wikiEl);
 let page = 'viewer';
 let soundReady = false; // the sound controls are set up further down
 let heroVisible = true;
@@ -448,6 +453,7 @@ function showPage(next) {
   profileEl.hidden = next !== 'profile';
   sketchesEl.hidden = next !== 'sketches';
   gamesEl.hidden = next !== 'games';
+  wikiEl.hidden = next !== 'wiki';
   if (next !== 'viewer') {
     closeAllPanels();
     closeMenu();
@@ -475,6 +481,9 @@ function applyRoute() {
     profilePage.show(route.name);
   } else if (route.page === 'sketches') {
     showPage('sketches');
+  } else if (route.page === 'wiki') {
+    showPage('wiki');
+    wikiPage.show(route.slug, decodeURIComponent(location.hash.slice(1)));
   } else if (route.page === 'games') {
     showPage('games');
     gamesEl.scrollTop = 0;
@@ -486,7 +495,7 @@ function applyRoute() {
 }
 
 function navigate(path) {
-  if (path !== location.pathname) history.pushState(null, '', path);
+  if (path !== location.pathname + location.hash) history.pushState(null, '', path);
   applyRoute();
 }
 
@@ -494,7 +503,8 @@ document.addEventListener('click', (e) => {
   const a = e.target.closest('a[data-link]');
   if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
   e.preventDefault();
-  navigate(new URL(a.href).pathname);
+  const url = new URL(a.href);
+  navigate(url.pathname + url.hash);
   if (a.hasAttribute('data-guide')) {
     openPanel('explain');
     explainApi.showTab('guide');
