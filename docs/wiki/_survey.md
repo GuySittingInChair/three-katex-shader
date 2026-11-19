@@ -184,16 +184,16 @@ day. "Walkthrough" links to the plain-English page where one exists.
 | 2026-09-21 | `galtonBoard.js` | Galton Board | 3d | Probability | [walkthrough](sketches/galtonBoard.md) |
 | 2026-09-21 | `gameOfLife.js` | Conway's Game of Life | shader | Cellular Automata | [walkthrough](sketches/gameOfLife.md) |
 | 2026-09-21 | `generativeSynth.js` | Generative Synth | shader | Synthesis | [walkthrough](sketches/generativeSynth.md) |
-| 2026-09-21 | `gradientPlane.js` | Gradient Plane | shader | Shaders |  |
-| 2026-09-21 | `helicoidCatenoid.js` | Helicoid ↔ Catenoid | 3d | Surfaces |  |
-| 2026-09-21 | `hopfFibration.js` | Hopf Fibration | 3d | Topology |  |
-| 2026-09-21 | `hyperbolicTiling.js` | Hyperbolic Tiling | shader | Non-Euclidean |  |
-| 2026-09-21 | `infernoCape.js` | Inferno Cape | shader | Procedural Textures |  |
-| 2026-09-21 | `iridescentSphere.js` | Iridescent Sphere | 3d | Materials |  |
-| 2026-09-21 | `kleinBottle.js` | Klein Bottle | 3d | Topology |  |
-| 2026-09-21 | `kuramotoSivashinsky.js` | Kuramoto–Sivashinsky | shader | Chaos |  |
-| 2026-09-21 | `kuramotoSivashinskyLife.js` | Kuramoto–Sivashinsky — Life-Seeded | shader | Chaos |  |
-| 2026-09-21 | `lifeWarpedFractal.js` | Life-Warped Fractal | shader | Fractals |  |
+| 2026-09-21 | `gradientPlane.js` | Gradient Plane | shader | Shaders | [walkthrough](sketches/gradientPlane.md) |
+| 2026-09-21 | `helicoidCatenoid.js` | Helicoid ↔ Catenoid | 3d | Surfaces | [walkthrough](sketches/helicoidCatenoid.md) |
+| 2026-09-21 | `hopfFibration.js` | Hopf Fibration | 3d | Topology | [walkthrough](sketches/hopfFibration.md) |
+| 2026-09-21 | `hyperbolicTiling.js` | Hyperbolic Tiling | shader | Non-Euclidean | [walkthrough](sketches/hyperbolicTiling.md) |
+| 2026-09-21 | `infernoCape.js` | Inferno Cape | shader | Procedural Textures | [walkthrough](sketches/infernoCape.md) |
+| 2026-09-21 | `iridescentSphere.js` | Iridescent Sphere | 3d | Materials | [walkthrough](sketches/iridescentSphere.md) |
+| 2026-09-21 | `kleinBottle.js` | Klein Bottle | 3d | Topology | [walkthrough](sketches/kleinBottle.md) |
+| 2026-09-21 | `kuramotoSivashinsky.js` | Kuramoto–Sivashinsky | shader | Chaos | [walkthrough](sketches/kuramotoSivashinsky.md) |
+| 2026-09-21 | `kuramotoSivashinskyLife.js` | Kuramoto–Sivashinsky — Life-Seeded | shader | Chaos | [walkthrough](sketches/kuramotoSivashinskyLife.md) |
+| 2026-09-21 | `lifeWarpedFractal.js` | Life-Warped Fractal | shader | Fractals | [walkthrough](sketches/lifeWarpedFractal.md) |
 | 2026-09-21 | `lissajousKnot.js` | Lissajous Knot | 3d | Knots |  |
 | 2026-09-21 | `lorenzAttractor.js` | Lorenz Attractor | 3d | Dynamical Systems |  |
 | 2026-09-21 | `mandelbulb.js` | Mandelbulb | shader | Fractals |  |

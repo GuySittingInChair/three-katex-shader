@@ -121,6 +121,16 @@ Written oldest first, about ten at a time. The full list, with which ones are do
 | [Generative Synth](sketches/generativeSynth.md) | a melody that improvises itself |
 | [Intercept](sketches/intercept.md) | a drone, a gun, and the physics of both |
 | [Anti-Aircraft Contraception](sketches/antiAircraftContraception.md) | missile physics, starring a sperm cell ([the physics](sketches/antiAircraftContraception-physics.md)) |
+| [Gradient Plane](sketches/gradientPlane.md) | a flowing rainbow from one line of shader code |
+| [Helicoid ↔ Catenoid](sketches/helicoidCatenoid.md) | a spiral staircase rolling into an hourglass without stretching |
+| [Hopf Fibration](sketches/hopfFibration.md) | circles from four dimensions, every pair linked |
+| [Hyperbolic Tiling](sketches/hyperbolicTiling.md) | seven-sided tiles that only fit in a stranger space |
+| [Inferno Cape](sketches/infernoCape.md) | molten rock made of noise warping noise |
+| [Iridescent Sphere](sketches/iridescentSphere.md) | a soap-bubble rainbow shimmer on a ball |
+| [Klein Bottle](sketches/kleinBottle.md) | a Möbius strip inflating into a one-sided bottle |
+| [Kuramoto–Sivashinsky](sketches/kuramotoSivashinsky.md) | a wrinkling flame front, as a honeycomb |
+| [Kuramoto–Sivashinsky — Life-Seeded](sketches/kuramotoSivashinskyLife.md) | the same flame, fed by a Game of Life board |
+| [Life-Warped Fractal](sketches/lifeWarpedFractal.md) | a kaleidoscope bent by a hidden Game of Life |
 
 ## 16. [Glossary](glossary.md)
 
