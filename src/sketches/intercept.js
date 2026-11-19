@@ -20,7 +20,7 @@ import { caption, beat } from '../lib/bit.js';
 //     |r̂ + v̂ t| = v̄ t
 // for the lead, with the drag-corrected flight time t = (e^{kd} − 1)/(k v₀), using a radar track: fixes
 // with 1.5 mrad of noise smoothed by an α–β filter, so it lags every change of course. Checked in Node over
-// 40 attacks: 30 shot down in the climb and 10 in the dive, after 25–120 rounds, at 1.2–1.6 km.
+// 40 attacks (after the homing-sign fix, 2026-11-18): all 40 shot down, after 20–200 rounds, at 0.75–1.6 km.
 //
 // The hit. One 35 mm high-explosive round is enough; where it lands decides what happens:
 //   nose (the warhead): it detonates 70% of the time;
@@ -89,6 +89,8 @@ function frameOf(v, a) {
 }
 
 // ---------- the simulation: one attack, start to finish ----------
+// The whole attack, worked out in one go and recorded, then played back by update().
+// see docs/wiki/sketches/intercept.md and docs/wiki/randomness.md (the seed)
 function simulate(seed) {
   const r = rngOf(seed);
   const az = (r() - 0.5) * 1.2;
@@ -117,7 +119,9 @@ function simulate(seed) {
         const vr = mul(v, -1);
         const Om = mul(cross(los, vr), 1 / dot(los, los));
         Vc = -dot(norm(los), vr);
-        acc = mul(cross(Om, norm(v)), -3 * Vc);
+        // Steer towards where the target is drifting: a = +N·V_c·(Ω × v̂). (The sign was flipped until
+        // 2026-11-18, which turned the dive away from the target.) See docs/wiki/sketches/intercept.md
+        acc = mul(cross(Om, norm(v)), 3 * Vc);
         acc = add(acc, add(mul(norm(v), 2.0), V(0, -G * 0.35, 0)));
         acc = add(acc, mul(norm(cross(v, V(0, 1, 0))), weaveA * Math.sin(weaveW * 6.283 * t)));
       } else {

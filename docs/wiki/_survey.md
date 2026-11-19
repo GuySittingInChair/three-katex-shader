@@ -56,8 +56,11 @@ Ray Tracing, Spectra, 4D, Number Theory, Vector Fields and Voxels.
 | Stepping a simulation forward in time (Euler, Runge–Kutta, Verlet) | 20 | *(planned: simulation)* |
 | Loops that refine a guess (Newton's method) | 10 | *(planned: math)* |
 | Realistic scenes (`src/lib/environment.js`) | 9 | *(planned)*; also docs/guide.md §13 |
-| The comedy formula (`src/lib/bit.js`) | 33 | *(planned)*; also docs/guide.md §12 |
-| Soft glow (`src/lib/glow.js`) | 13 | *(planned)* |
+| The comedy formula (`src/lib/bit.js`) | 33 | [comedy-captions.md](comedy-captions.md); also docs/guide.md §12 |
+| Soft glow (`src/lib/glow.js`) | 13 | [glow.md](glow.md) |
+| Noise and fbm (home-made smooth randomness) | 14 | [noise.md](noise.md) |
+| Random numbers and seeds (`Math.random`, seeded generators) | many | [randomness.md](randomness.md) |
+| Sliders that rebuild the sketch (`rebuild: true`) | several | [params.md](params.md) |
 | Kuramoto–Sivashinsky solver (`src/lib/kuramotoSivashinsky.js`) | 5 | *(planned: science)* |
 | Voronoi cells (`src/lib/voronoi.js`) | 2 | *(planned: math)* |
 | Live sound input (`ctx.audio`) | 8 | *(planned: audio)* |
@@ -171,16 +174,16 @@ day. "Walkthrough" links to the plain-English page where one exists.
 | 2026-09-21 | `boysSurface.js` | Boy's Surface | 3d | Topology | [walkthrough](sketches/boysSurface.md) |
 | 2026-09-21 | `causticsLight.js` | Caustics | shader | Optics | [walkthrough](sketches/causticsLight.md) |
 | 2026-09-21 | `chatgpt-quantum.js` | Radian628 — Abyssal Bloom (Hyper-Vibrant Log Spiral) | shader | Fractals | [walkthrough](sketches/chatgpt-quantum.md) |
-| 2026-09-21 | `different-this-time.js` | Radian628 Integral-Warped GLSL Fractal | shader | Fractals |  |
-| 2026-09-21 | `diffusionLimitedAggregation.js` | Diffusion-Limited Aggregation | shader | Growth |  |
-| 2026-09-21 | `displacedIcosphere.js` | Displaced Icosphere | 3d | Meshes |  |
-| 2026-09-21 | `enneperSurface.js` | Enneper Surface | 3d | Surfaces |  |
-| 2026-09-21 | `fluidDye.js` | Fluid Dye | shader | Fluid Flow |  |
-| 2026-09-21 | `flyConnectome.js` | Fly Connectome | 3d | Graphs & Networks |  |
-| 2026-09-21 | `forceDirectedGraph.js` | Force-Directed Graph | 3d | Graphs & Networks |  |
-| 2026-09-21 | `galtonBoard.js` | Galton Board | 3d | Probability |  |
-| 2026-09-21 | `gameOfLife.js` | Conway's Game of Life | shader | Cellular Automata |  |
-| 2026-09-21 | `generativeSynth.js` | Generative Synth | shader | Synthesis |  |
+| 2026-09-21 | `different-this-time.js` | Radian628 Integral-Warped GLSL Fractal | shader | Fractals | [walkthrough](sketches/different-this-time.md) |
+| 2026-09-21 | `diffusionLimitedAggregation.js` | Diffusion-Limited Aggregation | shader | Growth | [walkthrough](sketches/diffusionLimitedAggregation.md) |
+| 2026-09-21 | `displacedIcosphere.js` | Displaced Icosphere | 3d | Meshes | [walkthrough](sketches/displacedIcosphere.md) |
+| 2026-09-21 | `enneperSurface.js` | Enneper Surface | 3d | Surfaces | [walkthrough](sketches/enneperSurface.md) |
+| 2026-09-21 | `fluidDye.js` | Fluid Dye | shader | Fluid Flow | [walkthrough](sketches/fluidDye.md) |
+| 2026-09-21 | `flyConnectome.js` | Fly Connectome | 3d | Graphs & Networks | [walkthrough](sketches/flyConnectome.md) |
+| 2026-09-21 | `forceDirectedGraph.js` | Force-Directed Graph | 3d | Graphs & Networks | [walkthrough](sketches/forceDirectedGraph.md) |
+| 2026-09-21 | `galtonBoard.js` | Galton Board | 3d | Probability | [walkthrough](sketches/galtonBoard.md) |
+| 2026-09-21 | `gameOfLife.js` | Conway's Game of Life | shader | Cellular Automata | [walkthrough](sketches/gameOfLife.md) |
+| 2026-09-21 | `generativeSynth.js` | Generative Synth | shader | Synthesis | [walkthrough](sketches/generativeSynth.md) |
 | 2026-09-21 | `gradientPlane.js` | Gradient Plane | shader | Shaders |  |
 | 2026-09-21 | `helicoidCatenoid.js` | Helicoid ↔ Catenoid | 3d | Surfaces |  |
 | 2026-09-21 | `hopfFibration.js` | Hopf Fibration | 3d | Topology |  |
@@ -282,7 +285,7 @@ day. "Walkthrough" links to the plain-English page where one exists.
 | 2026-10-05 | `sunflowerPhyllotaxis.js` | Sunflower Phyllotaxis | 3d | Biology |  |
 | 2026-10-05 | `voronoiMetrics.js` | Voronoi Metrics | shader | Geometry |  |
 | 2026-10-06 | `voodooDoll.js` | Voodoo Doll | 3d | Physics |  |
-| 2026-10-07 | `intercept.js` | Intercept | 3d | Physics |  |
+| 2026-10-07 | `intercept.js` | Intercept | 3d | Physics | [walkthrough](sketches/intercept.md) |
 | 2026-10-07 | `radarShadow.js` | Radar Shadow | 3d | Physics |  |
 | 2026-10-07 | `supernovaRemnant.js` | Supernova Remnant | 3d | Physics |  |
 | 2026-10-14 | `radian628ShapeMirror.js` | Radian628 — Shape Mirror | shader | Fractals |  |
@@ -326,4 +329,4 @@ day. "Walkthrough" links to the plain-English page where one exists.
 | 2026-11-10 | `whereOrbitingStops.js` | Where Orbiting Stops | 3d | Physics |  |
 | 2026-11-12 | `exoplanets.js` | Six Thousand Worlds | 3d | Astronomy |  |
 | 2026-11-12 | `messierInDepth.js` | Messier's Sky, in Depth | 3d | Astronomy |  |
-| not committed | `antiAircraftContraception.js` | Anti-Aircraft Contraception | 3d | Physics |  |
+| 2026-11-18 | `antiAircraftContraception.js` | Anti-Aircraft Contraception | 3d | Physics | [walkthrough](sketches/antiAircraftContraception.md) |

@@ -5,6 +5,11 @@ const CELLS = SIZE * SIZE;
 const CENTER = Math.floor(SIZE / 2);
 const MAX_WALKERS = 40;
 const MAX_TICK_FOR_HUE = SIZE * 6; // rough normalizer for age-based coloring
+// Most walkers wander off the edge before they find the cluster, so it needs a lot of steps: at the old
+// 8 steps a second it grew about 50 cells in 10 minutes. 30 steps per unit of `speed` fills the grid in
+// about two minutes at the default speed. see docs/wiki/sketches/diffusionLimitedAggregation.md
+const STEPS_PER_SPEED = 30;
+const FULL_HOLD = 4; // seconds to admire the finished cluster before starting again
 
 let occupied = new Uint8Array(CELLS);
 let age = new Float32Array(CELLS); // tick at which each cell stuck, 0 = unoccupied
@@ -23,6 +28,7 @@ function reset() {
   age[CENTER * SIZE + CENTER] = 0;
 }
 
+// Walkers: random stumblers, released on a ring near the edge. see docs/wiki/randomness.md
 function spawnWalker() {
   // Spawn on a circle near the edge so walkers drift inward toward the cluster.
   const angle = Math.random() * Math.PI * 2;
@@ -46,6 +52,7 @@ function isAdjacentToCluster(x, y) {
   return false;
 }
 
+// One step for every walker: stumble, and stick if next to the cluster.
 function tickSim(spawnRate) {
   tick++;
   if (stuckCount < CELLS * 0.55 && walkers.length < MAX_WALKERS) {
@@ -95,10 +102,12 @@ export default {
   latex: 'P(\\text{stick at } x) = 1 \\ \\text{if } x \\ \\text{adjacent to cluster, else walker takes a random step}',
 
   params: {
-    speed: { value: 8, min: 1, max: 20 },
+    speed: { value: 8, min: 1, max: 20 }, // × STEPS_PER_SPEED steps a second
     spawnRate: { value: 2, min: 1, max: 6 },
   },
 
+  // The picture: the grid arrives as a small texture; stuck cells get rainbow colours by age and distance.
+  // see docs/wiki/textures.md and docs/wiki/cosine-palette.md
   fragmentShader: `
     uniform sampler2D uField;
     uniform float uTime;
@@ -128,16 +137,22 @@ export default {
   },
 
   setup() {
-    return { accum: 0 };
+    return { accum: 0, fullFor: 0 };
   },
 
   update(ctx, state) {
-    state.accum += ctx.delta * ctx.params.speed;
+    // Spend the time saved up since last frame on simulation steps. see docs/wiki/frame-loop.md
+    state.accum += ctx.delta * ctx.params.speed * STEPS_PER_SPEED;
     let stepped = false;
     while (state.accum >= 1) {
       state.accum -= 1;
       tickSim(Math.round(ctx.params.spawnRate));
       stepped = true;
+    }
+    // Once the grid has stopped growing, hold the finished cluster for a moment, then start again.
+    if (stuckCount >= CELLS * 0.55 && walkers.length === 0) {
+      state.fullFor += ctx.delta;
+      if (state.fullFor > FULL_HOLD) { reset(); state.fullFor = 0; state.accum = 0; stepped = true; }
     }
     if (stepped) {
       writeDisplay();

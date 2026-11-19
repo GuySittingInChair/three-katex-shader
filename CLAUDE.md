@@ -34,6 +34,10 @@ are the expert field guide shown in the Explain panel: keep them, the wiki sits 
   data comes from**, **How it's built** (linking concept pages), **A tour of the file** (setup → update,
   quoting key lines), **Numbers worth knowing**, **Words on this page** (glossary links).
 
+**Owner's rulings on sketches:**
+- Anti-Aircraft Contraception: the sperm must never reach the egg. Its homing sign
+  (`-(terminal ? 4 : 3) * Vc` in `simulate()`) is flipped on purpose; never "fix" it. (Intercept's was fixed.)
+
 **Still to write** (see the *(planned)* items in `README.md`): drawing in 2D, animation and timing, math,
 simulation, maps and the sky, science explainers, space and science data, equations and LaTeX, asking
 Claude for help, and the walkthroughs for the remaining sketches, in batches of about ten, oldest first,

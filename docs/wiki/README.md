@@ -28,6 +28,7 @@ the app's Explain panel) and its "annotated" sections are still there for the de
 - [Every field](sketch-format.md)
 - [Params: the sliders](params.md)
 - [Motion and the live equation](motion-and-latex.md)
+- [The comedy formula: true equations, absurd nouns](comedy-captions.md)
 
 ## 3. Reading JavaScript
 - [1. Values, names and comments](js-values-and-variables.md)
@@ -60,13 +61,16 @@ Flat `shader` pictures and their coordinates; drawing on a hidden canvas (`Canva
 - [2. Blending, adding, dimming and gain](colour-blending-and-gain.md)
 - [3. The cosine palette](cosine-palette.md)
 - [4. Colour scales for data, and how they are chosen](colour-scales.md)
+- [5. Glow: making bright things shine](glow.md)
 
 ## 8. Animation and timing *(planned)*
 Time, phases, loops, smooth fades and easing (`src/lib/motion.js`). For now, see
 [Motion and the live equation](motion-and-latex.md).
 
-## 9. Math that keeps coming up *(planned)*
-Blending and clamping, angles and radians, sine and cosine, complex numbers, loops that refine a guess
+## 9. Math that keeps coming up
+- [Noise: randomness that looks natural](noise.md)
+- [Random numbers, and seeds that make them repeatable](randomness.md)
+- *(planned)* Blending and clamping, angles and radians, sine and cosine, complex numbers, loops that refine a guess
 (Newton's method), vectors, escape-time fractals, Voronoi cells.
 
 ## 10. Simulation *(planned)*
@@ -102,6 +106,18 @@ Written oldest first, about ten at a time. The full list, with which ones are do
 | [Boy's Surface](sketches/boysSurface.md) | two drawings of an impossible surface, blending |
 | [Caustics](sketches/causticsLight.md) | light dancing on a pool floor |
 | [Radian628 — Abyssal Bloom](sketches/chatgpt-quantum.md) | a neon fractal kaleidoscope |
+| [Radian628 Integral-Warped Fractal](sketches/different-this-time.md) | folded paper, rippled, sixteen times |
+| [Diffusion-Limited Aggregation](sketches/diffusionLimitedAggregation.md) | lightning-bolt growth from random stumbling |
+| [Displaced Icosphere](sketches/displacedIcosphere.md) | a little low-poly planet |
+| [Enneper Surface](sketches/enneperSurface.md) | a soap-film saddle that curls through itself |
+| [Fluid Dye](sketches/fluidDye.md) | fake ink in water, made of noise warping noise |
+| [Fly Connectome](sketches/flyConnectome.md) | a fly-shaped brain you can poke and damage |
+| [Force-Directed Graph](sketches/forceDirectedGraph.md) | a network that untangles itself with springs |
+| [Galton Board](sketches/galtonBoard.md) | coin flips building a bell curve |
+| [Conway's Game of Life](sketches/gameOfLife.md) | four rules, endless creatures |
+| [Generative Synth](sketches/generativeSynth.md) | a melody that improvises itself |
+| [Intercept](sketches/intercept.md) | a drone, a gun, and the physics of both |
+| [Anti-Aircraft Contraception](sketches/antiAircraftContraception.md) | missile physics, starring a sperm cell ([the physics](sketches/antiAircraftContraception-physics.md)) |
 
 ## 16. [Glossary](glossary.md)
 

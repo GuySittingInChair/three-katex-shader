@@ -8,6 +8,8 @@ function randomize() {
   for (let i = 0; i < grid.length; i++) grid[i] = Math.random() < 0.35 ? 255 : 0;
 }
 
+// One generation: every cell counts its 8 neighbours (wrapping round the edges) and follows the rules.
+// see docs/wiki/sketches/gameOfLife.md
 function step() {
   const next = new Uint8Array(SIZE * SIZE);
   const nextNeighbors = new Uint8Array(SIZE * SIZE);
@@ -46,6 +48,8 @@ export default {
     speed: { value: 10, min: 1, max: 30 },
   },
 
+  // The picture: alive/dead and the neighbour count arrive as two small textures, coloured by a cosine
+  // palette. see docs/wiki/textures.md and docs/wiki/cosine-palette.md
   fragmentShader: `
     uniform sampler2D uGrid;
     uniform sampler2D uNeighbors;
@@ -54,7 +58,9 @@ export default {
 
     void main() {
       float alive = texture2D(uGrid, vUv).r;
-      float n = texture2D(uNeighbors, vUv).r * 8.0;
+      // The texture hands back each stored byte (0–255) divided by 255, so multiply by 255 to get the
+      // neighbour count 0–8 back. (It was × 8 until 2026-11-18, which left every cell nearly one colour.)
+      float n = texture2D(uNeighbors, vUv).r * 255.0;
       float hue = fract(n / 8.0 + uTime * 0.02);
       vec3 aliveColor = 0.55 + 0.45 * cos(6.2831 * (hue + vec3(0.0, 0.33, 0.67)));
       vec3 deadColor = vec3(0.03, 0.03, 0.07);
@@ -83,6 +89,7 @@ export default {
   },
 
   update(ctx, state) {
+    // A piggy bank of time, spent one generation at a time. see docs/wiki/frame-loop.md
     state.accum += ctx.delta * ctx.params.speed;
     while (state.accum >= 1) {
       state.accum -= 1;

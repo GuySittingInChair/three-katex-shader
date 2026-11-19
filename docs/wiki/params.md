@@ -49,6 +49,17 @@ state.uniforms.uZoom.value = ctx.params.zoom;
   `SPECIES` is a list of three names (the dye's colour, the activator, the catalyst). The panel shows the
   name, not the number 0, 1 or 2.
 
+- `rebuild: true` means "this slider changes the shape itself, so start the sketch over". Most sliders
+  are read on every frame, but some numbers are only used in `setup`, when the shape is built. With
+  `rebuild: true`, letting go of the slider makes the app throw the sketch away and run `setup` again
+  with the new value. In `src/sketches/enneperSurface.js`:
+
+  ```js
+  cubicCoeff: { value: 0.3333, min: 0, max: 1, rebuild: true }, // α
+  ```
+
+  Drag it and nothing happens while you drag. Let go, and the surface is rebuilt in its new shape.
+
 ## The `speed` slider is special
 
 Many sketches have a slider called `speed`. If the sketch has a `motion` field, the app uses `speed` to
