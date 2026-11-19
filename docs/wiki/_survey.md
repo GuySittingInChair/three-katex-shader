@@ -39,6 +39,7 @@ Ray Tracing, Spectra, 4D, Number Theory, Vector Fields and Voxels.
 | Smooth steps and fades (`smoothstep`, `smooth`) | about 95 | *(planned: animation and timing)* |
 | Blending two values (`mix`, `lerp`) | about 100 | [colour-blending-and-gain.md](colour-blending-and-gain.md) |
 | The cosine colour palette | 30 | [cosine-palette.md](cosine-palette.md) |
+| Sine and cosine waves | 151 | [sine-and-cosine.md](sine-and-cosine.md) |
 | Colour scales for data (CMB, temperature, density) | the data sketches | [colour-scales.md](colour-scales.md) |
 | Meshes, geometry and materials | all `3d` sketches | [mesh-geometry-material.md](mesh-geometry-material.md) |
 | Screen-width lines and dots (`src/lib/fatLines.js`) | 41 | [lines-and-points.md](lines-and-points.md) |

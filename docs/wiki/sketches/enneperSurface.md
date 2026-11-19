@@ -16,13 +16,15 @@ Alfred Enneper wrote down this one in 1864, with a short, neat formula. In the m
 saddle. Further out, the flaps keep curling until they swing round and pass through each other. A real
 soap film couldn't do that, but the formula doesn't mind.
 
-The equation on screen is the formula: for each point (u, v) of a flat square, it says where that point
-goes in space (x, y, z). The yellow numbers are live, because they are sliders.
+The equation on screen is the formula. Picture a flat square of rubber, with every spot on it named by
+two numbers, how far across (u) and how far up (v). The formula says where each spot ends up in 3D:
+across (x), sideways (y) and height (z). The yellow numbers in it are the ones you can change with the
+sliders in the Params panel.
 
 **Where the data comes from:** no data.
 
 **How it's built:**
-- `parametricSurface` from `src/lib/parametric.js` turns the formula into a mesh: a 120 × 120 grid, each
+- `parametricSurface` from `src/lib/parametric.js` turns the formula into a *mesh* (a shape made of thousands of tiny flat triangles): a 120 × 120 grid, each
   point placed by the formula (see [mesh-geometry-material.md](../mesh-geometry-material.md)).
 - `src/lib/surfaceMaterial.js` gives the shadings: "Iridescent", curvature colour maps, a checkerboard, and
   more.
@@ -41,10 +43,14 @@ const y = vv - coeffs.cubicCoeff * (vv * vv * vv) + coeffs.crossCoeff * vv * uu 
 const z = uu * uu - vv * vv;
 ```
 
-- Lines 1–2: `u` and `v` arrive between 0 and 1. These lines stretch them to run from −1.3 to +1.3, the
-  patch of the flat square we use.
-- Lines 3–4: across and sideways positions. The `u³` part pulls the edges back in. That's the curl.
-- Line 5: height is `u² − v²`. That is the classic saddle: up along one direction, down along the other.
+- `coeffs` holds the slider settings: `domainScale`, `cubicCoeff` and `crossCoeff`.
+- Lines 1–2: `u` and `v` arrive between 0 and 1. These lines stretch them to run from −1.3 to +1.3 (the
+  **Domain scale** slider), and call the results `uu` and `vv`.
+- Lines 3–4: across and sideways positions. `uu * uu * uu` is `u` cubed (u × u × u), written `u³`. It
+  stays tiny near the middle but grows fast towards the edges, and it's subtracted, so it pulls the
+  edges back in. That's the curl.
+- Line 5: height is `u² − v²` (u × u, minus v × v). Walk along the `u` direction and you climb; walk
+  along `v` and you sink. Up one way, down the other: the classic saddle.
 
 At the default settings (`cubicCoeff` ⅓, `crossCoeff` 1), this is exactly Enneper's surface. Move the
 sliders and you get relatives of it, which are mostly no longer minimal surfaces.

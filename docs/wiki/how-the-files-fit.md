@@ -1,6 +1,6 @@
 # How the files fit together
 
-**In one sentence:** each sketch is one file in `src/sketches/`, the app in `src/core/` and `src/ui/` runs
+**In one sentence:** each sketch (one animated picture on the site, with its sliders and equation) is one file in `src/sketches/`, the app in `src/core/` and `src/ui/` runs
 it, shared helpers live in `src/lib/`, and real science data is prepared by scripts in `tools/` and served
 from `public/data/`.
 
@@ -25,11 +25,13 @@ raw materials, and `public/data/` is the shelf where the finished props wait.
 
 1. `src/core/registry.js` collects every file in `src/sketches/` automatically. You never have to "add"
    a new sketch to a list. Putting the file in the folder is enough.
-2. When you open a sketch, `src/core/SketchRunner.js` sets up a camera and a scene, then calls the
-   sketch's `setup`, then its `update` on every frame. See [frame-loop.md](frame-loop.md).
-3. If the sketch has a `latex` field, `src/core/latex.js` turns it into the equation on screen, with the
-   live numbers coloured yellow.
-4. If the sketch needs data, it loads it from `public/data/...` while it starts up. See
+2. When you open a sketch, `src/core/SketchRunner.js` sets up a *scene* (the empty 3D world) and a
+   *camera* (the point of view it's seen from). Then it runs the sketch's `setup` part once, to build
+   things, and its `update` part on every frame (about 60 times a second), to move them. See
+   [frame-loop.md](frame-loop.md).
+3. If the sketch has a `latex` part (its equation, written in LaTeX, a standard way to type maths),
+   `src/core/latex.js` draws it on screen. Numbers that change as the sketch moves are coloured yellow.
+4. If the sketch needs data (real measurements, like star positions or earthquake records), it loads it from `public/data/...` while it starts up. See
    [js-promises-and-fetch.md](js-promises-and-fetch.md).
 
 **What it looks like in the code:** the whole of "find every sketch" is this line from

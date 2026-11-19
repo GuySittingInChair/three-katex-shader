@@ -18,12 +18,13 @@ const X = [-1.8, -0.9, 0, 0.9, 1.8];
 const Y = [-0.8, 1.1, -0.2, 1.1, -0.8];
 ```
 
-- Each list holds five numbers, separated by commas: the across and up positions of five control points.
+- Each list holds five numbers, separated by commas: the across and up positions of five *control
+  points*, the dots the sketch's curve bends towards.
 - Counting starts at **0**. `X[0]` is `-1.8` (the first), and `X[4]` is `1.8` (the fifth).
 - `X.length` is how many there are: 5.
 
-Lists can hold anything, including other lists or objects. `boids.push({...})` adds one more item to the
-end of the list `boids`.
+Lists can hold anything, including other lists or objects. Adding to the end of a list is `.push(...)`:
+you'll see it below.
 
 ## Objects: `{ }`
 
@@ -36,8 +37,11 @@ boids.push({
 });
 ```
 
+- `boids` is the list of birds, and `boids.push({...})` adds one more bird to the end of it. The `{ }`
+  inside is the new bird: an object.
 - Each bird is an object with two drawers: `pos` (where it is) and `vel` (its velocity: which way it is
-  heading, and how fast).
+  heading, and how fast). `new THREE.Vector3(...)` makes an arrow in 3D: three numbers, across, up and
+  towards you.
 - Later the code reads them with a dot: `bi.pos`, `bi.vel`.
 
 A whole sketch is one big object, too. Its drawers are `name`, `params`, `setup` and the rest. See
@@ -50,7 +54,8 @@ const { kappa, s } = ctx.motion;
 ```
 (from `bezierDeCasteljau.js`)
 
-This takes the drawers called `kappa` and `s` out of `ctx.motion` and gives each its own short name. It is
+`ctx.motion` is an object holding the numbers the sketch's own `motion` part worked out for this moment
+of the animation (see [motion-and-latex.md](motion-and-latex.md)). This line takes the drawers called `kappa` and `s` out of it and gives each its own short name. It is
 the same as writing `const kappa = ctx.motion.kappa;` and `const s = ctx.motion.s;`. This unpacking is
 called *destructuring*.
 
@@ -74,7 +79,9 @@ Array.from({ length: DEGREE + 1 }, (_, i) => binom(DEGREE, i) * ...)
 ```
 (from `bezierDeCasteljau.js`)
 
-This means "make a list of 5 items (`DEGREE` is 4, plus 1), and work out item `i` with this recipe". The
+This means "make a list of 5 items (`DEGREE` is 4, plus 1), and work out item `i` with this recipe".
+`binom` is a small counting function defined earlier in the file; the recipe works out how strongly
+each of the five control points pulls on the curve. The
 `_` is a placeholder for an input the recipe doesn't use.
 
 **Try this:** in `bezierDeCasteljau.js`, change `X`'s last number, `1.8`, to `3`. The right-hand end of the

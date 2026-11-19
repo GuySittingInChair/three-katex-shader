@@ -1,6 +1,6 @@
 # Glow: making bright things shine
 
-**In one sentence:** the glow helper, `src/lib/glow.js`, finds the brightest parts of a picture, blurs
+**In one sentence:** the glow helper (a shared piece of code that any sketch can borrow), `src/lib/glow.js`, finds the brightest parts of a picture, blurs
 them, and adds the blur back on top, so bright things bleed light into their surroundings the way they do
 in a camera or your eye.
 
@@ -19,7 +19,7 @@ called *bloom*).
 ## How it works, in four passes
 
 1. **Draw the scene with headroom.** Normally colours stop at 1 (full brightness). Here the scene is drawn
-   into a hidden picture that can hold values above 1. A tracer can be "5 times brighter than white". See
+   into a hidden picture that can hold values above 1. A tracer (a glowing bullet in Anti-Aircraft Contraception) can be "5 times brighter than white". See
    [render-targets.md](render-targets.md).
 2. **Keep only the bright bits.** Everything dimmer than a *threshold* is thrown away.
 3. **Blur them, three times, at three sizes:** a tight halo, a medium one and a wide one.
@@ -34,10 +34,11 @@ float l = max(c.r, max(c.g, c.b));
 gl_FragColor = vec4(c * smoothstep(uThreshold, uThreshold * 1.6 + 0.05, l), 1.0);
 ```
 
-- Line 1 reads this pixel's colour from the hidden picture.
+- Line 1 reads this pixel's colour from the hidden picture (`tSrc`); `vUv` is where the pixel is.
 - Line 2: `l` is its brightest channel, a rough "how bright is it".
-- Line 3: below the threshold, multiply by 0 (gone). Well above it, multiply by 1 (kept). A soft
-  `smoothstep` in between, so halos don't switch on with a hard edge.
+- Line 3: below the threshold, multiply by 0 (gone). Well above it, multiply by 1 (kept). In
+  between, `smoothstep` makes a gentle ramp from 0 to 1, so halos fade in instead of switching on with
+  a hard edge. `gl_FragColor` is the pixel's final colour.
 
 And how a sketch turns it on, from `src/sketches/antiAircraftContraception.js`:
 
@@ -52,7 +53,9 @@ const glow = createGlow(ctx, { fov: 50, strength: 0.9, threshold: 0.8, exposure:
 - `fov: 50`: the camera's field of view, which the helper widens on tall phone screens so portrait mode
   still sees the whole scene.
 
-Later, `update` sets `state.glow.strength = 0.9 * P.glow`, which is how the "glow" slider works.
+Later, `update` (the part of a sketch that runs every frame) sets `state.glow.strength = 0.9 * P.glow`.
+`P.glow` is where the **glow** slider is set, so the slider scales the halos' strength.
+`state` is the sketch's memory between frames.
 
 **Try this:** in Anti-Aircraft Contraception, drag the **glow** slider to 0. The tracer rounds turn into
 thin, flat lines, and the bursts lose their flash. Drag it to 2 and the whole sky fizzes like a fireworks

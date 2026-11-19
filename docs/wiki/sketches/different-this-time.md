@@ -12,9 +12,10 @@ off-centre, stretch it a little, twist it, and repeat 16 times. Each fold copies
 after a few rounds you get mirror-upon-mirror detail.
 
 The twist in this one: on every round, the sheet is also pushed sideways by a smooth wave. The code calls
-it the wave's *integral*. In calculus, an integral of a wave is another wave, shifted a quarter-turn and
-made smaller for faster waves. You don't need the calculus. Read it as "an extra gentle ripple, added on
-every fold". That ripple is what keeps the shapes curvy instead of crystal-sharp.
+it the wave's *integral*. An integral is a running total. If a wave said how fast you were walking each
+second (forwards, then backwards, then forwards), its integral would say how far from the start you'd
+got: and that also goes back and forth, as another, smoother wave. So read it as "an extra gentle
+ripple, added on every fold". That ripple is what keeps the shapes curvy instead of crystal-sharp.
 
 There's no equation on screen for this one: it is one of the two sketches without a `latex` field.
 
@@ -39,11 +40,15 @@ for (float i = 0.0; i < 32.0; i++) {
   p *= rot;
 ```
 
-- `abs(p)` folds: anything on the left is flipped to the right, anything below is flipped up. Four
-  quarters of the screen become one.
-- `p -= vec2(0.15)` slides the paper diagonally, so the next fold lands somewhere new.
-- `p *= uScale` stretches by the "scale" slider (1.1, so 10% bigger each round).
-- `p *= rot` twists it by an angle that grows slowly with time.
+- `p` is the point being folded: a `vec2`, a pair of numbers (across, up).
+- `abs(p)` folds (`abs` means "drop the minus sign"): anything on the left is flipped to the right,
+  anything below is flipped up. Four quarters of the screen become one.
+- `p -= vec2(0.15)` takes 0.15 off both numbers: it slides the paper diagonally, so the next fold
+  lands somewhere new.
+- `p *= uScale` stretches by the **Scale** slider: 1.1, so 10% bigger each round. (Names starting with
+  `u` are values handed in from outside, like sliders.)
+- `p *= rot` twists it by an angle that grows slowly with time. `rot` is a *rotation*, made a few lines
+  earlier from that angle.
 
 Then the gentle ripple:
 
@@ -52,8 +57,10 @@ vec2 intTerm = SpatialTrigIntegral(p, 2.5 + sin(uTime * 0.2), uTime * 0.5);
 p += intTerm * 0.08;
 ```
 
-A small cosine-wave push. Its waviness itself drifts with time (`2.5 + sin(...)`), which is why the
-pattern never quite settles.
+`SpatialTrigIntegral` is a small recipe written at the top of the file; it works out that integral
+ripple at point `p`. The result nudges `p` a little (`* 0.08`). Its waviness itself drifts with time
+(`2.5 + sin(...)`, a slow [sine](../sine-and-cosine.md) wave), which is why the pattern never quite
+settles.
 
 The colour:
 
@@ -74,8 +81,9 @@ stripes. Each channel's rings are slightly offset, so they cross in rainbow frin
 **Try this (funky):** change `67.0` to `6.0`. The razor stripes melt into broad, soft colour fields, like
 the same pattern painted with a fat brush. Then try `300.0` for a shimmering moiré that buzzes as it turns.
 
-A small quirk: the screen-size knob `uResolution` is set once at the start and never updated, so if you
-resize the window, the pattern doesn't re-centre until you leave the sketch and come back.
+**Fixed on 2026-11-19:** the sketch used to read the window's size only once, at the start, so after you
+resized the window the pattern sat off-centre until you left and came back. It now re-reads the size
+every frame.
 
 **Words on this page:** [shader](../glossary.md), [kaleidoscope fold](../glossary.md),
 [uniform](../glossary.md), [integral](../glossary.md)

@@ -23,7 +23,8 @@ For an input number `t`:
 - green = the same, but started a third of a turn later
 - blue = the same, started two thirds of a turn later
 
-The cosine (see the planned math page on sine and cosine) swings between −1 and +1, so "½ + ½ × cos"
+Cosine ("cos", see [sine and cosine](sine-and-cosine.md)) is a wave-maker: feed it a number that grows steadily and the answer rises and falls
+forever, like a swing, between −1 and +1. One full turn of the input is one full swing. So "½ + ½ × cos"
 swings between 0 and 1: from off to full brightness. Because the three are a third of a turn apart, they
 never all peak together. That is what makes the colours vivid instead of grey.
 
@@ -34,14 +35,19 @@ float hue = fract(uTime * 0.05 + uBass * 0.3 + r * 0.2);
 vec3 color = 0.5 + 0.5 * cos(6.2831 * (hue + vec3(0.0, 0.33, 0.67)));
 ```
 
-- Line 1 makes the input number. It creeps forward with time, jumps a little with the bass, and changes
+- `float` means "a number with a decimal point" and `vec3` means "a bundle of three numbers"; GLSL, the
+  [shader](shaders.md) language, wants you to say which kind you're making.
+- Line 1 makes the input number, `hue`. It creeps forward with time (`uTime`, seconds since the sketch
+  started), jumps a little with the bass (`uBass`, how loud the low notes are, or a slow pretend pulse while sound is off), and changes
   with distance from the centre (`r`). `fract` keeps only the part after the decimal point, so it stays
   between 0 and 1.
 - Line 2 is the palette. `6.2831` is one full turn (2π) in radians.
-- `vec3(0.0, 0.33, 0.67)` gives red, green and blue their head starts: none, a third, two thirds.
+- `vec3(0.0, 0.33, 0.67)` gives red, green and blue their head starts, like the swings starting at
+  different times: none, a third of a swing, two thirds.
 - The answer is three numbers, one per colour, each between 0 and 1.
 
-The same recipe in JavaScript, from `src/sketches/audioReactiveMesh.js`:
+The same calculation in JavaScript (the language the rest of a sketch is written in), from
+`src/sketches/audioReactiveMesh.js`. `out.x`, `.y` and `.z` hold red, green and blue:
 
 ```js
 out.x = 0.5 + 0.5 * Math.cos(TWO_PI * (t + 0.0));

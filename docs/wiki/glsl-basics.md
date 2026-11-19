@@ -1,10 +1,12 @@
 # GLSL basics: reading a shader
 
-**In one sentence:** GLSL is the language shaders are written in. It looks like JavaScript, but it is
-fussier about numbers and has built-in types for positions and colours.
+**In one sentence:** GLSL is the language *shaders* are written in: the small programs the graphics chip
+runs once for every pixel, to decide its colour. It looks like JavaScript (the language the rest of the
+site is written in), but it is fussier about numbers and has built-in types for positions and colours.
 
 **Picture it:** the same recipe written for a different kitchen. The steps are familiar, but this kitchen
-measures everything precisely, and its bowls come in fixed sizes: one, two, three or four compartments.
+measures everything precisely, and its bowls come in fixed sizes: one, two, three or four compartments. The bowls are GLSL's *types*: every
+number must go in a bowl of the right size, and you must say which bowl you're using.
 
 **Why sketches need it:** the graphics chip only understands shader languages. Every pattern, fractal and
 fluid on the site is written in GLSL.
@@ -27,7 +29,8 @@ with decimals. Forgetting the dot is the most common reason a shader won't run.
 
 ## Reading the parts: `.x .y .z` and `.rgb`
 
-`uv.x` is the across part of `uv`, and `uv.y` is the up part. For colours, `.r .g .b` mean the same
+Most shaders have a `uv`: this pixel's position on screen, as two numbers (a `vec2`). `uv.x` is how far
+across, and `uv.y` is how far up. For colours, `.r .g .b` mean the same
 places. You can take several at once: `color.rgb`, or even shuffle them: `uv.xyx` is "x, y, then x again".
 This is called *swizzling*.
 
@@ -35,7 +38,7 @@ This is called *swizzling*.
 
 | GLSL | Means |
 |---|---|
-| `sin`, `cos` | going round a circle (see the planned math pages) |
+| `sin`, `cos` | wave-makers: as the input grows, the answer rises and falls between −1 and 1, forever ([more](sine-and-cosine.md)) |
 | `length(v)` | how long an arrow is, so distance from the centre |
 | `atan(y, x)` | which direction an arrow points (an angle) |
 | `mix(a, b, t)` | blend from a to b; `t` = 0 gives a, 1 gives b (see [colour-blending-and-gain.md](colour-blending-and-gain.md)) |
@@ -58,7 +61,8 @@ float ringPos = r - 0.4 - 0.15 * wobble;
 float ring = smoothstep(0.02, 0.0, abs(ringPos));
 ```
 
-- Line 1 moves the origin to the middle of the screen. Now `uv` runs from −1 to +1 in each direction.
+- Line 1: `vUv` is the pixel's position from 0 (left or bottom edge) to 1 (right or top). Subtracting 0.5
+  and doubling moves the zero point to the middle of the screen. Now `uv` runs from −1 to +1.
 - Line 2: `r` is how far this pixel is from the centre.
 - Line 3: `a` is which direction the pixel is in, as an angle.
 - Line 4: `ringPos` is how far this pixel is from the ring. The ring sits 0.4 from the centre, pushed in and

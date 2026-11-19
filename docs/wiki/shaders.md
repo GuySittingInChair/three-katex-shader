@@ -18,8 +18,8 @@ too, as custom paint (`ShaderMaterial`).
 ## The two kinds
 
 - **Vertex shader: "where does this corner go?"** It runs once for every corner of a shape and says
-  where that corner lands on screen. It can bend, stretch or morph a shape. In The Oldest Light, the
-  vertex shader is what unrolls the sky sphere into a flat oval map.
+  where that corner lands on screen. It can bend, stretch or morph a shape. In the sketch The Oldest Light (a map of
+  the oldest light in the universe), the vertex shader is what unrolls the sky sphere into a flat oval map.
 - **Fragment shader: "what colour is this pixel?"** It runs once for every pixel the shape covers and
   picks its colour. In a `shader` sketch, this is the whole sketch.
 
@@ -37,8 +37,12 @@ void main() {
 ```
 
 - `void main() {` is where every shader starts. Each pixel's worker runs it.
+- `vec2`, `vec3` and `vec4` mean "a bundle of 2, 3 or 4 numbers": a position, a colour, a colour plus
+  see-through-ness. `uv` is a name the sketch picked for a position.
 - `vUv` is *this pixel's* position on the screen: two numbers, each from 0 (left or bottom) to 1 (right or
   top). Every worker gets a different `vUv`. That is the only reason they paint different colours.
+- Names starting with `u` (`uScale`, `uTime`, `uSpeed`) are values handed in from outside: the sliders and
+  the clock.
 - Line 2 multiplies the position by the "scale" slider, so higher scale packs more stripes in.
 - Line 3 works out a colour: three numbers for red, green and blue. They change with position and with
   time (`uTime`), so the colours drift. This recipe is the [cosine palette](cosine-palette.md).
@@ -47,14 +51,15 @@ void main() {
 
 ## Where shaders hide in a file
 
-They are long blocks of text between backticks, because JavaScript has to carry them to the graphics chip
+They are long blocks of text between backticks (the ` character, which in JavaScript starts and ends a
+long piece of text), because JavaScript has to carry them to the graphics chip
 as text. Look for `fragmentShader: \``, `vertexShader: \``, or names like `VERT`, `FRAG` and `STEP_FRAG`.
 The language inside is GLSL. See [glsl-basics.md](glsl-basics.md).
 
 ## How JavaScript talks to a shader
 
-A shader can't see the sliders or the clock directly. JavaScript passes numbers in as *uniforms*, and
-pictures as *textures*. See [uniforms.md](uniforms.md) and [textures.md](textures.md).
+A shader can't see the sliders or the clock directly. JavaScript passes numbers in as *uniforms* (values that are
+the same for every pixel, like the slider settings or the time), and pictures as *textures*. See [uniforms.md](uniforms.md) and [textures.md](textures.md).
 
 **Try this:** in `gradientPlane.js`, change `vec3(0.0, 2.0, 4.0)` to `vec3(0.0, 0.5, 1.0)`. The rainbow
 loses its variety: red, green and blue now rise and fall nearly together, so you mostly see pale, washed-out

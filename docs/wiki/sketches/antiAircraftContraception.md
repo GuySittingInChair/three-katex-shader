@@ -8,9 +8,7 @@ tracks it and opens fire, with glowing tracer rounds arcing through the sky. The
 two endings:
 - **Shot down:** a burst breaks the cell into pieces, which tumble to the ground. The severed tail keeps
   beating for a while, pointlessly.
-- **It gets through:** the cell hits the egg, and a wave of light sweeps across the egg's surface as it
-  seals itself. This ending is written into the code but never happens. See "The quest that must never be
-finished" below.
+- **It gets through:** written into the code, but never happens (see "The quest" below).
 - **It crashes:** the cell survives the gun but dives into the ground short of the egg. The caption says
   "It happens."
 
@@ -22,11 +20,12 @@ told deadpan. Three real ideas star:
 
 1. **The tail is useless.** Swimming strokes only work for tiny things in thick liquid. In air, at bus
    size, the beating tail achieves nothing, and the caption says so.
-2. **It homes like a missile,** steering so that the egg's direction never changes.
+2. **It homes like a missile:** it steers itself towards its target, the way a heat-seeking missile
+   does, by keeping the egg at the same spot in its view. (If something stays put in your view while it
+   gets bigger, you're on course to hit it.)
 3. **The gun shoots where the cell will be,** not where it is.
 
-These three ideas, and the egg's calcium wave, are explained properly on
-[the physics page](antiAircraftContraception-physics.md).
+All three are explained properly on [the physics page](antiAircraftContraception-physics.md).
 
 **Where the data comes from:** no data, only real constants: air density, gravity, sperm's density and a
 35 mm shell's energy.
@@ -53,9 +52,14 @@ const vr = mul(v, -1), Om = mul(cross(los, vr), 1 / dot(los, los)), Vc = -dot(no
 acc = add(mul(cross(Om, norm(v)), -(terminal ? 4 : 3) * Vc), mul(norm(v), 2.0));
 ```
 
-- `Om` measures how fast the direction to the egg is swinging round.
+- `los` is the arrow from the cell to the egg (the "line of sight"), and `v` is the cell's velocity.
+  `mul`, `add`, `dot`, `cross` and `norm` are small helpers for doing sums with 3D arrows, defined in
+  the file.
+- `Om` measures how fast the egg is drifting across the cell's view.
 - `Vc` is how fast the gap is closing.
-- Line 2 steers against the swing, 3 times as hard (4 in the last 150 m), and pushes forward a little.
+- Line 2 is meant to turn the cell to cancel that drift, 3 times as hard (4 in the last 150 m), and to
+  push forward a little. But the minus sign at the front, `-(terminal ? 4 : 3)`, turns it the wrong
+  way, so the drift grows instead. That's the quest below.
 
 **Numbers worth knowing:**
 - **6.4 m, 370 kg**: the cell, about a bus's length and the weight of a grand piano.
@@ -63,11 +67,9 @@ acc = add(mul(cross(Om, norm(v)), -(terminal ? 4 : 3) * Vc), mul(norm(v), 2.0));
 - **2.3 km**: where each attempt starts.
 - **1,100 rounds a minute** from the gun by default, with shells leaving at 1,175 m/s, about 3.5 times the
   speed of sound.
-- **110 m/s and 33 m/s**: how fast the falling head and a tail piece end up dropping. The floppy tail
-  catches more air.
 
-**The quest that must never be finished:** the cell's homing steers *away* from the egg, so it never
-reaches it. This started as a bug and is now kept on purpose, by order of the owner. See
+**The quest that must never be finished:** that wrong-way minus sign means the cell never reaches the
+egg. It started as a bug and is kept on purpose, by order of the owner. See
 [the physics page](antiAircraftContraception-physics.md#the-quest-that-must-never-be-finished).
 
 **Try this (funky):** in Params, set **spread** to 8 (the gun shakes like a shopping trolley) and **hits** to
@@ -75,5 +77,5 @@ reaches it. This started as a bug and is now kept on purpose, by order of the ow
 the ground. Watch for the "It happens." caption.
 
 **Words on this page:** [proportional navigation](../glossary.md), [Reynolds number](../glossary.md),
-[seed](../glossary.md), [glow](../glossary.md), [terminal velocity](../glossary.md),
+[seed](../glossary.md), [glow](../glossary.md),
 [comedy formula](../glossary.md)

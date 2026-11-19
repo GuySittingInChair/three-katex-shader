@@ -80,7 +80,8 @@ Time, phases, loops, smooth fades and easing (`src/lib/motion.js`). For now, see
 ## 9. Math that keeps coming up
 - [Noise: randomness that looks natural](noise.md)
 - [Random numbers, and seeds that make them repeatable](randomness.md)
-- *(planned)* Blending and clamping, angles and radians, sine and cosine, complex numbers, loops that refine a guess
+- [Sine and cosine: the wave-makers](sine-and-cosine.md)
+- *(planned)* Blending and clamping, angles and radians, complex numbers, loops that refine a guess
 (Newton's method), vectors, escape-time fractals, Voronoi cells.
 
 ## 10. Simulation *(planned)*

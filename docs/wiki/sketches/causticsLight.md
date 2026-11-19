@@ -12,23 +12,26 @@ bright, focused patterns are called *caustics*. You also see them at the bottom 
 sunlight.
 
 The sketch doesn't trace real light rays. It fakes the look:
-1. Add up a few sine waves (see the planned math page) running in different directions, so they overlap
-   and interfere.
-2. Sharpen them: keep only the places where the sum is near zero, and raise that to a power so the lines
-   become thin and bright.
-3. Stack three such layers at different sizes and speeds.
+1. Add up a few waves (smooth up-and-down patterns: see [sine and cosine](../sine-and-cosine.md))
+   running in different directions, so they overlap. Where one wave's peak meets another's trough they
+   cancel out; that's called *interference*, like crossing ripples on a pond.
+2. Sharpen them: keep only the thin lines where the waves cancel, and make everything else dark.
+3. Stack three of these nets on top of each other: one coarse, one medium, one fine, each drifting at
+   its own speed.
 
 Then a [Julia set](audioReactiveJulia.md) is mixed in. It nudges where each layer is sampled, and
 brightens the lines near its edges. That is where the feathery, self-similar threads come from.
 
-The equation on screen is the recipe for the shimmer, C(𝐱, t), plus the Julia rule, z → z² + c.
+The equation on screen is the recipe for the shimmer, C(𝐱, t) ("the caustic brightness at place 𝐱 and
+time t"), plus the Julia rule, z → z² + c ("square it and add c, again and again").
 
 **Where the data comes from:** no data.
 
 **How it's built:**
 - One [fragment shader](../shaders.md).
 - Sine waves, rotation and `pow` for sharpening (see [glsl-basics.md](../glsl-basics.md)).
-- An escape-time loop for the Julia set.
+- An *escape-time loop* for the Julia set: square-and-add over and over, counting how many rounds each
+  pixel lasts before flying away.
 - Colour is [added](../colour-blending-and-gain.md) onto a dark base.
 
 **A tour of the file:**
@@ -46,8 +49,9 @@ return pow(max(0.0, 1.0 - abs(v)), uSharpness);
 - Three waves: one running across, one up, and one diagonally, each drifting at its own speed.
 - `v *= 0.333` averages them, so `v` stays between −1 and 1.
 - `1.0 - abs(v)` is 1 exactly where the waves cancel out, and falls off either side.
-- `pow(..., uSharpness)` raises it to the power of the "sharpness" slider (6 by default). Values below 1
-  shrink fast when raised to a power, so only the very middle of each line stays bright. The result is
+- `pow(..., uSharpness)` raises it to the power of the "sharpness" slider (6 by default). Raising to the
+  power 6 means multiplying a number by itself 6 times. Numbers below 1 shrink fast: 0.9 becomes about
+  0.53, but 0.5 becomes 0.016. So only the very middle of each line stays bright. The result is
   thin, crisp lines.
 
 The fractal nudge:
@@ -58,7 +62,7 @@ vec2 uvWarped = uv + uFractalMix * (julia - 0.3) * 0.8 * warpDir;
 
 - `julia` is a number from 0 to 1 from the Julia loop, changing fastest near the set's edge.
 - This shifts the sampling position by that amount, in a direction (`warpDir`) that slowly turns.
-- "fractalMix" at 0 switches the nudge off, giving pure sine shimmer.
+- `uFractalMix` is the **Fractal mix** slider; at 0 it switches the nudge off, giving pure sine shimmer.
 
 The colour:
 
@@ -66,7 +70,9 @@ The colour:
 vec3 color = deepWater + brightWater * caustic;
 ```
 
-Dark navy, plus pale aqua wherever the light is focused (see [rgb.md](../rgb.md)). A slight darkening
+`deepWater` is dark navy and `brightWater` pale aqua, each three numbers (red, green, blue: see
+[rgb.md](../rgb.md)). `caustic` is the brightness of the net, 0 to 1. So: navy everywhere, plus aqua
+wherever the light is focused. A slight darkening
 towards the edges, the *vignette*, makes it feel like looking down into water.
 
 **Numbers worth knowing:**

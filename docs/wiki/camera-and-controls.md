@@ -56,7 +56,7 @@ cam.lookAt(look);
   seconds.
 - Line 2 keeps the camera exactly at the centre of the sky sphere.
 - Line 3 picks a point to look at. `-Math.sin(a)` and `-Math.cos(a)` together walk that point around a
-  circle (see the planned math page on sine and cosine), so your gaze sweeps across the sky. The middle
+  circle (see [sine and cosine](sine-and-cosine.md)), so your gaze sweeps across the sky. The middle
   number nods your gaze gently up and down.
 - `cam.lookAt(look)` turns the camera to face that point.
 

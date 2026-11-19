@@ -96,7 +96,7 @@ export default {
       fragmentShader: FRAG,
       uniforms: {
         uTime: { value: 0 },
-        uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+        uResolution: { value: new THREE.Vector2(ctx.size.width, ctx.size.height) },
         uIterations: { value: ctx.params.iterations },
         uScale: { value: ctx.params.scale },
         uSpeed: { value: ctx.params.speed },
@@ -111,6 +111,8 @@ export default {
 
   update(ctx, state) {
     state.material.uniforms.uTime.value = ctx.time;
+    // Follow the window when it's resized, so the pattern stays centred. see docs/wiki/uniforms.md
+    state.material.uniforms.uResolution.value.set(ctx.size.width, ctx.size.height);
     state.material.uniforms.uIterations.value = ctx.params.iterations;
     state.material.uniforms.uScale.value = ctx.params.scale;
     state.material.uniforms.uSpeed.value = ctx.params.speed;
