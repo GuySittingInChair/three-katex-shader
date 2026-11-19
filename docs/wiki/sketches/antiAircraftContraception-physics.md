@@ -35,6 +35,8 @@ const WAVE_K = (2 * Math.PI) / 2.5, WAVE_W = 2 * Math.PI * 2.2, TIP_B = 0.2;
 const TAYLOR_U = 0.5 * WAVE_W * WAVE_K * TIP_B * TIP_B;
 ```
 
+- `Math.PI` is π (about 3.14), so `2 * Math.PI` is one full turn. `WAVE_K` is the tail's waviness,
+  `WAVE_W` its beat rate and `TIP_B` its swing, each turned into the units the formula wants.
 - The tail's wave is 2.5 m long, beats 2.2 times a second, and swings 0.2 m to each side at the tip.
 - Taylor's formula, ½ × beat rate × waviness × swing², gives about 0.69 m/s: a slow stroll.
 - The cell actually flies at about 51 m/s, roughly 75 times faster than its tail could ever push it.
@@ -53,5 +55,5 @@ line `-(terminal ? 4 : 3) * Vc` in `simulate()` must not be "fixed".
 The joke now has a second layer, in the house style: the equation on screen says "homing", and the
 homing quietly works against it.
 
-**Related:** [antiAircraftContraception.md](antiAircraftContraception.md) · [comedy-captions.md](../comedy-captions.md)
-· [randomness.md](../randomness.md) · [glow.md](../glow.md)
+**Related:** [Anti-Aircraft Contraception](antiAircraftContraception.md) · [The comedy formula: true equations, absurd nouns](../comedy-captions.md)
+· [Random numbers, and seeds that make them repeatable](../randomness.md) · [Glow: making bright things shine](../glow.md)

@@ -35,15 +35,16 @@ const ambient = new THREE.AmbientLight(0x404050, 1.2);
 ctx.scene.add(ambient);
 ```
 
-- Line 1 makes a "sun". `0xffffff` is white (see [rgb.md](rgb.md) for colour codes), and `2.0` is its
+- Line 1 makes a "sun". `0xffffff` is white (see [RGB, three numbers](rgb.md) for colour codes), and `2.0` is its
   strength.
 - Line 2 places it up and to the right, in front. Its rays come from there towards the centre.
-- Line 3 adds it to the scene. A light that isn't added does nothing.
+- Line 3 adds it to the scene (`ctx` is the bag of useful things the app hands every sketch, including
+  the scene). A light that isn't added does nothing.
 - Line 4 makes a dim, slightly blue (`0x404050`) glow everywhere, at strength 1.2.
 - Line 5 adds that too.
 
 The lights only affect materials that react to light, such as `MeshStandardMaterial`. A
-`MeshBasicMaterial` ignores them. See [mesh-geometry-material.md](mesh-geometry-material.md).
+`MeshBasicMaterial` ignores them. See [Mesh, geometry and material](mesh-geometry-material.md).
 
 These lights are removed again in the sketch's `dispose`, so they don't leak into the next sketch.
 
@@ -51,5 +52,5 @@ These lights are removed again in the sketch's `dispose`, so they don't leak int
 now comes from the far left, so the ball's left side is bright and its right side falls into shadow, like a
 half moon.
 
-**Related:** [mesh-geometry-material.md](mesh-geometry-material.md) · [scene-and-camera.md](scene-and-camera.md)
-· [rgb.md](rgb.md)
+**Related:** [Mesh, geometry and material](mesh-geometry-material.md) · [The scene and the camera](scene-and-camera.md)
+· [RGB, three numbers](rgb.md)

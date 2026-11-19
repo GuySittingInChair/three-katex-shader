@@ -36,7 +36,9 @@ const v = new THREE.Vector3(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i)).n
 ```
 
 - Line 1: a ball of radius 1, made of 320 small triangles.
-- Line 2 runs for each corner. It takes its position and *normalises* it: shrinks or stretches it to
+- Line 2 runs for each corner (`...` marks lines left out). `posAttr` is the list of every corner's
+  position, and `getX(i)` reads corner `i`'s across position. `new THREE.Vector3(…)` makes an arrow from
+  the three numbers. It takes this position and *normalises* it: shrinks or stretches it to
   length 1. What's left is pure direction. The sketch stores these so it can push each corner straight out
   later.
 
@@ -48,9 +50,12 @@ const normalized = angle / TWO_PI + 0.5;
 let bin = Math.floor(normalized * 64);
 ```
 
-- Line 1: which way round the ball's middle the corner points, as an angle.
-- Line 2 turns that angle into a number from 0 to 1.
-- Line 3 turns it into a slice number from 0 to 63.
+- `dx`, `dy`, `dz` are the corner's stored direction: across, up, depth.
+- Line 1: which way round the ball's middle the corner points, as an angle (`atan2` turns an across and
+  a depth into a direction).
+- Line 2 turns that angle into a number from 0 to 1 (`TWO_PI` is one full turn, 6.28).
+- Line 3 turns it into a slice number from 0 to 63 (`Math.floor` rounds down to a whole number). The
+  sound is split into 64 slices of pitch, low to high, so each slice of the ball dances to one.
 
 ```js
 const scale = 1 + value * ctx.params.displacement;
@@ -60,7 +65,8 @@ paletteColor(0.55 + value * 0.5, colorTmp);
 
 - Line 1: how far out to push, depending on the slice's loudness (`value`) and the slider.
 - Line 2 moves the corner out along its direction.
-- Line 3 picks its colour: quiet spots are a blue-green, and loud spots shift round the rainbow.
+- Line 3 picks its colour with the [cosine palette](../cosine-palette.md) (`paletteColor` writes the
+  answer into `colorTmp`): quiet spots are a blue-green, and loud spots shift round the rainbow.
 
 Then `geometry.computeVertexNormals()` re-works out which way the surface faces, so the lights shade the
 new bumps correctly. The ball also turns a little on every frame, by the "spin" slider.

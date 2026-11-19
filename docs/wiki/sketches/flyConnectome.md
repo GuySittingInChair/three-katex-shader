@@ -51,6 +51,9 @@ if (potential[i] > threshold) {
   refractory[i] = refractoryTicks;
 ```
 
+- `i` is the neuron's number, and each name is a list with one entry per neuron: `potential` is how full
+  its bucket is, `pendingInput` what arrived since the last tick, `activation` how brightly it glows,
+  `refractory` how long it must rest. (`...` marks lines left out.)
 - Line 1: the bucket. Keep 85% of what was there (the "leak" slider), and add whatever arrived.
 - Line 3: overflow? Then fire!
 - Line 4: light up fully. The glow then fades by the "activationDecay" slider.

@@ -28,7 +28,8 @@ curve.commit();
 - Line 1 (in `setup`) makes room for up to 128 short pieces of line (`CURVE_SAMPLES` is 128), each as
   wide as the "width" slider.
 - `curve.reset()` (in `update`) wipes last frame's line.
-- `curve.push(prev, next, colour)` adds one short piece from point `prev` to point `next`, in a colour.
+- `curve.push(prev, next, colour)` adds one short piece from point `prev` (the previous point on the
+  curve) to point `next`, in a colour (`tmp.clone()` is a copy of the colour worked out for this piece).
   128 short pieces in a row look like one smooth curve.
 - `curve.commit()` sends the finished line to the graphics chip.
 
@@ -52,7 +53,7 @@ const points = new THREE.Points(geometry, material);
 - `vertexColors: true`: each point has its own colour.
 - `AdditiveBlending`: where points overlap, their light adds up and gets brighter, like overlapping
   torch beams. This makes sparks and stars glow. See
-  [colour-blending-and-gain.md](colour-blending-and-gain.md).
+  [Blending, adding, dimming and gain](colour-blending-and-gain.md).
 - `new THREE.Points(geometry, material)`: the geometry here is only a list of positions, one per point.
 
 ## Dots that are always round: `createDots`
@@ -69,5 +70,5 @@ This puts one dot at `level[i]`, in that colour, 0.05 units across.
 **Try this:** in `bezierDeCasteljau.js`, the "width" slider sets the line width directly. In the code, change
 `width: { value: 3, ...}` to `value: 8`. The curve opens with lines nearly three times as thick.
 
-**Related:** [mesh-geometry-material.md](mesh-geometry-material.md) · [instancing.md](instancing.md) ·
-[colour-blending-and-gain.md](colour-blending-and-gain.md)
+**Related:** [Mesh, geometry and material](mesh-geometry-material.md) · [Many copies of one shape (instancing)](instancing.md) ·
+[Blending, adding, dimming and gain](colour-blending-and-gain.md)

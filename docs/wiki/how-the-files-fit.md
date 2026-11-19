@@ -28,11 +28,11 @@ raw materials, and `public/data/` is the shelf where the finished props wait.
 2. When you open a sketch, `src/core/SketchRunner.js` sets up a *scene* (the empty 3D world) and a
    *camera* (the point of view it's seen from). Then it runs the sketch's `setup` part once, to build
    things, and its `update` part on every frame (about 60 times a second), to move them. See
-   [frame-loop.md](frame-loop.md).
+   [The frame loop: setup, update, dispose](frame-loop.md).
 3. If the sketch has a `latex` part (its equation, written in LaTeX, a standard way to type maths),
    `src/core/latex.js` draws it on screen. Numbers that change as the sketch moves are coloured yellow.
 4. If the sketch needs data (real measurements, like star positions or earthquake records), it loads it from `public/data/...` while it starts up. See
-   [js-promises-and-fetch.md](js-promises-and-fetch.md).
+   [Loading data (`fetch`, `Promise`, `await`)](js-promises-and-fetch.md).
 
 **What it looks like in the code:** the whole of "find every sketch" is this line from
 `src/core/registry.js`.
@@ -49,5 +49,5 @@ const modules = import.meta.glob('../sketches/*.js', { eager: true });
 **Try this:** copy `src/sketches/gradientPlane.js` to `src/sketches/myFirst.js` and change its `name`. A
 new sketch called whatever you named it appears in the gallery, with no other change needed.
 
-**Related:** [what-is-a-sketch.md](what-is-a-sketch.md) ·
-[changing-a-sketch-safely.md](changing-a-sketch-safely.md) · [_survey.md](_survey.md)
+**Related:** [What a sketch is](what-is-a-sketch.md) ·
+[Opening and changing a sketch safely](changing-a-sketch-safely.md) · [Survey of the project](_survey.md)

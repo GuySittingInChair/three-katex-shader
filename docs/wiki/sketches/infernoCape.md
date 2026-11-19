@@ -19,7 +19,7 @@ stirring the rubber with a spoon. Straight lines become swirls, and swirls of sw
 twisting, curling look of flame.
 
 The equation on screen is that recipe: noise, of a spot shoved by noise, of a spot shoved by noise. "fbm"
-is stacked noise: big blobs plus smaller blobs plus smaller still (see [noise.md](../noise.md)).
+is stacked noise: big blobs plus smaller blobs plus smaller still (see [Noise: randomness that looks natural](../noise.md)).
 
 **Where the data comes from:** no data.
 
@@ -39,6 +39,9 @@ vec2 r = vec2(
 float f = fbm(p + uTurbulence * r);
 ```
 
+- `p` is this pixel's spot (two numbers, across and up). `fbm(p)` reads the [noise](../noise.md) there:
+  a smooth, cloudy random number that changes gently from spot to spot. `flow` slowly slides with time,
+  so the lava creeps.
 - Line 1: read two noise values here. Together they make an arrow, `q`: "shove this way".
 - Lines 2–5: shove the spot by `q`, read two more noise values there: a second arrow, `r`.
 - Line 6: shove by `r`, and read the noise one last time. That's the final heat `f`.
@@ -52,9 +55,10 @@ float crack = 1.0 - abs(sin((f + r.x * 0.5) * uCrackSharpness));
 crack = pow(crack, 4.0);
 ```
 
-- Line 1: a sine wave goes up and down; `abs` folds it so it only touches zero at sharp V-shaped
+- Line 1: a [sine](../sine-and-cosine.md) wave goes up and down; `abs` folds it so it only touches zero at sharp V-shaped
   points. `1.0 −` turns those points into bright peaks: thin glowing lines.
-- Line 2: raising to the 4th power makes the lines even thinner and sharper.
+- Line 2: raising to the 4th power (multiplying it by itself 4 times) shrinks everything below 1, so
+  only the very peaks stay bright: thinner, sharper lines.
 
 Then four colours are blended in order as the heat rises: obsidian black, embers, flame orange, and a
 white-hot core.

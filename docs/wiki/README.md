@@ -2,10 +2,20 @@
 
 This wiki explains the sketches on aiship.lol in plain English. You don't need to know any programming,
 math or physics to read it. Every page starts with an everyday picture of the idea, then shows real lines
-from the project and explains them one at a time.
+of the project's code and explains them one at a time.
 
-You can read it on the site at [aiship.lol/wiki](https://aiship.lol/wiki), and each sketch's walkthrough
-also appears in its Explain panel. In the Code panel's Read view, underlined code links to these pages.
+**Words you'll meet first:**
+- A **sketch** is one of the animated pictures on the site: a swirling fractal, a flock of birds, a
+  spinning shape, each with an equation on screen and sliders to play with. Each sketch is one file of
+  code.
+- A **walkthrough** is a wiki page that tours one sketch: what you see, the idea behind it, and its most
+  important lines of code.
+- The buttons along the bottom of a sketch open **panels**. **Explain** shows that sketch's walkthrough.
+  **Code** shows the sketch's code; in its **Read** view, underlined words are links to these pages.
+  **Params** holds the sliders.
+- **Claude** is the AI that writes and maintains this project and this wiki.
+
+You can read it on the site at [aiship.lol/wiki](https://aiship.lol/wiki).
 
 **If an explanation is bad, say so.** On the site, highlight the sentence that lost you and press the
 **💬 This is unclear** button that pops up (or use **Something here unclear?** at the bottom of any page).
@@ -14,19 +24,22 @@ new issue**. Those issues carry the label `wiki-feedback`, and Claude reads them
 They're public, like the rest of the project. To have an AI find the confusing bits for you, see
 [getting a second opinion](getting-a-second-opinion.md).
 
-It sits alongside the expert material, and doesn't replace it. `docs/guide.md` (the field guide shown in
-the app's Explain panel) and its "annotated" sections are still there for the deep detail.
+There's also an expert guide, `docs/guide.md`, written for programmers. It shows up in the Explain panel
+under "Expert notes". You never need it: this wiki covers the same ground in everyday words.
 
 ## If you are completely new: read in this order
 
-1. [What a sketch is](what-is-a-sketch.md)
-2. [The frame loop: setup, update, dispose](frame-loop.md)
-3. [How the files fit together](how-the-files-fit.md)
-4. [Opening and changing a sketch safely](changing-a-sketch-safely.md)
-5. [The sketch format: every field](sketch-format.md)
-6. Pick one walkthrough and read it with the sketch open: [Boids Flock](sketches/boidsFlock.md) is a good
-   first one, and [Bifurcation Diagram](sketches/bifurcationDiagram.md) a good second.
-7. Then dip into the sections below whenever a walkthrough links to them.
+1. [What a sketch is](what-is-a-sketch.md): the parts every sketch file has.
+2. [The frame loop: setup, update, dispose](frame-loop.md): how a sketch builds its picture once, then
+   moves it 60 times a second, like a flipbook.
+3. [How the files fit together](how-the-files-fit.md): which folder holds what.
+4. [Opening and changing a sketch safely](changing-a-sketch-safely.md): how to try an edit without
+   breaking anything.
+5. [The sketch format: every field](sketch-format.md): a reference list of every part a sketch can have.
+6. Pick one walkthrough and read it with the sketch open beside it. [Boids Flock](sketches/boidsFlock.md)
+   (birds flocking) is a good first one, and [Bifurcation Diagram](sketches/bifurcationDiagram.md) a
+   good second.
+7. After that, you don't need to read in order: follow the links from a walkthrough when you want more.
 
 ## 1. Start here
 - [What a sketch is](what-is-a-sketch.md)
@@ -93,17 +106,17 @@ Map projections (Mollweide, gnomonic), sky coordinates, degrees and ℓ.
 ## 12. Science explainers *(planned)*
 One page per topic: the cosmic microwave background, spherical harmonics, power spectra, Cepheids,
 supernovae, rotation curves, exoplanets, gravitational waves and more. The full list is in
-[_survey.md](_survey.md).
+[Survey of the project](_survey.md).
 
 ## 13. Space and science data *(planned)*
-Every data source, file format and preparation script. A first table is in [_survey.md](_survey.md).
+Every data source, file format and preparation script. A first table is in [Survey of the project](_survey.md).
 
 ## 14. Equations and LaTeX *(planned)*
 How to read the captions, symbol by symbol. For now, see `docs/guide.md` sections 3 and 4.
 
 ## 15. Sketch walkthroughs
 Written oldest first, about ten at a time. The full list, with which ones are done, is at the end of
-[_survey.md](_survey.md).
+[Survey of the project](_survey.md).
 
 | Sketch | What it is |
 |---|---|
@@ -150,4 +163,4 @@ How to ask for a change, how to ask "what does this line do?", and how to undo a
 ---
 
 **For Claude:** the rules for writing and updating these pages are in the project's `CLAUDE.md`, and the
-map of what's in the project is [_survey.md](_survey.md).
+map of what's in the project is [Survey of the project](_survey.md).

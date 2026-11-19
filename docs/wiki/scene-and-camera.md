@@ -43,7 +43,8 @@ ctx.scene.add(mesh);
 ```
 
 - Line 1 moves the camera a little up (0.6) and back (3.6). It is looking down slightly at the flock.
-- Line 2 makes the birds. See [instancing.md](instancing.md).
+- `...` marks lines left out.
+- Line 2 makes the birds: `COUNT` copies of one bird shape (`geometry`) with one paint (`material`). See [Many copies of one shape (instancing)](instancing.md).
 - Line 3 puts them into the scene. **Anything not added to the scene is never drawn.**
 
 The word `THREE` appears everywhere. It is three.js, the toolbox for 3D drawing that the whole project is
@@ -63,11 +64,13 @@ From `src/sketches/audioReactiveMesh.js`:
 state.mesh.rotation.y += ctx.delta * ctx.params.spin;
 ```
 
-This turns the ball around its up-down (`y`) axis, a little more on every frame. See
-[frame-loop.md](frame-loop.md).
+`ctx.delta` is the time since the last frame (about 1/60 of a second), `ctx.params.spin` is the **Spin**
+slider, and `+=` means "add to". So this turns the ball around its up-down (`y`) axis, a little more on
+every frame. See
+[The frame loop: setup, update, dispose](frame-loop.md).
 
 **Try this:** in `boidsFlock.js`, change `ctx.camera.position.set(0, 0.6, 3.6)` to `(0, 4, 0.1)`. The
 camera now hangs almost straight above the flock, looking down, so you see it from above, like a map.
 
-**Related:** [mesh-geometry-material.md](mesh-geometry-material.md) ·
-[camera-and-controls.md](camera-and-controls.md) · [lights.md](lights.md)
+**Related:** [Mesh, geometry and material](mesh-geometry-material.md) ·
+[How the camera moves](camera-and-controls.md) · [Lights](lights.md)

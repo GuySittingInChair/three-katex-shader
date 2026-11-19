@@ -25,10 +25,10 @@ sliders in the Params panel.
 
 **How it's built:**
 - `parametricSurface` from `src/lib/parametric.js` turns the formula into a *mesh* (a shape made of thousands of tiny flat triangles): a 120 × 120 grid, each
-  point placed by the formula (see [mesh-geometry-material.md](../mesh-geometry-material.md)).
+  point placed by the formula (see [Mesh, geometry and material](../mesh-geometry-material.md)).
 - `src/lib/surfaceMaterial.js` gives the shadings: "Iridescent", curvature colour maps, a checkerboard, and
   more.
-- Four of the sliders have `rebuild: true` (see [params.md](../params.md)): let go of one and the whole
+- Four of the sliders have `rebuild: true` (see [Params: the sliders](../params.md)): let go of one and the whole
   surface is rebuilt in its new shape.
 
 **A tour of the file:**

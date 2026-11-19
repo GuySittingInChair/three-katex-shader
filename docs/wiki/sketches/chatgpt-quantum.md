@@ -43,7 +43,7 @@ float orbit;
 vec2 q = foldSpace(p, t, orbit);
 ```
 
-- Start with the pixel's position.
+- Start with the pixel's position (`uv`: two numbers, across and up). `t` is the time.
 - Twist it along the spiral.
 - Fold it repeatedly. `foldSpace` hands back the folded point `q`, and fills in the tally `orbit`.
 
@@ -56,7 +56,9 @@ angle = mod(angle + PI / sectors, TAU / sectors) - PI / sectors;
 
 - `sectors` is the number of wedges: the "arms" slider (5), give or take 2, swaying slowly. That is why the
   number of arms seems to change.
-- The second line moves every angle into the first wedge, so all wedges look the same: the kaleidoscope.
+- `PI` is half a turn and `TAU` a full turn, so `TAU / sectors` is one wedge's width. `mod` means "the
+  remainder after dividing", which wraps any angle round into one wedge's width.
+- So the second line moves every angle into the first wedge, so all wedges look the same: the kaleidoscope.
 
 The colour:
 
@@ -66,8 +68,11 @@ float orbitIntensity = smoothstep(0.1, 2.5, orbit);
 color *= 0.8 + 2.5 * orbitIntensity;
 ```
 
-- A cosine-palette colour, made extra vivid by the "colorSaturation" slider.
-- Pixels whose points came near the traps often are boosted to as much as 3.3 times as bright.
+- A [cosine-palette](../cosine-palette.md) colour (`vibrantPalette` is a recipe written earlier in the
+  file), made extra vivid by the **Color saturation** slider.
+- `smoothstep(0.1, 2.5, orbit)` ramps gently from 0 to 1 as the tally `orbit` goes from 0.1 to 2.5.
+- `*=` means "multiply by": pixels whose points came near the traps often are boosted to as much as 3.3
+  times as bright (0.8 + 2.5).
 
 Near the end:
 

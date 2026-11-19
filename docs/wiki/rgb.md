@@ -21,12 +21,15 @@ vec3 brightWater = vec3(0.4, 0.85, 0.95);
 ```
 (from `src/sketches/causticsLight.js`)
 
-- `vec3(red, green, blue)`, each from 0 (off) to 1 (full).
+- These lines are in GLSL, the language of [shaders](shaders.md) (programs that colour each pixel).
+  `vec3` means "a bundle of three numbers": here `vec3(red, green, blue)`, each from 0 (off) to 1 (full).
 - `deepWater` has no red, a little green and a bit more blue: a very dark navy, the colour of deep water.
 - `brightWater` has some red and lots of green and blue: a pale aqua, the colour of light dancing on a
   pool floor.
 
-In JavaScript the same thing is written `new THREE.Color(0.95, 0.76, 0.42)`. That one, from
+In JavaScript (the language the rest of a sketch is written in) the same thing is written
+`new THREE.Color(0.95, 0.76, 0.42)`: "make a new colour" from three.js (`THREE`), the 3D toolbox the
+site is built on. That one, from
 `src/sketches/bezierDeCasteljau.js`, is a warm gold.
 
 ## Form 2: a code like `0xffffff` (JavaScript)
@@ -35,7 +38,7 @@ In JavaScript the same thing is written `new THREE.Color(0.95, 0.76, 0.42)`. Tha
 new THREE.DirectionalLight(0xffffff, 2.0);
 new THREE.AmbientLight(0x404050, 1.2);
 ```
-(from `src/sketches/audioReactiveMesh.js`)
+(from `src/sketches/audioReactiveMesh.js`: two lights, each given a colour and a brightness)
 
 - `0x` means "the next six characters are a colour code". The six characters are three pairs:
   red, green, blue.
@@ -60,14 +63,16 @@ Instead of three bulbs, HSL describes a colour the way people do:
 - **saturation**: how vivid, from 0 (grey) to 1 (pure colour);
 - **lightness**: from 0 (black) through 0.5 (the colour itself) to 1 (white).
 
-Here slow birds get hue 0.6 (blue) and fast birds move towards hue 0.25 (yellow-green).
+`color.setHSL(hue, saturation, lightness)` sets a colour this way. Here slow birds get hue 0.6 (blue)
+and fast birds move towards hue 0.25 (yellow-green).
 
 ## A fourth number: see-through-ness
 
-`vec4(color, 1.0)` adds a fourth number, *alpha*: 1 is solid, 0 is invisible. Most sketches use 1.
+`vec4(color, 1.0)` (a bundle of four numbers: the three colour numbers, then one more) adds a fourth
+number, *alpha*: 1 is solid, 0 is invisible. Most sketches use 1.
 
-**Try this:** in `causticsLight.js`, change `brightWater` to `vec3(0.95, 0.6, 0.2)`. The pool turns into
+**Try this:** in `causticsLight.js` (the file for the [Caustics](sketches/causticsLight.md) sketch), change `brightWater` to `vec3(0.95, 0.6, 0.2)`. The pool turns into
 molten gold: the dancing light becomes orange over the same dark navy water.
 
-**Related:** [colour-blending-and-gain.md](colour-blending-and-gain.md) · [cosine-palette.md](cosine-palette.md)
-· [colour-scales.md](colour-scales.md)
+**Related:** [Blending, adding, dimming and gain](colour-blending-and-gain.md) · [The cosine palette (the rainbow trick)](cosine-palette.md)
+· [Colour scales for data, and how they are chosen](colour-scales.md)

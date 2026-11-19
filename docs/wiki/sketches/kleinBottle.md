@@ -45,9 +45,11 @@ return {
   c: 0.04 + 1.1 * (0.5 - 0.5 * Math.cos(TAU * p)),
 ```
 
-- Line 1: how far through the 16-second loop we are (starting 0.3 of the way in, so the sketch opens
-  mid-breath).
-- Line 3: `0.5 − 0.5 cos(...)` glides smoothly from 0 to 1 and back. Scaled, `c` breathes between 0.04
+- Line 1: `phaseOf(t, PERIOD)` says how far through the 16-second loop (`PERIOD`) we are, from 0 to 1.
+  Adding 0.3 starts the sketch 0.3 of the way in, so it opens mid-breath.
+- Line 2: `return { … }` hands back the numbers for this moment, by name.
+- Line 3: `TAU` is one full turn (6.28), so `Math.cos(TAU * p)` makes one smooth
+  [wave](../sine-and-cosine.md) per loop, and `0.5 − 0.5 cos(...)` glides from 0 to 1 and back. Scaled, `c` breathes between 0.04
   (almost a line: the Möbius strip) and 1.14 (a full figure-8: the bottle). `a` and `b` wobble too, at
   different speeds, so it never looks quite the same twice.
 
@@ -60,6 +62,8 @@ float height = sin(v) * sin(th) + m_c * sin(2.0 * v) * cos(th);
 float r = m_a + m_b * radial;
 ```
 
+- `u` and `v` name each point of the surface: `u` says how far round the track, `v` how far round the
+  cross-section. `m_a`, `m_b` and `m_c` are the live values of `a`, `b` and `c`, handed in from `motion`.
 - Line 1: `u` goes once round the track; `th`, the cross-section's turn, goes half as far. That's the
   half-twist.
 - Lines 2–3: the figure-8, turned by `th`: how far it sticks out from the track, and how high.

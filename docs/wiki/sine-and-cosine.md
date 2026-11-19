@@ -61,4 +61,4 @@ down.
 it pushes the whole ring off-centre to one side, and the bulge travels round as the music plays.
 
 **Related:** [cosine palette](cosine-palette.md) (cosine making colours) ·
-[glsl-basics.md](glsl-basics.md) · [camera-and-controls.md](camera-and-controls.md)
+[GLSL basics: reading a shader](glsl-basics.md) · [How the camera moves](camera-and-controls.md)

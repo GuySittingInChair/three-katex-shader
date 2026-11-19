@@ -29,8 +29,12 @@ if (!window.matchMedia('(pointer: coarse)').matches) this.ctx.controls.enableZoo
 this.ctx.controls.enableDamping = true;
 ```
 
-- Line 1 attaches drag-to-turn to the camera.
-- Line 2: on a computer with a mouse, the scroll wheel flips to the next sketch, so the wheel's zoom is
+- `this.ctx.camera` is the sketch's camera, and `this.domElement` the area of the page you drag on.
+  (`this` means "the sketch runner we're inside".)
+- Line 1: `OrbitControls` is a ready-made tool from three.js, the 3D library the site uses. Handing it
+  the camera and the drag area hooks your mouse or finger up to the camera.
+- Line 2: `(pointer: coarse)` is how a web page asks "is this a touch screen?". `!` means "not", so
+  on a computer with a mouse, the scroll wheel flips to the next sketch, so the wheel's zoom is
   switched off. Holding **Ctrl** while scrolling zooms instead. On a phone, pinching zooms.
 - Line 3 turns on *damping*: when you let go, the view glides to a stop instead of halting dead, like a
   spun globe slowing down.
@@ -52,7 +56,9 @@ look.set(-Math.sin(a), 0.15 * Math.sin(ctx.time * 0.11), -Math.cos(a));
 cam.lookAt(look);
 ```
 
-- `a` is an angle that grows slowly with time, 0.06 radians a second, so a full turn takes about 105
+- `cam` is the camera and `look` a point in space it will look at. `.set(…)` gives a position as three
+  numbers: across, up, and towards you.
+- `ctx.time` is seconds since the sketch started. `a` is an angle that grows slowly with time, 0.06 radians a second, so a full turn takes about 105
   seconds.
 - Line 2 keeps the camera exactly at the centre of the sky sphere.
 - Line 3 picks a point to look at. `-Math.sin(a)` and `-Math.cos(a)` together walk that point around a
@@ -71,10 +77,14 @@ Most `setup` functions place the camera first. In `src/sketches/boysSurface.js`:
 ctx.camera.position.set(0, 2.2, 3.1);
 ```
 
-This puts it above and in front, so you look down at the surface at an angle. You can still drag away from
+The three numbers are across (0: centred), up (2.2) and towards you (3.1), measured from the middle of
+the scene, where the surface sits. So the camera is above and in front, looking down at the surface at an
+angle. You can still drag away from
 there.
 
 **Try this:** in `boysSurface.js`, change `(0, 2.2, 3.1)` to `(0, 0, 6)`. The surface starts out seen
-straight from the front and about half as big, because the camera is roughly twice as far away.
+straight from the front, and about two-thirds as big. The camera used to be about 3.8 units from the
+middle (worked out from 2.2 up and 3.1 back); now it's 6. Things look smaller in proportion to distance,
+like a car down the road, and 3.8 ÷ 6 is about ⅔.
 
-**Related:** [scene-and-camera.md](scene-and-camera.md) · [sketch-format.md](sketch-format.md)
+**Related:** [The scene and the camera](scene-and-camera.md) · [The sketch format: every field](sketch-format.md)

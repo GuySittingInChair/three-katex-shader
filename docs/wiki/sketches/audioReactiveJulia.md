@@ -21,12 +21,12 @@ swings to 2 o'clock; a hand half a unit long shrinks to a quarter, one 3 units l
 near the centre shrink inwards and far points fly outwards, while everything swirls round. Points
 handled this way are called *complex numbers*: two numbers bundled together, across and up.
 
-**Where the data comes from:** live sound (see [audioPulse.md](audioPulse.md)). Only bass and treble are
+**Where the data comes from:** live sound (see [Audio Pulse](audioPulse.md)). Only bass and treble are
 used.
 
 **How it's built:**
 - One [fragment shader](../shaders.md).
-- A repeat loop per pixel (see [js-decisions-and-loops.md](../js-decisions-and-loops.md)).
+- A repeat loop per pixel (see [Decisions (`if`) and loops (`for`)](../js-decisions-and-loops.md)).
 - [Uniforms](../uniforms.md) for the sliders and sound.
 - The [cosine palette](../cosine-palette.md) for colour.
 

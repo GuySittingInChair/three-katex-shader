@@ -32,8 +32,8 @@ population. Bright means "the population often lands here".
 
 **How it's built:**
 - One [fragment shader](../shaders.md). Each column of pixels runs the rule for its own `r`.
-- Loops in GLSL (see [js-decisions-and-loops.md](../js-decisions-and-loops.md)).
-- `smoothstep` for soft dots (see [glsl-basics.md](../glsl-basics.md)).
+- Loops in GLSL (see [Decisions (`if`) and loops (`for`)](../js-decisions-and-loops.md)).
+- `smoothstep` for soft dots (see [GLSL basics: reading a shader](../glsl-basics.md)).
 - The [cosine palette](../cosine-palette.md), changing with height.
 
 **A tour of the file:**
@@ -48,9 +48,11 @@ for (int i = 0; i < 100; i++) {
 
 - Line 1: this pixel's column decides `r`. At the left edge (`vUv.x` = 0) it is 2.4, and at the right
   edge (1) it is 4.0. `mix` blends between them (see
-  [colour-blending-and-gain.md](../colour-blending-and-gain.md)).
+  [Blending, adding, dimming and gain](../colour-blending-and-gain.md)).
 - Line 2: start with the population at half.
-- Lines 3–5: run 100 years and throw them away. This is the *burn-in*, giving the population time to
+- Lines 3–5: `for (int i = 0; i < 100; i++)` repeats what's inside 100 times (`i` counts 0, 1, 2… 99).
+  Each time, `x = r * x * (1.0 - x)` works out next year's population from this year's. Run 100 years
+  and throw them away. This is the *burn-in*, giving the population time to
   settle into its pattern.
 
 ```glsl
@@ -62,9 +64,12 @@ for (int i = 0; i < MAX_ITER; i++) {
 }
 ```
 
-- Now run more years, 200 by default (the "iterations" slider).
-- Each year, check how close the population `x` is to this pixel's height `vUv.y`.
-- If it lands within 0.006, add some brightness. A pixel that the population visits often ends up bright.
+- Now run more years, 200 by default (the **Iterations** slider). `break` stops the loop early once
+  `i` reaches the slider's value; `int(…)` turns the slider's number into a whole number.
+- Each year, check how close the population `x` is to this pixel's height `vUv.y`. `abs` drops the
+  minus sign, so above and below count the same.
+- `smoothstep(0.006, 0.0, dist)` is 1 when `dist` is 0 and fades to 0 by 0.006. `+=` adds it on. So if it
+  lands within 0.006, add some brightness. A pixel that the population visits often ends up bright.
 
 The yellow line:
 

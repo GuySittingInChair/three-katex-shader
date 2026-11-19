@@ -54,16 +54,16 @@ void main() {
 They are long blocks of text between backticks (the ` character, which in JavaScript starts and ends a
 long piece of text), because JavaScript has to carry them to the graphics chip
 as text. Look for `fragmentShader: \``, `vertexShader: \``, or names like `VERT`, `FRAG` and `STEP_FRAG`.
-The language inside is GLSL. See [glsl-basics.md](glsl-basics.md).
+The language inside is GLSL. See [GLSL basics: reading a shader](glsl-basics.md).
 
 ## How JavaScript talks to a shader
 
 A shader can't see the sliders or the clock directly. JavaScript passes numbers in as *uniforms* (values that are
-the same for every pixel, like the slider settings or the time), and pictures as *textures*. See [uniforms.md](uniforms.md) and [textures.md](textures.md).
+the same for every pixel, like the slider settings or the time), and pictures as *textures*. See [Uniforms: knobs passed in from JavaScript](uniforms.md) and [Textures](textures.md).
 
 **Try this:** in `gradientPlane.js`, change `vec3(0.0, 2.0, 4.0)` to `vec3(0.0, 0.5, 1.0)`. The rainbow
 loses its variety: red, green and blue now rise and fall nearly together, so you mostly see pale, washed-out
 tints fading to dark and back.
 
-**Related:** [glsl-basics.md](glsl-basics.md) · [uniforms.md](uniforms.md) · [textures.md](textures.md) ·
-[render-targets.md](render-targets.md) · [cosine-palette.md](cosine-palette.md) · `docs/guide.md` section 7
+**Related:** [GLSL basics: reading a shader](glsl-basics.md) · [Uniforms: knobs passed in from JavaScript](uniforms.md) · [Textures](textures.md) ·
+[Simulating on the graphics chip](render-targets.md) · [The cosine palette (the rainbow trick)](cosine-palette.md) · `docs/guide.md` section 7

@@ -26,7 +26,10 @@ float hash(vec2 p) {
 }
 ```
 
-This scrambles a position into a number between 0 and 1 that looks random. It isn't truly random:
+This is GLSL, the [shader](shaders.md) language. `p` is a corner's position (two numbers). `fract`
+keeps only the part after the decimal point (2.75 → 0.75), and `dot` multiplies the numbers in pairs and
+adds them up. Mixed together with odd numbers like 127.1, they scramble a position into a number
+between 0 and 1 that looks random. It isn't truly random:
 the same corner always gets the same number. That's the point, because the picture must not flicker. A
 scrambler like this is called a *hash*.
 
@@ -42,7 +45,7 @@ return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
 - Line 1 bends `f` into an S-curve so the blend eases in and out, with no creases at the grid lines. It is
   the same curve as `smoothstep`.
 - Line 2 blends across the top pair, then across the bottom pair, then between the two results. See
-  [colour-blending-and-gain.md](colour-blending-and-gain.md).
+  [Blending, adding, dimming and gain](colour-blending-and-gain.md).
 
 Now you have soft hills, one hill per grid square. Pleasant, but bland.
 
@@ -57,7 +60,9 @@ for (int i = 0; i < 5; i++) {
 }
 ```
 
-Five layers: big shapes, then finer, then finer still. This stacking is called *fbm* (fractal Brownian
+`freq` is how detailed a layer is and `amp` how strong; `*=` means "multiply by". So each time round,
+the next layer is twice as detailed and half as strong. Five layers: big shapes, then finer, then finer
+still. This stacking is called *fbm* (fractal Brownian
 motion, a grand name for "noise on noise on noise"). Each layer is an *octave*, borrowed from music,
 because each doubles the frequency, as an octave doubles a note's pitch.
 
@@ -70,5 +75,5 @@ in water. That is the whole of [Fluid Dye](sketches/fluidDye.md).
 **Try this:** in `fluidDye.js`, change `i < 5` to `i < 1`. Only the first, broadest layer is left. The dye
 turns into smooth, rubbery blobs with no fine wisps at all, like a lava lamp.
 
-**Related:** [randomness.md](randomness.md) · [sketches/fluidDye.md](sketches/fluidDye.md) ·
-[sketches/displacedIcosphere.md](sketches/displacedIcosphere.md) · [glsl-basics.md](glsl-basics.md)
+**Related:** [Random numbers, and seeds that make them repeatable](randomness.md) · [Fluid Dye](sketches/fluidDye.md) ·
+[Displaced Icosphere](sketches/displacedIcosphere.md) · [GLSL basics: reading a shader](glsl-basics.md)

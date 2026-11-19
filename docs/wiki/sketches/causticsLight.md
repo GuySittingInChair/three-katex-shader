@@ -29,7 +29,7 @@ time t"), plus the Julia rule, z → z² + c ("square it and add c, again and ag
 
 **How it's built:**
 - One [fragment shader](../shaders.md).
-- Sine waves, rotation and `pow` for sharpening (see [glsl-basics.md](../glsl-basics.md)).
+- Sine waves, rotation and `pow` for sharpening (see [GLSL basics: reading a shader](../glsl-basics.md)).
 - An *escape-time loop* for the Julia set: square-and-add over and over, counting how many rounds each
   pixel lasts before flying away.
 - Colour is [added](../colour-blending-and-gain.md) onto a dark base.
@@ -71,7 +71,7 @@ vec3 color = deepWater + brightWater * caustic;
 ```
 
 `deepWater` is dark navy and `brightWater` pale aqua, each three numbers (red, green, blue: see
-[rgb.md](../rgb.md)). `caustic` is the brightness of the net, 0 to 1. So: navy everywhere, plus aqua
+[RGB, three numbers](../rgb.md)). `caustic` is the brightness of the net, 0 to 1. So: navy everywhere, plus aqua
 wherever the light is focused. A slight darkening
 towards the edges, the *vignette*, makes it feel like looking down into water.
 

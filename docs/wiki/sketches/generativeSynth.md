@@ -38,10 +38,14 @@ const note = SCALE[state.scaleIndex];
 state.synth.triggerAttackRelease(note, '8n');
 ```
 
-- Line 1: pick one of four steps at random.
-- Line 2: take the step, but don't fall off either end of the ladder.
+- Line 1: `Math.random()` gives a random number from 0 up to (but not including) 1; times 4 and rounded down by
+  `Math.floor`, it's 0, 1, 2 or 3. That picks one of the four steps in the list: down two, down one, up
+  one or up two rungs.
+- Line 2: take the step, but don't fall off either end of the ladder: `Math.max(0, …)` means "no lower
+  than the bottom rung" and `Math.min(SCALE.length - 1, …)` "no higher than the top".
 - Line 3: look up the note's name, like `'E4'` (the E in the middle of a piano).
-- Line 5: play it for an eighth-note.
+- Line 5 (`...` marks lines left out): `triggerAttackRelease` presses the synthesiser's key and lets go
+  after an eighth-note (`'8n'`).
 
 Starting a ring:
 
@@ -51,6 +55,7 @@ state.ringAge[state.ringPos] = 0;
 state.ringHue[state.ringPos] = state.scaleIndex / SCALE.length;
 ```
 
+`%` means "remainder after dividing", so counting 6, 7, then 8 % 8 = 0 wraps back to the start.
 There are 8 ring slots used in turn, like seats on a carousel. The newest note takes the next seat,
 resets its age to 0, and gets a colour from its pitch.
 
@@ -64,7 +69,8 @@ float fade = exp(-age * 1.1);
 
 - Each ring grows 0.9 screen-units a second.
 - `ring` is bright right on the circle and fades softly either side: a glowing line.
-- `fade` dims it as it ages. After a second it's down to a third; after 3 seconds it's gone.
+- `fade` dims it as it ages: `exp(-age * 1.1)` shrinks by the same fraction every moment, like a cooling
+  cup of tea. After a second it's down to a third; after 3 seconds it's gone.
 
 **Numbers worth knowing:**
 - **10 notes**, C4 to A5: about two octaves, the range of a comfortable singing voice.

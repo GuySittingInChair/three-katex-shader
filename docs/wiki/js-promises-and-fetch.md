@@ -50,16 +50,16 @@ in front of its name.
   notes.
 - **Binary** (`*.bin`): long runs of numbers packed as raw bytes, so 100,000 stars don't make a huge
   download. The sketch reads them with `.arrayBuffer()` and views them as a typed array (see
-  [js-arrays-and-objects.md](js-arrays-and-objects.md)).
+  [Lists (arrays) and labelled boxes (objects)](js-arrays-and-objects.md)).
 - **Pictures** (`.png`, `.jpg`): either real photographs, or numbers hidden in the colour channels. See
-  [textures.md](textures.md).
+  [Textures](textures.md).
 
-Where each data set comes from, and which script made it, is listed in [_survey.md](_survey.md). A full
+Where each data set comes from, and which script made it, is listed in [Survey of the project](_survey.md). A full
 "Space and science data" section is planned.
 
 **Try this:** open the site with the browser's developer tools (F12), choose the **Network** tab, and
 open The Oldest Light. You will see `meta.json` and `sky.png` arrive from `/data/cmb/`. That is `fetch`
 at work.
 
-**Related:** [js-arrays-and-objects.md](js-arrays-and-objects.md) · [textures.md](textures.md) ·
-[_survey.md](_survey.md)
+**Related:** [Lists (arrays) and labelled boxes (objects)](js-arrays-and-objects.md) · [Textures](textures.md) ·
+[Survey of the project](_survey.md)

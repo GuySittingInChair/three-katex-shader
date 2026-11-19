@@ -33,6 +33,10 @@ for (let i = 0; i < steps; i++) {
 }
 ```
 
+- `for (let i = 0; i < steps; i++)` repeats the lines inside `steps` times (see
+  [Decisions and loops](js-decisions-and-loops.md)).
+- `renderer` is the part of three.js that does the drawing. `sm` is the step shader's paint, and
+  `passScene` / `passCamera` a bare scene with one flat square for it to paint on.
 - `state.targets` holds the two whiteboards. `state.read` says which one is current: 0 or 1.
 - Line 2 hands the current board to the step shader as a [texture](textures.md).
 - Line 3 says "draw into the *other* board". `1 - state.read` swaps 0 and 1.
@@ -46,7 +50,8 @@ for (let i = 0; i < steps; i++) {
 type: floatOk ? THREE.FloatType : THREE.HalfFloatType,
 ```
 
-Each pixel normally stores colours roughly, which is fine for looking at. A simulation needs precise
+`floatOk ? A : B` means "if the device can do precise numbers (`floatOk`), A; otherwise B". Each pixel
+normally stores colours roughly, which is fine for looking at. A simulation needs precise
 numbers, or tiny changes get rounded away and the chemistry stalls. `FloatType` keeps about 7 digits.
 The sketch falls back to the rougher `HalfFloatType` (about 3 digits) only if the device can't do better,
 and it warns that the result will be inaccurate.
@@ -55,5 +60,5 @@ and it warns that the result will be inaccurate.
 clock runs at half speed: the sketch does half as many ticks each second, so the waves spread half as fast
 and one full loop takes 50 seconds instead of 25.
 
-**Related:** [textures.md](textures.md) · [shaders.md](shaders.md) ·
-[sketches/belousovZhabotinsky.md](sketches/belousovZhabotinsky.md)
+**Related:** [Textures](textures.md) · [Shaders: two questions](shaders.md) ·
+[Belousov–Zhabotinsky](sketches/belousovZhabotinsky.md)

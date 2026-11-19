@@ -76,11 +76,11 @@ for (int i = 0; i < 100; i++) {
 ```
 
 This repeats one formula 100 times, so the number `x` settles down before the sketch starts drawing it.
-See [shaders.md](shaders.md).
+See [Shaders: two questions](shaders.md).
 
 **Try this:** in `bifurcationDiagram.js`, change `i < 100` to `i < 5`. The sketch no longer waits for
 `x` to settle, so its first wandering values get drawn too: faint extra streaks and smudges appear
 around the clean branches.
 
-**Related:** [js-values-and-variables.md](js-values-and-variables.md) · [js-functions.md](js-functions.md)
-· [js-arrays-and-objects.md](js-arrays-and-objects.md)
+**Related:** [Values, names and comments](js-values-and-variables.md) · [Functions and arrows (`=>`)](js-functions.md)
+· [Lists (arrays) and labelled boxes (objects)](js-arrays-and-objects.md)

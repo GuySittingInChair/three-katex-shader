@@ -54,7 +54,7 @@ const mesh = new THREE.Mesh(geometry, material);
 - `new THREE.Mesh(geometry, material)` joins shape and paint into one object.
 
 Other common materials: `MeshBasicMaterial` (flat colour, ignores light) and `ShaderMaterial` (a custom
-paint written as a shader, see [shaders.md](shaders.md)).
+paint written as a shader, see [Shaders: two questions](shaders.md)).
 
 ## Changing the shape every frame
 
@@ -82,5 +82,5 @@ can change shape smoothly.
 **Try this:** in `audioReactiveMesh.js`, change `IcosahedronGeometry(1, 3)` to `(1, 1)`. The ball turns
 into a rough, gem-like shape with big flat faces, because it now has far fewer triangles.
 
-**Related:** [scene-and-camera.md](scene-and-camera.md) · [lights.md](lights.md) · [shaders.md](shaders.md)
-· [instancing.md](instancing.md)
+**Related:** [The scene and the camera](scene-and-camera.md) · [Lights](lights.md) · [Shaders: two questions](shaders.md)
+· [Many copies of one shape (instancing)](instancing.md)

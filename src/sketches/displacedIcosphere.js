@@ -58,7 +58,7 @@ export default {
   latex: '\\mathbf{p} = \\hat{\\mathbf{n}}\\,\\big(1 + s \\cdot h(\\hat{\\mathbf{n}})\\big),\\quad h = \\text{layered } \\sin/\\cos \\text{ noise}',
 
   params: {
-    displacement: { value: 0.25, min: 0, max: 0.6 },
+    displacement: { value: 0.25, min: 0, max: 0.6, rebuild: true }, // reshapes the planet on release; see docs/wiki/params.md
     spin: { value: 0.15, min: -1, max: 1 },
   },
 

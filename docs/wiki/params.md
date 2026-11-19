@@ -34,7 +34,7 @@ state.uniforms.uZoom.value = ctx.params.zoom;
 ```
 
 - `ctx.params.zoom` is wherever the zoom slider is right now.
-- The line copies it into the shader's knob called `uZoom`. See [uniforms.md](uniforms.md).
+- The line copies it into the shader's knob called `uZoom`. See [Uniforms: knobs passed in from JavaScript](uniforms.md).
 
 ## Extra settings a slider can have
 
@@ -64,10 +64,10 @@ state.uniforms.uZoom.value = ctx.params.zoom;
 
 Many sketches have a slider called `speed`. If the sketch has a `motion` field, the app uses `speed` to
 run the sketch's clock faster or slower, without making the animation jump. At `speed` 2, an 18-second
-loop takes 9 seconds. See [motion-and-latex.md](motion-and-latex.md).
+loop takes 9 seconds. See [Motion and the live equation](motion-and-latex.md).
 
 **Try this:** in `audioReactiveJulia.js`, change zoom's `value: 1.4` to `value: 3`. The sketch now opens
 zoomed in about twice as close, showing the fractal's lacy edge instead of its whole shape.
 
-**Related:** [sketch-format.md](sketch-format.md) · [uniforms.md](uniforms.md) ·
-[changing-a-sketch-safely.md](changing-a-sketch-safely.md)
+**Related:** [The sketch format: every field](sketch-format.md) · [Uniforms: knobs passed in from JavaScript](uniforms.md) ·
+[Opening and changing a sketch safely](changing-a-sketch-safely.md)

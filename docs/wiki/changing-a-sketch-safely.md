@@ -67,5 +67,5 @@ params: {
 the birds keep further apart and the flock looks looser. You can get the same effect without editing anything, by
 dragging the slider in the **Params** panel.
 
-**Related:** [how-the-files-fit.md](how-the-files-fit.md) · [params.md](params.md) ·
-[sketch-format.md](sketch-format.md)
+**Related:** [How the files fit together](how-the-files-fit.md) · [Params: the sliders](params.md) ·
+[The sketch format: every field](sketch-format.md)

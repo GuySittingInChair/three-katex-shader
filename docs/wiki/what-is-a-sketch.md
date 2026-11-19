@@ -20,10 +20,11 @@ address on the site. `src/sketches/boidsFlock.js` lives at `aiship.lol/s/boidsFl
   how fast they move, what the sliders do.
 - **GLSL**, a second, smaller language for *shaders*. It runs on the graphics chip and decides the
   colour of each dot on the screen. You will spot it inside long blocks of text between backticks
-  (`` ` ``), usually named `fragmentShader`, `VERT` or `FRAG`. See [shaders.md](shaders.md).
+  (`` ` ``), usually named `fragmentShader`, `VERT` or `FRAG`. See [Shaders: two questions](shaders.md).
 - **LaTeX**, a way of writing math so it can be shown as a neat equation. It is the equation you see on
-  screen. It is full of backslashes like `\\sin` and `\\theta`. See the planned equations page, and
-  `docs/guide.md` section 4 for now.
+  screen. It is full of backslashes: `\\theta` becomes the Greek letter θ (theta), and `\\sin` the word
+  "sin" in maths lettering. (Each backslash is written twice in the file, for a JavaScript reason.) See
+  [motion and the live equation](motion-and-latex.md).
 
 **The two kinds of sketch:** every sketch says which `mode` it uses.
 
@@ -52,7 +53,7 @@ export default {
 
 **Try this:** in `gradientPlane.js`, change `name: 'Gradient Plane'` to `name: 'My Rainbow'`. Save,
 and the title on screen changes. Nothing else moves. It is the safest possible first edit. Follow
-[changing-a-sketch-safely.md](changing-a-sketch-safely.md) to see it on your computer.
+[Opening and changing a sketch safely](changing-a-sketch-safely.md) to see it on your computer.
 
-**Related:** [frame-loop.md](frame-loop.md) · [how-the-files-fit.md](how-the-files-fit.md) ·
-[sketch-format.md](sketch-format.md)
+**Related:** [The frame loop: setup, update, dispose](frame-loop.md) · [How the files fit together](how-the-files-fit.md) ·
+[The sketch format: every field](sketch-format.md)

@@ -40,8 +40,11 @@ float angle = uTime * 0.05 + life * 1.2;
 float scale = 1.08 + life * uLifeInfluence;
 ```
 
-- Line 1: is there a live square under this pixel? 1 for yes, 0 for no, in between at soft edges.
-- Line 2: the twist. Everyone turns slowly with time; live pixels get an extra 1.2 (about 70°).
+- Line 1: `texture2D(uLife, vUv)` reads the Life board (`uLife`) at this pixel's spot on screen (`vUv`),
+  like putting a pin in a map. `.r` takes the red part, where the board is stored. So: is there a live
+  square under this pixel? 1 for yes, 0 for no, in between at soft edges.
+- Line 2: the twist. Everyone turns slowly with time (`uTime`, seconds since the start); live pixels get
+  an extra 1.2 (in *radians*, where a full turn is 6.28: so about 70°).
 - Line 3: the enlargement at each fold: 1.08 normally, 1.43 under a live square (adding **Life
   influence**, 0.35 by default).
 
@@ -54,6 +57,7 @@ p *= scale;
 p *= rot;
 ```
 
+- `p` is the point being folded: two numbers, across and up. `rot` is the turn, made from `angle`.
 - Line 1: `abs` throws away minus signs: mirror the point into the top-right corner. That's the fold.
 - Line 2: shift it a little.
 - Line 3: enlarge it.

@@ -44,8 +44,10 @@ a -= k * 2.0 * wedge;
 if (a > wedge) { a = 2.0 * wedge - a; flips += 1.0; }
 ```
 
-- Line 1: the pixel's angle around the centre.
-- Lines 2–3: turn it back into the first seventh of the circle.
+- `p` is the pixel's spot (across, up). `wedge` is half a seventh of a full turn.
+- Line 1: `atan` gives the pixel's angle around the centre (which direction it lies in).
+- Lines 2–3: `floor` rounds down to a whole number, so `k` counts how many whole sevenths round the
+  pixel is; taking those off turns it back into the first seventh of the circle.
 - Line 4: if it's in the second half of that seventh, mirror it into the first half.
 
 The curved mirror:
@@ -56,6 +58,8 @@ p = C + d * (r * r / d2);
 rings += 1.0;
 ```
 
+- `C` is the mirror circle's centre and `r` its radius. `d` is the arrow from `C` to the pixel, and `d2`
+  its length squared (length × length).
 - Line 1: outside the circle means home: stop.
 - Line 2: otherwise, *reflect in the circle*: points near its edge stay near, points deep inside are
   flung far out.

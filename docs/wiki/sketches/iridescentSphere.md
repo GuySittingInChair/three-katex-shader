@@ -42,12 +42,15 @@ vec3 color = mix(base, sheen, fresnel);
 ```
 
 - Line 1: `n` is the way the surface faces, `v` the way to your eye. `dot(n, v)` is 1 when they point the
-  same way (face-on) and 0 when they're at right angles (the edge). `1.0 −` flips that, and the power
-  makes it hug the edge.
+  same way (face-on) and 0 when they're at right angles (the edge). `1.0 −` flips that, so it's 0
+  face-on and 1 at the edge. `pow(…, uPower)` raises it to a power (the **Power** slider): multiplying
+  a number below 1 by itself several times shrinks it fast, so the shimmer stays hugging the edge.
 - Line 2: pick a place on the rainbow from the shimmer, plus a slow drift. `fract` keeps only the part
   after the decimal point, so the rainbow wraps round.
-- Line 3: turn that place into a colour.
-- Line 4: blend from near-black to that colour by the shimmer strength: dark face, bright rim.
+- Line 3: turn that place into a colour, with the [cosine palette](../cosine-palette.md). `vec3` is a
+  bundle of three numbers: red, green, blue.
+- Line 4: `mix` blends from `base` (near-black) to that colour by the shimmer strength: dark face,
+  bright rim.
 
 Spinning, in `update`:
 
@@ -56,7 +59,9 @@ state.mesh.rotation.y += ctx.delta * ctx.params.spin;
 state.mesh.rotation.x += ctx.delta * ctx.params.spin * 0.3;
 ```
 
-Turn round the upright axis, and a third as much round the sideways one, so it tumbles slightly.
+`ctx.delta` is the time since the last frame (about 1/60 of a second), and `ctx.params.spin` the **Spin**
+slider. So each frame it turns a little round the upright axis (`rotation.y`), and a third as much round
+the sideways one (`rotation.x`), so it tumbles slightly.
 
 **Numbers worth knowing:**
 - **3.5**: the default power. Even 80% of the way from the middle of the ball to its edge, the shimmer is

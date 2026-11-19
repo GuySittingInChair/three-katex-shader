@@ -70,4 +70,4 @@ colour, and it isn't designed for colour-blind readers. Data sketches use a
 **Try this:** in `audioPulse.js`, change `vec3(0.0, 0.33, 0.67)` to `vec3(0.0, 0.1, 0.2)`. The ring's
 rainbow narrows to cream, burnt orange, navy and sky blue, with no greens or purples.
 
-**Related:** [rgb.md](rgb.md) · [colour-scales.md](colour-scales.md) · [shaders.md](shaders.md)
+**Related:** [RGB, three numbers](rgb.md) · [Colour scales for data, and how they are chosen](colour-scales.md) · [Shaders: two questions](shaders.md)

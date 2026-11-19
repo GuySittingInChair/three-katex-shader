@@ -79,17 +79,20 @@ async function fakeChatLive() {
 
 // Streams the answer, so a slow model (the 32B one runs partly on the CPU)
 // never hits fetch's 5-minute wait for the first byte; prints a dot per ~40 words.
-async function ask(model, system, user, schema) {
+// Thinking is on by default: slower (a few minutes a page) but it reads more carefully.
+// Set QUICK=1 for the old fast mode.
+const DEEP = !process.env.QUICK;
+async function ask(model, system, user, schema, { ctx = 12288 } = {}) {
   const r = await fetch(`${OLLAMA}/api/chat`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       model,
       stream: true,
-      think: false,
+      think: DEEP,
       format: schema,
       keep_alive: mode === 'all' ? '2m' : 0, // give the GPU back when done
-      options: { temperature: 0.4, num_ctx: 12288, num_predict: 1500 },
+      options: { temperature: DEEP ? 0.6 : 0.4, num_ctx: ctx, num_predict: DEEP ? 7000 : 1500 },
       messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
     }),
   });
@@ -106,6 +109,7 @@ async function ask(model, system, user, schema) {
       const j = JSON.parse(line);
       if (j.error) throw new Error(`Ollama: ${j.error}`);
       text += j.message?.content || '';
+      if (j.done && j.done_reason === 'length') throw new Error('the AI ran out of room before finishing its answer');
       if (++n % 50 === 0) process.stdout.write('.');
     }
   }
@@ -125,7 +129,7 @@ const CRITIC_SCHEMA = {
   properties: {
     problems: {
       type: 'array',
-      maxItems: 8,
+      maxItems: 15,
       items: {
         type: 'object',
         properties: {
@@ -145,7 +149,8 @@ const CRITIC_SCHEMA = {
 };
 
 const CRITIC_TASK = `Read the page as Sam, then answer in JSON with these fields, in this order:
-- problems: every place you got lost (up to 8). For each: quote = the exact words copied from the page;
+- problems: every place you got lost (up to 15). Go through the page from top to bottom, paragraph by
+  paragraph, and include each code line it quotes. For each: quote = the exact words copied from the page;
   kind; what_lost_me; my_question = what you would ask the writer. Every complaint goes here, nowhere else.
 - explain_it_back: 2-3 sentences, as if telling a friend what you learned from the page. NOT complaints:
   your best attempt at the actual content, even if you are unsure.
@@ -166,6 +171,58 @@ function copy(text) {
   try { execFileSync('wl-copy', [], { input: text, stdio: ['pipe', 'ignore', 'ignore'], timeout: 5000 }); return true; } catch { return false; }
 }
 
+// ---------- fact check ----------
+// The beginner can't tell a wrong statement from a right one. This second pass
+// hands the AI the source files the page talks about and asks which claims
+// they contradict or don't back up.
+const FACT_SCHEMA = {
+  type: 'object',
+  properties: {
+    issues: {
+      type: 'array',
+      maxItems: 10,
+      items: {
+        type: 'object',
+        properties: {
+          quote: { type: 'string', description: 'The exact words from the PAGE that make the claim.' },
+          problem: { type: 'string', description: 'What is wrong or unsupported.' },
+          code_says: { type: 'string', description: 'The exact code line(s) that show it, copied from the source.' },
+        },
+        required: ['quote', 'problem', 'code_says'],
+      },
+    },
+  },
+  required: ['issues'],
+};
+
+function sourcesFor(text) {
+  const paths = [...new Set([...text.matchAll(/src\/(?:sketches|lib|core|ui)\/[\w.-]+\.js/g)].map((m) => m[0]))];
+  const out = [];
+  let budget = 30000; // characters, so it fits the AI's memory alongside the page
+  for (const p of paths) {
+    const f = join(ROOT, p);
+    if (!existsSync(f) || budget <= 0) continue;
+    const body = readFileSync(f, 'utf8').slice(0, Math.min(budget, 16000));
+    budget -= body.length;
+    out.push(`----- FILE ${p} -----\n${body}`);
+  }
+  return out.join('\n\n');
+}
+
+async function factCheck(page) {
+  const src = sourcesFor(page.text);
+  if (!src) return [];
+  const res = await ask(CRITIC_MODEL,
+    'You are a meticulous fact-checker for a beginner wiki about a code project. You compare what a page says about the code against the real source files.',
+    `Check the PAGE against the SOURCE files. Report only claims that the source contradicts or does not support: wrong numbers, wrong names, a quoted line that isn't in the source, a description of what a line does that doesn't match, a "change X and Y happens" claim that the code wouldn't do. Simplified wording for beginners is fine; only report things that are actually wrong. If everything checks out, return an empty list.
+
+----- PAGE -----
+${page.text}
+
+${src}`, FACT_SCHEMA, { ctx: 16384 });
+  return (res.issues || []).filter((x) => checkQuote(x.quote, page.text) !== 'invented');
+}
+
 // ---------- step 1: critic ----------
 async function critic(page, quiet = false) {
   console.log(`📖 ${CRITIC_MODEL} is reading ${page.label} as a beginner…`);
@@ -173,6 +230,12 @@ async function critic(page, quiet = false) {
   const res = await ask(CRITIC_MODEL, READER,
     `${CRITIC_TASK}\n\n----- PAGE START -----\n${page.text}\n----- PAGE END -----`,
     CRITIC_SCHEMA);
+  let facts = [];
+  if (page.slug) {
+    process.stdout.write('   🔍 fact-checking against the code… ');
+    try { facts = await factCheck(page); console.log(`${facts.length} possible errors`); }
+    catch (e) { console.log(`skipped (${e.message})`); }
+  }
   const kept = [];
   let dropped = 0;
   for (const p of res.problems || []) {
@@ -199,13 +262,14 @@ async function critic(page, quiet = false) {
 ${qs || '(nothing: the reader followed it all)'}
 
 **What worked best for them** (keep this): ${res.best_part.trim()}
+${facts.length ? `\n**Possible factual errors** (a fact-checking AI compared the page with the code; check each one against the code yourself, it can be wrong):\n\n${facts.map((f, i) => `${i + 1}. "${f.quote.trim()}"\n   - ${f.problem.trim()}\n   - Code: \`${f.code_says.trim().replace(/`/g, "'")}\``).join('\n\n')}\n` : ''}
 ${page.slug ? '' : `\n----- THE TEXT -----\n${page.text}\n`}`;
 
   mkdirSync(OUT, { recursive: true });
-  writeFileSync(join(OUT, `${page.name}.critic.json`), JSON.stringify({ page: page.label, model: CRITIC_MODEL, ...res, problems: kept, before: page.text }, null, 2));
+  writeFileSync(join(OUT, `${page.name}.critic.json`), JSON.stringify({ page: page.label, model: CRITIC_MODEL, deep: DEEP, ...res, problems: kept, facts, before: page.text }, null, 2));
   const file = join(OUT, `${page.name}.1-for-claude.md`);
   writeFileSync(file, forClaude);
-  if (quiet) return { score: res.clarity_score, count: kept.length, file };
+  if (quiet) return { score: res.clarity_score, count: kept.length, facts: facts.length, file };
   console.log(`\n${forClaude}\n`);
   console.log(`📋 ${copy(forClaude) ? 'Copied to your clipboard. Paste it to Claude.' : 'Copy the text above and paste it to Claude.'}`);
   console.log(`   Also saved as ${file.slice(ROOT.length + 1)}`);
@@ -315,7 +379,7 @@ function writeIndex(pages) {
     const cf = join(OUT, `${page.name}.critic.json`);
     if (!existsSync(cf)) continue;
     const c = JSON.parse(readFileSync(cf, 'utf8'));
-    rows.push({ slug: page.slug, score: c.clarity_score, n: c.problems.length, stale: c.before !== page.text, name: page.name });
+    rows.push({ slug: page.slug, score: c.clarity_score, n: c.problems.length, f: (c.facts || []).length, stale: c.before !== page.text, name: page.name });
   }
   rows.sort((a, b) => a.score - b.score || b.n - a.n);
   const md = `# Wiki critic: every page, least clear first
@@ -324,9 +388,9 @@ ${rows.length} of ${pages.length} pages read by ${CRITIC_MODEL} playing a beginn
 To fix: tell Claude "fix the wiki" (it works down this list), or paste one page's \`*.1-for-claude.md\` to Claude.
 "changed since" means the page was edited after it was read.
 
-| Clarity | Problems | Page | |
-|---:|---:|---|---|
-${rows.map((r) => `| ${r.score}/10 | ${r.n} | ${r.slug} | ${r.stale ? 'changed since' : ''} |`).join('\n')}
+| Clarity | Problems | Possible errors | Page | |
+|---:|---:|---:|---|---|
+${rows.map((r) => `| ${r.score}/10 | ${r.n} | ${r.f} | ${r.slug} | ${r.stale ? 'changed since' : ''} |`).join('\n')}
 `;
   writeFileSync(join(OUT, 'ALL.md'), md);
 }
@@ -339,7 +403,10 @@ async function all() {
   for (const [i, f] of pages.entries()) {
     const page = load(f);
     const cf = join(OUT, `${page.name}.critic.json`);
-    if (!flags.has('--fresh') && existsSync(cf) && JSON.parse(readFileSync(cf, 'utf8')).before === page.text) { skipped++; continue; }
+    if (!flags.has('--fresh') && existsSync(cf)) {
+      const old = JSON.parse(readFileSync(cf, 'utf8'));
+      if (old.before === page.text && (old.deep || !DEEP)) { skipped++; continue; }
+    }
     while (!flags.has('--force') && await fakeChatLive()) {
       console.log(`⏸  ${new Date().toLocaleTimeString('en-GB')} fake chat is live; waiting so it keeps the GPU…`);
       await new Promise((r) => setTimeout(r, 120000));

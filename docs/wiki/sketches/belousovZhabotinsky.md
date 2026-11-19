@@ -35,7 +35,7 @@ shown on screen tells which: negative means excitable.
 - A step shader updates every cell; event shaders make the spark and the cut.
 - A display shader turns amounts into colours.
 - `motion(t)` runs the script: what time it is in the experiment, and the current `f`.
-  See [motion-and-latex.md](../motion-and-latex.md).
+  See [Motion and the live equation](../motion-and-latex.md).
 
 **A tour of the file:**
 
@@ -47,6 +47,7 @@ const DT = 0.02;
 const RATE = 4; // chemical time units per second of motion
 ```
 
+- `const` gives a fixed value a name; `//` starts a note for human readers.
 - 512 cells across.
 - Each tick moves the chemistry forward 0.02 units of its own time.
 - 4 units of chemical time pass each second, so that is 200 ticks a second.
@@ -61,7 +62,9 @@ function fOf(tau) {
 }
 ```
 
+- `function fOf(tau)` is a recipe: give it a time, and `return` hands back `f` for that moment.
 - `tau` is the time within the experiment, from 0 to 100.
+- `||` means "or": before 45 *or* from 95 on.
 - Outside 45–95 it is held at 3.2.
 - Between them it dips smoothly down to 1.4 and back up, a single smooth dip that bottoms out at τ = 70.
 
@@ -74,11 +77,12 @@ if (m.tau >= 3 && !state.done.stim) {
 }
 ```
 
-At τ = 3, spark a spot 3 units wide in the centre, and note that it has been done. A similar block cuts
+`&&` means "and", `!` means "not": once τ reaches 3, and if the spark hasn't been done yet this loop,
+spark a spot 3 units wide in the centre (`runEvent`), and note that it has been done. A similar block cuts
 the ring at τ = 8. The cut's direction turns by the *golden angle* (about 137.5°) each loop, so no two
 loops look the same.
 
-Then the ticks run, as described in [render-targets.md](../render-targets.md).
+Then the ticks run, as described in [Simulating on the graphics chip](../render-targets.md).
 
 **Numbers worth knowing:**
 - **25 seconds**: one experiment (100 units ÷ 4 a second).

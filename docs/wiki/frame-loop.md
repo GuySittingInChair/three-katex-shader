@@ -65,5 +65,5 @@ leave → `dispose` once. The app's code for this is in `src/core/SketchRunner.j
 **Try this:** in `audioReactiveMesh.js`, change `3.2` in `setup` to `6`. The camera starts twice as far
 away, so the ball looks about half the size.
 
-**Related:** [what-is-a-sketch.md](what-is-a-sketch.md) · [sketch-format.md](sketch-format.md) ·
-[motion-and-latex.md](motion-and-latex.md)
+**Related:** [What a sketch is](what-is-a-sketch.md) · [The sketch format: every field](sketch-format.md) ·
+[Motion and the live equation](motion-and-latex.md)

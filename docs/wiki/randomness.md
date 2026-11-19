@@ -65,5 +65,5 @@ kitchen gadget.
 alive. Most die at once of loneliness (fewer than 2 neighbours), and the board goes nearly dark within a
 second or two.
 
-**Related:** [noise.md](noise.md) · [sketches/galtonBoard.md](sketches/galtonBoard.md) ·
-[sketches/antiAircraftContraception.md](sketches/antiAircraftContraception.md)
+**Related:** [Noise: randomness that looks natural](noise.md) · [Galton Board](sketches/galtonBoard.md) ·
+[Anti-Aircraft Contraception](sketches/antiAircraftContraception.md)

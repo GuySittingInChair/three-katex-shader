@@ -58,10 +58,10 @@ color.setHSL(0.6 - speed * 0.35, 0.75, 0.55).toArray(instanceColor.array, i * 3)
 
 `setHSL` picks a colour by hue (position around the colour wheel), saturation (how vivid) and lightness.
 Hue 0.6 is blue, and lower values move towards green. The colour goes into a list with three numbers per
-bird. See [rgb.md](rgb.md).
+bird. See [RGB, three numbers](rgb.md).
 
 **Try this:** in `boidsFlock.js`, change `ConeGeometry(0.05, 0.17, 6)` to `(0.1, 0.4, 6)`. Every bird
 becomes twice as wide and more than twice as long, because all 120 are stamped from the same cone.
 
-**Related:** [mesh-geometry-material.md](mesh-geometry-material.md) · [shaders.md](shaders.md) ·
-[lines-and-points.md](lines-and-points.md)
+**Related:** [Mesh, geometry and material](mesh-geometry-material.md) · [Shaders: two questions](shaders.md) ·
+[Lines and points](lines-and-points.md)

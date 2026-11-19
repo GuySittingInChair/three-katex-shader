@@ -45,7 +45,7 @@ boids.push({
 - Later the code reads them with a dot: `bi.pos`, `bi.vel`.
 
 A whole sketch is one big object, too. Its drawers are `name`, `params`, `setup` and the rest. See
-[sketch-format.md](sketch-format.md).
+[The sketch format: every field](sketch-format.md).
 
 ## Unpacking: `const { a, b } = ...`
 
@@ -55,7 +55,7 @@ const { kappa, s } = ctx.motion;
 (from `bezierDeCasteljau.js`)
 
 `ctx.motion` is an object holding the numbers the sketch's own `motion` part worked out for this moment
-of the animation (see [motion-and-latex.md](motion-and-latex.md)). This line takes the drawers called `kappa` and `s` out of it and gives each its own short name. It is
+of the animation (see [Motion and the live equation](motion-and-latex.md)). This line takes the drawers called `kappa` and `s` out of it and gives each its own short name. It is
 the same as writing `const kappa = ctx.motion.kappa;` and `const s = ctx.motion.s;`. This unpacking is
 called *destructuring*.
 
@@ -87,5 +87,5 @@ each of the five control points pulls on the curve. The
 **Try this:** in `bezierDeCasteljau.js`, change `X`'s last number, `1.8`, to `3`. The right-hand end of the
 zig-zag stretches out further, and the curve follows it, ending further to the right.
 
-**Related:** [js-values-and-variables.md](js-values-and-variables.md) · [js-functions.md](js-functions.md)
-· [sketch-format.md](sketch-format.md)
+**Related:** [Values, names and comments](js-values-and-variables.md) · [Functions and arrows (`=>`)](js-functions.md)
+· [The sketch format: every field](sketch-format.md)

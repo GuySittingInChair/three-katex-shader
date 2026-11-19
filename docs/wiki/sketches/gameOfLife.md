@@ -39,7 +39,10 @@ for (let dy = -1; dy <= 1; dy++) {
     const nx = (x + dx + SIZE) % SIZE;
 ```
 
-- Two small loops visit the 3 × 3 block around a square, skipping the square itself.
+- `for (let dy = -1; dy <= 1; dy++)` means "let `dy` be −1, then 0, then 1" (`++` adds one each time).
+  Two of these loops, one inside the other, visit the 3 × 3 block around a square. `continue` skips the
+  middle one (`dx === 0 && dy === 0`: "both are zero"), the square itself. See
+  [Decisions and loops](../js-decisions-and-loops.md).
 - The `% SIZE` wraps around: the left edge's neighbour is the right edge. The board is secretly a
   doughnut, which is why gliders leaving one side reappear on the other.
 
@@ -49,7 +52,9 @@ The rules, in one line:
 next[idx] = (alive && (n === 2 || n === 3)) || (!alive && n === 3) ? 255 : 0;
 ```
 
-"Alive with 2 or 3 neighbours, or dead with exactly 3, means alive (255). Anything else means dead (0)."
+`&&` means "and", `||` means "or", `!` means "not", and `n` is the neighbour count. The `? 255 : 0` at
+the end means "if all that is true, 255, otherwise 0". So: "Alive with 2 or 3 neighbours, or dead with
+exactly 3, means alive (255). Anything else means dead (0)."
 
 Timing:
 
@@ -58,7 +63,8 @@ state.accum += ctx.delta * ctx.params.speed;
 while (state.accum >= 1) { state.accum -= 1; step(); ... }
 ```
 
-A piggy bank of time: add a little each frame, and spend it one generation at a time. At speed 10 that's
+`ctx.delta` is the time since the last frame, and `+=` means "add to". A piggy bank of time: add a
+little each frame, and spend it one generation at a time. At speed 10 that's
 10 generations a second, whatever the screen's frame rate.
 
 **The colours:** each live square is coloured by how many neighbours it has, using the

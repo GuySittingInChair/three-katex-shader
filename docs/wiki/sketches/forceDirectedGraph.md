@@ -41,10 +41,13 @@ const f = kr / d2;
 fx += (dx / d) * f;
 ```
 
+- `dx`, `dy`, `dz` are how far apart two balls are across, up and in depth; `d` is the straight-line
+  distance between them.
 - `d2` is the distance squared, plus a little extra (`SOFTENING2`). Without it, two balls that start
   almost on top of each other would get a near-infinite shove and rocket off screen. The comment at the
   top of the file admits that this used to happen!
-- `f` is the push.
+- `f` is the push: a strength `kr` divided by the distance squared, so it fades fast as balls get
+  further apart (twice as far, a quarter of the push).
 - Line 3 points the push directly away from the other ball.
 
 The springs:
@@ -55,7 +58,9 @@ a.vx += fx; ...
 b.vx -= fx; ...
 ```
 
-How far the thread is from its natural 0.5 length, times stiffness. Equal and opposite tugs on both ends.
+How far the thread is from its natural 0.5 length, times stiffness (`ks`). `a` and `b` are the two balls
+the thread joins; `vx` is a ball's speed across. `+=` adds the tug to one ball and `-=` takes it from the
+other: equal and opposite tugs on both ends (`...` marks the same for up and depth).
 
 Then calming:
 
@@ -63,7 +68,7 @@ Then calming:
 n.vx *= DAMPING;
 ```
 
-Every step, each ball keeps only 90% of its speed, like moving through honey. That's what lets it settle
+`*=` means "multiply by". Every step, each ball keeps only 90% of its speed (`DAMPING` is 0.9), like moving through honey. That's what lets it settle
 instead of wobbling forever.
 
 **Numbers worth knowing:**

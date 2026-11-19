@@ -16,7 +16,7 @@ category.
 ## How a scale is built
 
 Pick a few colours at fixed points, then blend between neighbours (see
-[colour-blending-and-gain.md](colour-blending-and-gain.md)). From the fragment shader of
+[Blending, adding, dimming and gain](colour-blending-and-gain.md)). From the fragment shader of
 `src/sketches/cmbPlanck.js`:
 
 ```glsl
@@ -62,5 +62,5 @@ The [cosine palette](cosine-palette.md) breaks rules 3 and 4 on purpose. It is f
 `c4 = vec3(0.0, 0.0, 0.9)`. The coldest spots now go dark red and the hottest dark blue. Nothing in the
 data changed, but the map now *reads* backwards. That is why the scale matters.
 
-**Related:** [colour-blending-and-gain.md](colour-blending-and-gain.md) · [textures.md](textures.md) ·
-[cosine-palette.md](cosine-palette.md) · [rgb.md](rgb.md)
+**Related:** [Blending, adding, dimming and gain](colour-blending-and-gain.md) · [Textures](textures.md) ·
+[The cosine palette (the rainbow trick)](cosine-palette.md) · [RGB, three numbers](rgb.md)

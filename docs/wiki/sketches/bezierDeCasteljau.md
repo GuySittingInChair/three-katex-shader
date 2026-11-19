@@ -30,7 +30,7 @@ weight is near 1. Near the middle, the middle points dominate.
 **How it's built:**
 - [Lines and dots](../lines-and-points.md) from `src/lib/fatLines.js`, all redrawn every frame.
 - [Orbit controls](../camera-and-controls.md) to look around.
-- `motion(t)` drives the twist and the sweep. See [motion-and-latex.md](../motion-and-latex.md).
+- `motion(t)` drives the twist and the sweep. See [Motion and the live equation](../motion-and-latex.md).
 
 **A tour of the file:**
 
@@ -43,7 +43,10 @@ const controlPoint = (i, kappa) => [X[i], Y[i] * Math.cos(i * kappa), Y[i] * Mat
 ```
 
 - Five across positions and five heights make the flat zig-zag.
-- `controlPoint` turns point `i` around the left-right axis by `i × kappa`. Point 0 doesn't turn, point 1
+- `controlPoint` is a small recipe (see [Functions and arrows](../js-functions.md)): give it a point's
+  number `i` and the twist `kappa`, and it hands back that point's position, across, up and depth.
+  `cos` and `sin` swing the height round in a circle (see [sine and cosine](../sine-and-cosine.md)),
+  so it turns point `i` around the left-right axis by `i × kappa`. Point 0 doesn't turn, point 1
   turns a little, point 4 turns most. That twists the zig-zag into a corkscrew.
 
 The clock, in `motion(t)`:
@@ -53,7 +56,8 @@ const kappa = KAPPA_MAX * 0.5 * (1 - Math.cos(TAU * p));
 const s = 0.5 * (1 - Math.cos(3 * TAU * p));
 ```
 
-- `kappa`, the twist, rises from 0 to 0.9 and falls back, once per loop.
+- `p` is how far through the loop we are (0 to 1), and `TAU` one full turn (6.28).
+- `kappa`, the twist, rises from 0 to 0.9 (`KAPPA_MAX`) and falls back, once per loop.
 - `s`, the sweep, goes 0 → 1 → 0 three times per loop. `½(1 − cos)` is a smooth back-and-forth that
   slows down at each end, like a pendulum.
 
@@ -63,8 +67,10 @@ The construction, in `update`:
 if (k < DEGREE) level = level.slice(0, -1).map((p, i) => p.clone().lerp(level[i + 1], s));
 ```
 
-This is step 1–4 above in one line. For each point but the last, it makes a new point a fraction `s` of
-the way to its neighbour (`lerp`, see [colour-blending-and-gain.md](../colour-blending-and-gain.md)). Each
+This is step 1–4 above in one line. `level` is the current list of points and `k` counts the rounds.
+`.slice(0, -1)` takes every point but the last, and `.map((p, i) => …)` makes a new list by doing
+something to each one. For each point but the last, it makes a new point a fraction `s` of
+the way to its neighbour (`lerp`, see [Blending, adding, dimming and gain](../colour-blending-and-gain.md)). Each
 round has one point fewer, until one is left.
 
 **Numbers worth knowing:**

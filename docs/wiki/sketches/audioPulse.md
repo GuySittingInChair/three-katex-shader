@@ -23,7 +23,7 @@ the top 32 "treble". Each is a number from 0 (silent) to 1 (loud).
 **How it's built:**
 - A single [fragment shader](../shaders.md) colours every pixel.
 - Three [uniforms](../uniforms.md), `uBass`, `uMid` and `uTreble`, carry the loudness in.
-- A soft switch, `smoothstep`, draws the ring (see [glsl-basics.md](../glsl-basics.md)).
+- A soft switch, `smoothstep`, draws the ring (see [GLSL basics: reading a shader](../glsl-basics.md)).
 - The [cosine palette](../cosine-palette.md) gives the colours.
 
 **A tour of the file:**
@@ -36,7 +36,8 @@ float r = length(uv);
 float a = atan(uv.y, uv.x);
 ```
 
-- Line 1 moves the origin to the middle of the screen.
+- Line 1: `vUv` is the pixel's position, 0 to 1 across and up. Subtracting 0.5 and doubling moves the
+  zero point to the middle of the screen, so `uv` runs from −1 to +1.
 - Line 2: `r` is the distance from the centre.
 - Line 3: `a` is the angle, the direction you'd point to reach this pixel.
 
@@ -48,10 +49,11 @@ float wobble = uBass * sin(a * 3.0 + uTime * uSpeed)
              + uTreble * sin(a * 13.0 + uTime * uSpeed * 0.7);
 ```
 
-- `sin(a * 3.0 ...)` goes up and down 3 times on the way round the circle: 3 bumps. Same for 7 and 13.
+- `sin` is a [wave-maker](../sine-and-cosine.md). `sin(a * 3.0 ...)` goes up and down 3 times on the way round the circle: 3 bumps. Same for 7 and 13.
 - `+ uTime ...` makes each set of bumps creep round. The `-` on the middle line makes those bumps turn the
   other way.
-- Each set is scaled by how loud its part of the sound is.
+- Each set is scaled by how loud its part of the sound is: `uBass` (low notes), `uMid`, `uTreble` (high
+  notes).
 
 ```glsl
 float ringPos = r - 0.4 - 0.15 * wobble;
@@ -60,7 +62,8 @@ float glow = 0.03 / (0.02 + abs(ringPos));
 ```
 
 - The ring sits 0.4 from the centre, pushed in and out by the wobble.
-- `ring` is bright within 0.02 of it: the sharp line.
+- `abs` drops the minus sign, so inside and outside the ring count the same. `smoothstep(0.02, 0.0, …)`
+  is 1 right on the ring and fades to 0 by 0.02 away: the sharp line.
 - `glow` fades gently with distance: the soft halo.
 
 Finally, in JavaScript, `update` passes in the loudness. With no sound, it makes up a gentle pulse:

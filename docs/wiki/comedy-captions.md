@@ -37,7 +37,7 @@ learn real physics while laughing.
 export const caption = (s) => (s ? `\\textcolor{#9aa3b2}{\\small\\textit{${escapeText(s)}}}` : '');
 ```
 
-- `#9aa3b2` is a quiet blue-grey (see [rgb.md](rgb.md)).
+- `#9aa3b2` is a quiet blue-grey (see [RGB, three numbers](rgb.md)).
 - `\\small\\textit{...}` is LaTeX for "small italic text".
 - `escapeText` protects a few symbols (like `%` and `&`) that would otherwise confuse the equation
   renderer.
@@ -63,5 +63,5 @@ down, so set **spread** to 8 and **hits** to 6 in Params. In a test, more than a
 dived into the ground, and each time your line appears, small and grey. (None ever reach the egg: by
 the owner's ruling, [that quest is never finished](sketches/antiAircraftContraception-physics.md#the-quest-that-must-never-be-finished).)
 
-**Related:** [motion-and-latex.md](motion-and-latex.md) ·
-[sketches/antiAircraftContraception.md](sketches/antiAircraftContraception.md) · `docs/guide.md` section 12
+**Related:** [Motion and the live equation](motion-and-latex.md) ·
+[Anti-Aircraft Contraception](sketches/antiAircraftContraception.md) · `docs/guide.md` section 12

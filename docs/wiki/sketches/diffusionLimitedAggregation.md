@@ -40,7 +40,10 @@ const radius = SIZE * 0.42;
 const x = Math.round(CENTER + Math.cos(angle) * radius);
 ```
 
-A random direction, 42% of the grid's width from the centre, about 30 squares out.
+`Math.random() * Math.PI * 2` is a random angle, anywhere round a full turn (2π). `cos` and `sin` turn
+an angle into a spot on a circle (see [sine and cosine](../sine-and-cosine.md)); `Math.round` snaps it
+to the nearest square. So: a random direction, 42% of the grid's width from the centre, about 30
+squares out.
 
 Each step, each walker staggers one square in a random direction:
 
@@ -51,11 +54,13 @@ if (x < 0 || x >= SIZE || y < 0 || y >= SIZE) continue; // wandered off, discard
 if (isAdjacentToCluster(x, y) && !occupied[y * SIZE + x]) {
 ```
 
-- `dir` is 0, 1, 2 or 3: right, left, down or up.
+- `dir` is 0, 1, 2 or 3: right, left, down or up. (`...` marks lines left out.)
+- `||` means "or": past the left, right, bottom or top edge. `continue` means "skip to the next walker",
+  and `//` starts a note for human readers.
 - Stagger off the edge and you're gone. The edge is only about 6 squares behind the starting ring, but the
   cluster is 30 squares away, so most walkers fall off long before they find it. That's why the sketch
   needs so many steps: until 2026-11-18 it ran only 8 a second, and grew about 50 squares in 10 minutes.
-- Land next to the cluster and you stick, and your stick-time is recorded as your `age`.
+- `&&` means "and", `!` "not": next to the cluster and not already taken? Then you stick, and your stick-time is recorded as your `age`.
 
 The colour mixes how long ago each square stuck with how far it is from the centre:
 

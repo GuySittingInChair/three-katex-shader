@@ -28,7 +28,7 @@ tmp.copy(CURVE_A).lerp(CURVE_B, u).multiplyScalar(u <= s ? 1 : 0.4);
   full brightness (×1), and the rest is dimmed to 40%.
 
 `mix` blends shapes as well as colours. Boy's Surface uses `mix(roman(w), b, m_s)` to blend one surface
-into another. See [sketches/boysSurface.md](sketches/boysSurface.md).
+into another. See [Boy's Surface](sketches/boysSurface.md).
 
 ## Adding: light on light
 
@@ -43,7 +43,7 @@ vec3 color = deepWater + brightWater * caustic;
 
 Adding only ever makes things brighter, like extra lamps. Point clouds use
 `blending: THREE.AdditiveBlending` for the same reason: overlapping sparks add up and glow (see
-[lines-and-points.md](lines-and-points.md)).
+[Lines and points](lines-and-points.md)).
 
 ## Dimming and gain: multiplying
 
@@ -68,4 +68,4 @@ values outside the range don't cause surprises. Bifurcation Diagram does this wi
 **Try this:** in `bezierDeCasteljau.js`, change `0.4` to `0.0`. The part of the curve ahead of the moving
 dot disappears entirely, so you watch the curve being drawn as the dot moves along it.
 
-**Related:** [rgb.md](rgb.md) · [colour-scales.md](colour-scales.md) · [glsl-basics.md](glsl-basics.md)
+**Related:** [RGB, three numbers](rgb.md) · [Colour scales for data, and how they are chosen](colour-scales.md) · [GLSL basics: reading a shader](glsl-basics.md)

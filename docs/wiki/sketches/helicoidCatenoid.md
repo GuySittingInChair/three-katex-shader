@@ -36,7 +36,8 @@ are: 0 is the staircase, 1.57 (a quarter turn) the hourglass.
 
 **A tour of the file:**
 
-The clock, in `motion(t)`:
+The clock, in `motion(t)`: the part of a sketch that turns the time `t` into the numbers that drive
+the animation (see [Motion and the live equation](../motion-and-latex.md)):
 
 ```js
 const { index, blend } = segments(phaseOf(t, PERIOD), 2, 0.35);
@@ -44,11 +45,13 @@ const towardCatenoid = index === 0 ? blend : 1 - blend;
 return { alpha: (Math.PI / 2) * towardCatenoid };
 ```
 
-- Line 1: split each 18-second loop into two halves, there and back. `blend` eases from 0 to 1 in each.
+- Line 1: `segments` (a helper from `src/lib/motion.js`) splits each 18-second loop into two halves,
+  there and back. `index` says which half we're in (0 or 1), and `blend` eases from 0 to 1 within it.
 - Line 2: in the first half go towards the hourglass, in the second come back.
 - Line 3: α runs from 0 to a quarter turn (π/2).
 
-The shape, in the shader:
+The shape, in the [shader](../shaders.md) (a small program on the graphics chip that places every point
+of the sheet):
 
 ```glsl
 vec3 p = vec3(ca * sinh(v) * sin(u) + sa * cosh(v) * cos(u),
@@ -56,9 +59,12 @@ vec3 p = vec3(ca * sinh(v) * sin(u) + sa * cosh(v) * cos(u),
               u * ca + v * sa);
 ```
 
+`u` and `v` name each point of the flat sheet (how far along, how far across). `sin` and `cos` are the
+[wave-makers](../sine-and-cosine.md); `sinh` and `cosh` are their cousins that don't wave but grow
+faster and faster (`cosh` draws the curve of a hanging chain, which is the hourglass's waist).
 `ca` and `sa` are the cosine and sine of α: how much "staircase" and how much "hourglass" to mix. At
 α = 0, `sa` is 0 and only the staircase parts survive. At a quarter turn, `ca` is 0 and only the
-hourglass parts do. In between, both, which is the rolling.
+hourglass parts do. In between, a bit of both shapes at once, and sliding α from one end to the other is the rolling.
 
 **Numbers worth knowing:**
 - **18 seconds** per loop, with each shape held still for about 3 seconds.

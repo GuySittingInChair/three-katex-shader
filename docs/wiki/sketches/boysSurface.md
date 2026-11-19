@@ -29,7 +29,7 @@ Bryant–Kusner formula for Boy's surface from the 1980s.
 
 **How it's built:**
 - A surface worked out on the graphics chip by `src/lib/morphSurface.js` (see
-  [mesh-geometry-material.md](../mesh-geometry-material.md)). The sketch supplies GLSL saying where each
+  [Mesh, geometry and material](../mesh-geometry-material.md)). The sketch supplies GLSL saying where each
   point of the disc goes.
 - `motion(t)` with the `segments` helper from `src/lib/motion.js`, for the hold-then-change rhythm.
 - [Orbit controls](../camera-and-controls.md).
@@ -43,9 +43,11 @@ const { index, blend } = segments(phaseOf(t, PERIOD), 2, 0.4);
 return { s: index === 0 ? blend : 1 - blend };
 ```
 
-- The 16-second loop is cut into 2 halves.
+- `segments` (a helper from `src/lib/motion.js`) cuts the 16-second loop into 2 halves; `index` says
+  which half we're in (0 or 1).
 - In each half, `blend` holds still for 40% of the time, then eases smoothly from 0 to 1.
-- First half: `s` = `blend` (Roman → Boy). Second half: `s` = `1 - blend` (Boy → Roman).
+- `index === 0 ? blend : 1 - blend` means "if we're in the first half, `blend`; otherwise `1 - blend`".
+  So first half: `s` = `blend` (Roman → Boy). Second half: `s` = `1 - blend` (Boy → Roman).
 
 The surface, in the shader:
 
@@ -60,7 +62,8 @@ return mix(roman(w), b, m_s);
 - The grid of points (`uv`, each part from 0 to 1) is turned into a disc. `rho` is the distance from the
   centre, nudged a hair away from 0. `phi` is the angle, all the way round.
 - `w` is the point on the disc.
-- `roman(w)` and `boy(w)` (earlier in the file) work out where each surface puts it.
+- `roman(w)` and `boy(w)` (recipes earlier in the file) work out where each surface puts it; the line
+  left out (`...`) stores the Boy's surface answer in `b`.
 - `mix(..., m_s)` blends them by `s`. `m_s` is the motion value `s`, passed in as a
   [uniform](../uniforms.md).
 

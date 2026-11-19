@@ -11,7 +11,7 @@ number must go in a bowl of the right size, and you must say which bowl you're u
 **Why sketches need it:** the graphics chip only understands shader languages. Every pattern, fractal and
 fluid on the site is written in GLSL.
 
-**Where you'll see it:** inside the backtick blocks of 126 sketch files. See [shaders.md](shaders.md).
+**Where you'll see it:** inside the backtick blocks of 126 sketch files. See [Shaders: two questions](shaders.md).
 
 ## The bowls: types
 
@@ -41,7 +41,7 @@ This is called *swizzling*.
 | `sin`, `cos` | wave-makers: as the input grows, the answer rises and falls between −1 and 1, forever ([more](sine-and-cosine.md)) |
 | `length(v)` | how long an arrow is, so distance from the centre |
 | `atan(y, x)` | which direction an arrow points (an angle) |
-| `mix(a, b, t)` | blend from a to b; `t` = 0 gives a, 1 gives b (see [colour-blending-and-gain.md](colour-blending-and-gain.md)) |
+| `mix(a, b, t)` | blend from a to b; `t` = 0 gives a, 1 gives b (see [Blending, adding, dimming and gain](colour-blending-and-gain.md)) |
 | `clamp(x, lo, hi)` | keep x between lo and hi |
 | `smoothstep(a, b, x)` | a soft switch from 0 to 1 as x goes from a to b |
 | `fract(x)` | the part after the decimal point: 2.75 → 0.75 |
@@ -73,5 +73,5 @@ float ring = smoothstep(0.02, 0.0, abs(ringPos));
 **Try this:** in `audioPulse.js`, change `0.4` in line 4 to `0.8`. The ring doubles in size and nearly
 touches the top and bottom of the screen.
 
-**Related:** [shaders.md](shaders.md) · [uniforms.md](uniforms.md) ·
-[js-decisions-and-loops.md](js-decisions-and-loops.md) · `docs/guide.md` section 7
+**Related:** [Shaders: two questions](shaders.md) · [Uniforms: knobs passed in from JavaScript](uniforms.md) ·
+[Decisions (`if`) and loops (`for`)](js-decisions-and-loops.md) · `docs/guide.md` section 7

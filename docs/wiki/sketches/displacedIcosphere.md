@@ -19,8 +19,8 @@ plus the strength `s` times the height `h` at that spot. "Layered sin/cos noise"
 - A [mesh](../mesh-geometry-material.md): a ball of triangles with a matte material and `flatShading`,
   so each triangle is lit as one flat face. That's the cut-gem look.
 - Two [lights](../lights.md), a sun and a soft blue-grey fill.
-- Home-made noise in JavaScript (see [noise.md](../noise.md)).
-- Height colours blended with `lerp` (see [colour-blending-and-gain.md](../colour-blending-and-gain.md)).
+- Home-made noise in JavaScript (see [Noise: randomness that looks natural](../noise.md)).
+- Height colours blended with `lerp` (see [Blending, adding, dimming and gain](../colour-blending-and-gain.md)).
 
 **A tour of the file:**
 
@@ -34,7 +34,8 @@ for (let o = 0; o < 4; o++) {
 }
 ```
 
-This is a cheap stand-in for proper noise: wavy patterns multiplied together, stacked in layers like
+`for (let o = 0; o < 4; o++)` repeats four times. `nx`, `ny`, `nz` are a direction from the planet's
+centre; `*=` means "multiply by". This is a cheap stand-in for proper noise: wavy patterns multiplied together, stacked in layers like
 [fbm](../noise.md). The odd numbers (3.1, 1.7, 2.3, 0.9) keep the waves from lining up into an obvious
 grid.
 
@@ -47,7 +48,8 @@ const scale = 1 + height * strength;
 pos.setXYZ(i, v.x * scale, v.y * scale, v.z * scale);
 ```
 
-- Get corner `i`'s direction from the centre.
+- `pos` is the list of every corner of the ball's surface. `v.fromBufferAttribute(pos, i)` reads corner
+  `i`; `.normalize()` keeps only its direction from the centre (length 1).
 - Ask the noise for the height there, between about −0.94 and +0.94.
 - Turn that into a distance from the centre: 1, plus or minus up to a quarter.
 - Move the corner there.
@@ -60,12 +62,15 @@ else if (t < 0.65) color = midColor.clone().lerp(highColor, (t - 0.35) / 0.3);
 else color = highColor.clone().lerp(peakColor, (t - 0.65) / 0.35);
 ```
 
-This is a little [colour scale](../colour-scales.md): navy → green → brown → white, as `t` goes from lowest
+`t` is the height, from 0 (lowest) to 1 (highest). `.lerp(a, x)` blends towards colour `a` by `x`, and
+`.clone()` makes a copy first so the original colour isn't changed. This is a little
+[colour scale](../colour-scales.md): navy → green → brown → white, as `t` goes from lowest
 to highest ground.
 
-**A quirk:** the "displacement" slider only takes effect when the sketch starts. The planet is built once
-in `setup`, and that slider has no `rebuild: true` (see [params.md](../params.md)). Drag it, then flip to
-another sketch and back, and the new planet appears.
+**Fixed on 2026-11-19:** the **Displacement** slider used to do nothing until you left the sketch and
+came back, because the planet is built once, in `setup`. It now has `rebuild: true` (see
+[Params: the sliders](../params.md)): let go of the slider and the planet is rebuilt with taller or
+flatter mountains.
 
 **Numbers worth knowing:**
 - **500 triangles** (detail level 4), which is what keeps it gem-like.

@@ -20,7 +20,7 @@ called *bloom*).
 
 1. **Draw the scene with headroom.** Normally colours stop at 1 (full brightness). Here the scene is drawn
    into a hidden picture that can hold values above 1. A tracer (a glowing bullet in Anti-Aircraft Contraception) can be "5 times brighter than white". See
-   [render-targets.md](render-targets.md).
+   [Simulating on the graphics chip](render-targets.md).
 2. **Keep only the bright bits.** Everything dimmer than a *threshold* is thrown away.
 3. **Blur them, three times, at three sizes:** a tight halo, a medium one and a wide one.
 4. **Add the halos back and squash it all to fit the screen.** That last squash is a *tone map*, the
@@ -61,5 +61,5 @@ Later, `update` (the part of a sketch that runs every frame) sets `state.glow.st
 thin, flat lines, and the bursts lose their flash. Drag it to 2 and the whole sky fizzes like a fireworks
 night.
 
-**Related:** [render-targets.md](render-targets.md) · [colour-blending-and-gain.md](colour-blending-and-gain.md)
-· [sketches/antiAircraftContraception.md](sketches/antiAircraftContraception.md)
+**Related:** [Simulating on the graphics chip](render-targets.md) · [Blending, adding, dimming and gain](colour-blending-and-gain.md)
+· [Anti-Aircraft Contraception](sketches/antiAircraftContraception.md)

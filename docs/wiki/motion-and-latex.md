@@ -61,11 +61,13 @@ Fixed text is simpler. From `src/sketches/bifurcationDiagram.js`:
 latex: 'x_{n+1} = r\\,x_n(1-x_n),\\quad r \\in [2.4,\\ 4.0]',
 ```
 
-This always shows the same equation: x₍ₙ₊₁₎ = r xₙ(1 − xₙ), with r between 2.4 and 4.0.
+This always shows the same equation: x₍ₙ₊₁₎ = r xₙ(1 − xₙ), with r between 2.4 and 4.0. In words: "next
+year's population is this year's, times r, times the room left to grow". It's the
+[Bifurcation Diagram](sketches/bifurcationDiagram.md)'s rule.
 
 **Try this:** in `bezierDeCasteljau.js`, change `const PERIOD = 18;` to `const PERIOD = 36;`. The whole
 loop runs at half speed. The equation's numbers still match the picture exactly, because both come from
 the same `motion`.
 
-**Related:** animation and timing *(planned)* · [sketch-format.md](sketch-format.md) ·
-[params.md](params.md) · `docs/guide.md` section 4 (LaTeX cheat sheet)
+**Related:** animation and timing *(planned)* · [The sketch format: every field](sketch-format.md) ·
+[Params: the sliders](params.md) · `docs/guide.md` section 4 (LaTeX cheat sheet)

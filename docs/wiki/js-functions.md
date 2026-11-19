@@ -44,7 +44,7 @@ Arrows are a shorter way to write small recipes. They mean the same thing.
 
 **3. As a field of the sketch.** `setup(ctx) { ... }` and `update(ctx, state) { ... }` are functions too.
 They are written inside the sketch's big object, so the app can find them by name. See
-[frame-loop.md](frame-loop.md).
+[The frame loop: setup, update, dispose](frame-loop.md).
 
 ## Functions inside functions
 
@@ -61,7 +61,7 @@ motion(t) {
 - Its answer is fed straight into `segments(..., 2, 0.4)`, which splits the loop into 2 halves, each
   pausing for a moment before it changes. Both helpers are in `src/lib/motion.js`.
 - `return { s: ... }` hands back one number, `s`. The `?` part is explained in
-  [js-decisions-and-loops.md](js-decisions-and-loops.md).
+  [Decisions (`if`) and loops (`for`)](js-decisions-and-loops.md).
 
 ## Methods: functions that belong to something
 
@@ -73,5 +73,5 @@ memory" recipe. The empty brackets `()` mean "no inputs needed".
 `[-0.8, 1.1, -0.2, 1.1, -0.8]`. Change the middle `-0.2` to `1.5`. The middle of the zig-zag pops up, and
 the curve, which `evalBezier` works out from those points, bulges upward in the middle.
 
-**Related:** [js-values-and-variables.md](js-values-and-variables.md) ·
-[js-decisions-and-loops.md](js-decisions-and-loops.md) · [frame-loop.md](frame-loop.md)
+**Related:** [Values, names and comments](js-values-and-variables.md) ·
+[Decisions (`if`) and loops (`for`)](js-decisions-and-loops.md) · [The frame loop: setup, update, dispose](frame-loop.md)

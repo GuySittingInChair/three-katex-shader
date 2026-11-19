@@ -38,8 +38,11 @@ while (ballState.rowIndex[i] < ROWS && ballState.y[i] <= rowY(ballState.rowIndex
 }
 ```
 
+`ballState` holds every ball's numbers in lists, and `[i]` picks ball number `i`: its row so far
+(`rowIndex`), its height (`y`) and where it's heading (`xTarget`). Read the lines as:
 - "While this ball has fallen past its next row of pegs…"
-- "…step half a peg-gap left or right at random…"
+- "…step half a peg-gap left or right at random…" (`Math.random() < 0.5` is a coin flip: a random
+  number below a half. `? -1 : 1` means "if so, left; if not, right".)
 - "…and count that row as done."
 
 The slide, so balls glide instead of teleporting:
@@ -48,7 +51,9 @@ The slide, so balls glide instead of teleporting:
 ballState.xVisual[i] += (ballState.xTarget[i] - ballState.xVisual[i]) * Math.min(1, ctx.delta * 8);
 ```
 
-Each frame, the ball moves about an eighth of the way towards where the coin sent it. That's a classic
+`xVisual` is where the ball is drawn, and `xTarget` where the coin sent it. `ctx.delta` is the time
+since the last frame (about 1/60 of a second), so `ctx.delta * 8` is about 0.13, and `Math.min(1, …)`
+stops it ever going past 1. Each frame, the ball moves about an eighth of the way towards its target. That's a classic
 "ease towards a target" trick: fast at first, then gently settling.
 
 Landing:
@@ -58,7 +63,8 @@ let k = Math.round(ballState.xTarget[i] / PEG_SPACING + ROWS / 2);
 histogram[k] += 1;
 ```
 
-Work out which slot (0 to 10) it ended in, and add one to that bar's count. Bars are drawn relative to the
+`Math.round` rounds to the nearest whole number, so `k` is the slot (0 to 10) it ended in.
+`histogram[k] += 1` adds one to that bar's count. (A *histogram* is a bar chart of counts.) Bars are drawn relative to the
 tallest one, so the hill always fills the same height.
 
 **Numbers worth knowing:**

@@ -73,5 +73,5 @@ A dot means "the part of this thing called…". `ctx.camera.position` is "the po
 three times as many birds, and the flock looks denser. The animation may get slower too, because each bird
 checks every other bird on every frame.
 
-**Related:** [js-functions.md](js-functions.md) · [js-decisions-and-loops.md](js-decisions-and-loops.md) ·
-[js-arrays-and-objects.md](js-arrays-and-objects.md) · `docs/guide.md` section 5
+**Related:** [Functions and arrows (`=>`)](js-functions.md) · [Decisions (`if`) and loops (`for`)](js-decisions-and-loops.md) ·
+[Lists (arrays) and labelled boxes (objects)](js-arrays-and-objects.md) · `docs/guide.md` section 5

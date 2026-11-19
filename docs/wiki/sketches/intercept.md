@@ -44,10 +44,14 @@ Vc = -dot(norm(los), vr);
 acc = mul(cross(Om, norm(v)), 3 * Vc);
 ```
 
-- `los` is the arrow from the drone to the target.
-- `Om` is how fast that arrow is swinging round (it's Ω in the equation on screen).
+- `v` is the drone's velocity (which way it's flying, and how fast). `mul`, `cross`, `dot` and `norm` are
+  small helpers in the file for sums with 3D arrows: scaling one, combining two, measuring length.
+- `los` ("line of sight") is the arrow from the drone to the target.
+- `Om` is how fast that arrow is swinging round: how fast the target drifts across the drone's view
+  (it's Ω, the Greek letter omega, in the equation on screen).
 - `Vc` is how fast the gap is closing.
-- Line 4 turns into the swing, 3 times as hard, faster when closing faster.
+- Line 4 turns the drone to cancel that drift, 3 times as hard, and harder when closing faster. If the
+  target stays still in your view while it grows, you're on course to hit it.
 
 Until 2026-11-18 this last line had a minus sign, so the drone turned *away* in the dive. It was found
 while writing these pages and fixed. Its copy in Anti-Aircraft Contraception was left as it is,

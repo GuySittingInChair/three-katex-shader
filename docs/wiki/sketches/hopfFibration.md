@@ -46,10 +46,13 @@ const thetaRing = theta + RING_SPACING * (r - (RINGS - 1) / 2);
 const th = Math.min(Math.PI - 0.05, Math.max(THETA_MIN, lerp(fib[i].theta, thetaRing, s)));
 ```
 
-- Line 1: dot number `i` belongs to latitude line `r`, one of 5, dealt out like cards.
+- Line 1: `%` means "the remainder after dividing": 7 % 5 is 2. So dot number `i` belongs to latitude line
+  `r`, one of 5, dealt out like cards.
 - Line 2: that line's latitude: the middle latitude `theta`, plus or minus a little for the others.
-- Line 3: slide from where the dot started (`fib`, the even spread) to its line, by the fraction `s`.
-  `Math.max(THETA_MIN, ...)` keeps it away from the north pole, whose rings would be infinitely big.
+- Line 3: `lerp` slides from where the dot started (`fib`, the even spread) to its line, by the fraction
+  `s` (0 = start, 1 = on its line). `Math.max(THETA_MIN, ...)` means "no smaller than `THETA_MIN`": it
+  keeps the dot away from the north pole, whose rings would be infinitely big. `Math.min(Math.PI - 0.05,
+  ...)` likewise keeps it a whisker off the south pole.
 
 Turning a dot into a ring, in the shader:
 
@@ -59,9 +62,11 @@ vec4 q = vec4(c * cos(t + 0.5 * ph), c * sin(t + 0.5 * ph),
 return q.yzw / max(1.0 - q.x, 1e-3);
 ```
 
+- `th` and `ph` are the dot's place on the ball (how far down, how far round); `c` and `sn` are worked out
+  from `th`. `vec4` is a bundle of four numbers: one point in four dimensions.
 - Lines 1–2: a point on the four-dimensional circle. As `t` goes round once, it traces the whole ring.
 - Line 3: the shadow. Drop one of the four numbers and divide by how close it is to the lamp. Near the
-  lamp, that division makes things huge.
+  lamp, that division makes things huge. (`max(…, 1e-3)` stops it dividing by zero: `1e-3` is 0.001.)
 
 **Numbers worth knowing:**
 - **28 seconds** per loop: about 7 to gather, 14 sweeping, 7 to scatter.

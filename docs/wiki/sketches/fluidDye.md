@@ -44,6 +44,8 @@ vec2 r = vec2(
 float f = fbm(uv + r * uWarpStrength);
 ```
 
+- `fbm(…)` reads [noise](../noise.md): a smooth, cloudy random number that changes gently from place to
+  place. `uv` is this pixel's spot on screen, and `uWarpStrength` the **Warp strength** slider.
 - `q` is a first push: two noise values, one for across and one for up. The odd offsets like
   `vec2(5.2, 1.3)` make sure the two aren't the same noise. `t` slides them over time, so it flows.
 - `r` is a second push, worked out at the position *already pushed by `q`*.
@@ -56,6 +58,8 @@ vec3 color = mix(deep, mid, clamp(f * 1.4, 0.0, 1.0));
 color = mix(color, bright, clamp((f + length(r) * 0.4 - 0.6) * 1.6, 0.0, 1.0));
 ```
 
+- `mix(a, b, x)` blends from colour `a` to colour `b` as `x` goes from 0 to 1; `clamp(…, 0.0, 1.0)` keeps
+  `x` inside that range.
 - Line 1: thin ink is deep navy, and thick ink is mid blue.
 - Line 2: where the ink is thick *and* the second push was strong (`length(r)`), it brightens to pale aqua.
   That's why the brightest seams sit along the twistiest currents.
