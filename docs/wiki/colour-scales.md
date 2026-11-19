@@ -27,10 +27,14 @@ vec3 planck(float x) {    // −1 … +1: deep blue, pale blue, cream, orange, d
   if (x < 0.5) return mix(c1, c2, (x - 0.25) / 0.25);
 ```
 
-- Line 1: the input runs from −1 (coldest) to +1 (hottest). The comment lists the five colours in order.
+- This is GLSL, the [shader](shaders.md) language. `float` means "a number with a decimal point" and
+  `vec3` "three numbers", here a colour: red, green, blue, each 0 to 1 (see [RGB](rgb.md)).
+- Line 1: `planck` is a recipe that takes a number `x` and hands back a colour. The input runs from −1
+  (coldest) to +1 (hottest). The comment after `//` lists the five colours in order.
 - Line 2 turns −1…+1 into 0…1. `clamp` keeps anything outside the range at the end colours.
 - Line 3 sets the fixed colours: deep blue, pale blue, cream, and (further along) orange and deep red.
-- Lines 4 and 5 blend: in the first quarter, from deep blue to pale blue; in the second, from pale blue
+- Lines 4 and 5 blend with `mix(a, b, t)`: partway from colour `a` to colour `b`, by `t` (0 to 1). See
+  [Blending](colour-blending-and-gain.md). in the first quarter, from deep blue to pale blue; in the second, from pale blue
   to cream, and so on.
 
 So cream marks "average", blue "colder than average" and red "warmer". It mimics the scale the Planck

@@ -12,8 +12,10 @@ point clouds.
 
 ## Lines that stay the same width: `src/lib/fatLines.js`
 
-Ordinary 3D lines are always 1 pixel thin on most screens. The project's helper draws lines with a chosen
-width in pixels, which stays the same however far away they are.
+Ordinary 3D lines are always 1 pixel (one tiny dot of the screen) thin on most screens. The project's
+helper, `createFatLines` in the shared file `src/lib/fatLines.js`, draws lines with a chosen width in
+pixels, which stays the same however far away they are (instead of shrinking with distance, like a
+real rope would).
 
 From `src/sketches/bezierDeCasteljau.js`:
 
@@ -54,7 +56,9 @@ const points = new THREE.Points(geometry, material);
 - `AdditiveBlending`: where points overlap, their light adds up and gets brighter, like overlapping
   torch beams. This makes sparks and stars glow. See
   [Blending, adding, dimming and gain](colour-blending-and-gain.md).
-- `new THREE.Points(geometry, material)`: the geometry here is only a list of positions, one per point.
+- `new THREE.Points(geometry, material)` makes the cloud from a shape (`geometry`) and a paint
+  (`material`, the settings above). For points, the geometry is only a list of positions, one per point.
+  `...` marks lines left out.
 
 ## Dots that are always round: `createDots`
 
@@ -65,7 +69,8 @@ discs that always face the camera:
 dots.push(level[i], color, 0.05);
 ```
 
-This puts one dot at `level[i]`, in that colour, 0.05 units across.
+`level` is the list of points in the current round of the construction, and `level[i]` point number
+`i` of it. This puts one dot there, in that colour, 0.05 units across.
 
 **Try this:** in `bezierDeCasteljau.js`, the "width" slider sets the line width directly. In the code, change
 `width: { value: 3, ...}` to `value: 8`. The curve opens with lines nearly three times as thick.

@@ -11,8 +11,10 @@ easy to understand and easy to undo.
 
 ## Two ways to change a sketch
 
-**1. In the browser, with the Code panel.** Open a sketch and press **Code** in the dock at the bottom.
-The sketch's file opens in **Read** view: click any underlined piece of code to see what it does, a link
+**1. In the browser, with the Code panel.** Open a sketch and press **Code** in the dock (the row of buttons along the bottom of the screen:
+Explain, Params, Code…).
+The sketch's file opens in **Read** view, which shows the code without letting you change it by
+accident: click any underlined piece of code to see what it does, a link
 to its wiki page, and the same kind of line in other sketches. Switch to **Edit** to change it, then press
 **Run** (or Ctrl+Enter) to restart the sketch with it.
 - On aiship.lol itself, your edits are only stored in your own browser. Nobody else sees them, and the
@@ -21,12 +23,15 @@ to its wiki page, and the same kind of line in other sketches. Switch to **Edit*
   real file in `src/sketches/`.
 - The **Reset** button throws your edits away and brings back the original.
 
-**2. In the file itself.** Open the file in `src/sketches/` in any text editor, change it, save. When the
+**2. In the file itself.** The sketch files are in the project folder, `~/projects/three-katex-shader`,
+inside `src/sketches/` (one file per sketch, e.g. `boidsFlock.js`). Open one in any text editor, change
+it, save. When the
 site is running on your computer, the page updates on its own within a second or two.
 
 ## Running the site on your computer
 
-In a terminal, in the project folder (`~/projects/three-katex-shader`):
+A *terminal* is the window where you type commands instead of clicking (Konsole, on your computer). Open
+one in the project folder (`~/projects/three-katex-shader`) and type:
 
 ```
 npm run dev
@@ -34,8 +39,9 @@ npm run dev
 
 - `npm` is the tool that runs the project's commands. `run dev` starts the *development server*, a
   private copy of the site that only your computer can see.
-- It prints an address like `http://localhost:5173`. Open it in your browser.
-- Press `Ctrl+C` in that terminal to stop it.
+- It prints an address like `http://localhost:5173`. `localhost` means "this computer". Paste the
+  address into your browser's address bar.
+- Hold Ctrl and press C in that terminal to stop it.
 
 ## Habits that keep you safe
 
@@ -43,12 +49,15 @@ npm run dev
   (`'like this'`) are safe too. Brackets, commas and backticks are not: removing one usually stops the
   whole sketch from loading.
 - **If the screen goes blank or shows an error,** undo your last change (`Ctrl+Z` in the editor) and save
-  again. In the browser, press F12 and look at the "Console" tab: a red line names the file and line
-  number with the problem.
-- **Your work is saved by git,** the project's history keeper. Every saved version is kept, and you can
-  always go back. Ask Claude "undo my changes to `boidsFlock.js`" and it can restore the last saved
-  version. (A planned page, "Asking Claude for help", will cover this in more detail.)
-- **Don't edit `public/data/`.** Those files are made by scripts in `tools/`. Change the script instead,
+  again. In the browser, press the F12 key: a panel of developer tools opens. Its "Console" tab lists
+  messages from the page, and a red line names the file and line number with the problem.
+- **Git keeps the project's history.** Git is a tool that stores a snapshot of the project each time a
+  change is *committed* (deliberately saved into the history; Claude does this when you ask it to).
+  Saving a file in an editor doesn't commit it. So you can always get back to the last committed
+  version: ask Claude "undo my changes to `boidsFlock.js`".
+- **Don't edit `public/data/`.** That folder holds the science data some sketches load (star maps,
+  earthquake lists). Those files are made by scripts in `tools/`, and a hand edit would be overwritten
+  the next time a script runs. Change the script instead,
   or ask Claude to.
 
 **What it looks like in the code:** the friendliest numbers to try are slider settings, in `params`. From

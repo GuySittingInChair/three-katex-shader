@@ -20,7 +20,8 @@ const Y = [-0.8, 1.1, -0.2, 1.1, -0.8];
 
 - Each list holds five numbers, separated by commas: the across and up positions of five *control
   points*, the dots the sketch's curve bends towards.
-- Counting starts at **0**. `X[0]` is `-1.8` (the first), and `X[4]` is `1.8` (the fifth).
+- Counting starts at **0**. `X[0]` is `-1.8` (the first), and `X[4]` is `1.8` (the fifth). Think of the
+  number as "how many steps from the start": the first item is 0 steps in.
 - `X.length` is how many there are: 5.
 
 Lists can hold anything, including other lists or objects. Adding to the end of a list is `.push(...)`:
@@ -42,7 +43,8 @@ boids.push({
 - Each bird is an object with two drawers: `pos` (where it is) and `vel` (its velocity: which way it is
   heading, and how fast). `new THREE.Vector3(...)` makes an arrow in 3D: three numbers, across, up and
   towards you.
-- Later the code reads them with a dot: `bi.pos`, `bi.vel`.
+- Later the code reads them with a dot: `bi.pos`, `bi.vel`, where `bi` is whichever bird it's working on
+  (bird number `i`).
 
 A whole sketch is one big object, too. Its drawers are `name`, `params`, `setup` and the rest. See
 [The sketch format: every field](sketch-format.md).

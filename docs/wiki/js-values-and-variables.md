@@ -51,7 +51,7 @@ remainder after dividing: `7 % 3` is 1.
 
 `Math.` is a toolbox of math: `Math.sin`, `Math.cos`, `Math.sqrt` (square root), `Math.PI` (3.14159…),
 `Math.random()` (a random number between 0 and 1), `Math.min` and `Math.max` (the smaller or larger of
-two numbers), `Math.floor` (round down).
+two numbers), `Math.floor` (round down to a whole number: 3.7 becomes 3).
 
 ## Comments
 

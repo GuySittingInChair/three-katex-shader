@@ -4,8 +4,8 @@
 it can go.
 
 **Picture it:** the knobs on a radio. Each knob has a name (volume, tuning), a lowest setting and a
-highest setting. The sketch reads the knobs on every frame, so turning one changes the picture straight
-away.
+highest setting. The sketch reads the knobs on every frame (each fresh picture, about 60 a second), so turning one
+changes the picture straight away.
 
 **Why sketches need it:** they let you explore without editing code. Every sketch has a `params` field.
 
@@ -62,8 +62,8 @@ state.uniforms.uZoom.value = ctx.params.zoom;
 
 ## The `speed` slider is special
 
-Many sketches have a slider called `speed`. If the sketch has a `motion` field, the app uses `speed` to
-run the sketch's clock faster or slower, without making the animation jump. At `speed` 2, an 18-second
+Many sketches have a slider called `speed`. If the sketch has a `motion` part (the recipe that turns the time
+into the animation's numbers), the app uses `speed` to run the sketch's clock faster or slower, without making the animation jump. At `speed` 2, an 18-second
 loop takes 9 seconds. See [Motion and the live equation](motion-and-latex.md).
 
 **Try this:** in `audioReactiveJulia.js`, change zoom's `value: 1.4` to `value: 3`. The sketch now opens

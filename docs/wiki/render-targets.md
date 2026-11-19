@@ -7,7 +7,7 @@ back as the starting point for the next step, so a simulation can run entirely o
 spreading a stain a little, say. Then you copy B back onto A with another small change. Back and forth,
 hundreds of times. Each copy is one tick of the simulation. This back-and-forth is called *ping-pong*.
 
-**Why sketches need it:** a chemical reaction in a dish of 512 × 512 cells means about 260,000 cells. Each
+**Why sketches need it:** a chemical reaction in a dish of 512 × 512 cells means about 262,000 cells. Each
 one has to be updated many times a second. The graphics chip can update all of them at once, but only if
 the whole state lives in pictures it can read and draw into.
 

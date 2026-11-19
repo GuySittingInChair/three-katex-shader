@@ -45,6 +45,8 @@ const modules = import.meta.glob('../sketches/*.js', { eager: true });
 - `'../sketches/*.js'` is the pattern: every file ending in `.js` in the sketches folder. The `*` means
   "any name".
 - `{ eager: true }` means "load them all straight away, when the site starts".
+- `const modules =` keeps the result under the name `modules` (each loaded file is a *module*): every
+  sketch, ready to list in the gallery. That's why a new file in the folder shows up on its own.
 
 **Try this:** copy `src/sketches/gradientPlane.js` to `src/sketches/myFirst.js` and change its `name`. A
 new sketch called whatever you named it appears in the gallery, with no other change needed.

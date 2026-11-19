@@ -55,7 +55,8 @@ equation (`src/core/latex.js`).
 ```js
 color.setHSL(0.6 - speed * 0.35, 0.75, 0.55);
 ```
-(from `src/sketches/boidsFlock.js`)
+(from `src/sketches/boidsFlock.js`, the flocking-birds sketch, where each bird's colour shows its
+speed; `speed` runs from 0 for the slowest to 1 for the fastest)
 
 Instead of three bulbs, HSL describes a colour the way people do:
 - **hue**: where on the colour wheel, from 0 to 1 (0 is red, about 0.33 green, about 0.6 blue, and

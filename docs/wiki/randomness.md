@@ -40,10 +40,13 @@ function rngOf(seed) {
 - `rngOf(seed)` builds a dice-roller from a starting number.
 - `s` is its secret current number.
 - Each roll multiplies `s` by 16807 and keeps the remainder after dividing by 2,147,483,647. That
-  scrambles it thoroughly, but in a fixed way.
+  scrambles it thoroughly, but in a fixed way. The two numbers aren't magic to you: they're a
+  well-tested pair, published in 1988 (Park and Miller's "minimal standard"), that goes through about
+  two billion different values before repeating.
 - Dividing by the same big number gives a result between 0 and 1, like `Math.random()`.
 
-Same seed in, same rolls out. The sketch uses `2000 + loop × 7919` as the seed, so attempt 1, attempt 2
+Same seed in, same rolls out. The sketch uses `2000 + loop × 7919` as the seed (`loop` is the attempt number, and 7919 is a
+big, odd-looking jump, so neighbouring attempts get very different seeds), so attempt 1, attempt 2
 and attempt 3 each get their own seed. That way they differ from one another, yet they're identical for
 everyone who watches.
 
@@ -59,7 +62,8 @@ r.n = () => Math.sqrt(-2 * Math.log(r() + 1e-12)) * Math.cos(6.283185 * r());
 Flat dice make every number equally likely. Real-world wobble (a gun barrel's shake, a radar's error)
 is usually small, occasionally large: a *bell curve*. This line, the Box–Muller trick, turns two flat
 rolls into one bell-curve roll. You don't need to follow the math. It's a well-known recipe, used like a
-kitchen gadget.
+kitchen gadget. (Two small details: `6.283185` is one full turn, 2π, and `1e-12`, a millionth of a
+millionth, is added so the recipe never takes the logarithm of exactly zero, which has no answer.)
 
 **Try this:** in `gameOfLife.js`, change `Math.random() < 0.35` to `< 0.05`. Only 1 cell in 20 starts
 alive. Most die at once of loneliness (fewer than 2 neighbours), and the board goes nearly dark within a

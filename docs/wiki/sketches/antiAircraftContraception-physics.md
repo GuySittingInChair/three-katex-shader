@@ -47,10 +47,12 @@ The cell's steering has its sign flipped, so in the dive it turns *away* from th
 it. In a test of 40 attempts with the gun switched off, every one flew over the egg about 800 m up and
 crashed roughly a kilometre beyond it. With the sign corrected, all 40 reached the egg.
 
-It was found while writing these pages, on 2026-11-18. The same mistake in `intercept.js`, where the line
-came from, was fixed that day. Here it stays, by the owner's ruling: **the sperm shall never be allowed to
+It was found while writing these pages, on 2026-11-18. The same mistake in `intercept.js` (the [Intercept](intercept.md) sketch, a drone
+chasing a target, where the line came from) was fixed that day. Here it stays, by the owner's ruling: **the sperm shall never be allowed to
 finish its quest.** So the "fertilized" tally stays at 0, the calcium-wave ending is never seen, and the
-line `-(terminal ? 4 : 3) * Vc` in `simulate()` must not be "fixed".
+line `-(terminal ? 4 : 3) * Vc` in `simulate()` must not be "fixed". (`Vc` is how fast the gap to the
+egg is closing; `terminal ? 4 : 3` means "4 in the last 150 m, otherwise 3"; the minus sign at the
+front is the flip.)
 
 The joke now has a second layer, in the house style: the equation on screen says "homing", and the
 homing quietly works against it.

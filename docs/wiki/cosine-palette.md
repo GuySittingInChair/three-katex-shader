@@ -26,7 +26,9 @@ For an input number `t`:
 Cosine ("cos", see [sine and cosine](sine-and-cosine.md)) is a wave-maker: feed it a number that grows steadily and the answer rises and falls
 forever, like a swing, between −1 and +1. One full turn of the input is one full swing. So "½ + ½ × cos"
 swings between 0 and 1: from off to full brightness. Because the three are a third of a turn apart, they
-never all peak together. That is what makes the colours vivid instead of grey.
+never all peak together. When all three are equal you get grey or white; when one is high and the others
+low you get a strong colour. Staying out of step keeps them unequal, so the colours stay vivid, and as
+the input grows the lead passes from red to green to blue and back: the rainbow.
 
 **What it looks like in the code:** from `src/sketches/audioPulse.js`:
 
@@ -41,7 +43,8 @@ vec3 color = 0.5 + 0.5 * cos(6.2831 * (hue + vec3(0.0, 0.33, 0.67)));
   started), jumps a little with the bass (`uBass`, how loud the low notes are, or a slow pretend pulse while sound is off), and changes
   with distance from the centre (`r`). `fract` keeps only the part after the decimal point, so it stays
   between 0 and 1.
-- Line 2 is the palette. `6.2831` is one full turn (2π) in radians.
+- Line 2 is the palette. Cosine measures turns in *radians*, where one full turn is 6.2831 (that's 2π).
+  So multiplying by `6.2831` means "`hue` going from 0 to 1 is one full swing".
 - `vec3(0.0, 0.33, 0.67)` gives red, green and blue their head starts, like the swings starting at
   different times: none, a third of a swing, two thirds.
 - The answer is three numbers, one per colour, each between 0 and 1.

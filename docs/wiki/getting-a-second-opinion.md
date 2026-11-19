@@ -18,10 +18,12 @@ versions side by side and says whether the "huh?"s are gone.
 **Why it helps:** Claude wrote the page, so Claude is the worst judge of whether it's clear. Someone who
 already understands a thing can't easily see the gap a beginner falls into. A separate reader can.
 
-**How to do it:** type these in a terminal.
+**How to do it:** type these in a terminal (the window where you type commands, Konsole).
 
 1. `wikicritic sketches/kuramotoSivashinsky-fix`
-   The classmate reads the page (about a minute). It prints a message for Claude: a clarity score out of
+   The classmate reads the page carefully, thinking before it answers (about 5 minutes). Then, for a
+   walkthrough, a second pass compares the page with the sketch's real code and lists anything that
+   looks wrong (a few more minutes). It prints a message for Claude: a clarity score out of
    10, what it *thinks* the page says (if that's wrong, the page misleads), the sentences that lost it,
    and its questions. The message is put on your clipboard.
 2. Paste that message to Claude. Claude rewrites the page and says what it changed for each question.
@@ -29,10 +31,10 @@ already understands a thing can't easily see the gap a beginner falls into. A se
    This puts a review request on your clipboard: the old page, the questions and the new page. Paste it
    into another AI, then paste its answer back to Claude.
    Add `--local` to the end to also have the AI on your computer do the review, this time playing a
-   strict editor (about a minute). It saves its verdict as a message for Claude too.
+   strict editor (a few minutes). It saves its verdict as a message for Claude too.
 
 To check every page at once, type `wikicritic all`. The classmate reads all of them, one after another
-(about an hour and a half; it pauses while fake chat is live, and skips pages it has already read that
+(about 8 to 12 hours, so leave it running overnight; it pauses while fake chat is live, and skips pages it has already read that
 haven't changed). It keeps a list, least clear first, in `tools/wiki-review/out/ALL.md`. Then tell
 Claude "fix the wiki".
 

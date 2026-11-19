@@ -7,9 +7,11 @@ numbers inside the equation on screen, so the equation and the picture always ag
 when. `motion` is the drum: given the time, it says exactly where everything should be. Since it only
 depends on the time, the animation repeats perfectly, like the tune.
 
-**Why sketches need it:** the site's idea is that each animation *is* an equation. Writing the movement as
-"time in, numbers out" means the equation on screen is the real recipe for what you are watching. It isn't
-a decoration.
+**Why sketches need it:** the site's idea is that each animation *is* an equation. So the movement is written as
+"time in, numbers out": give `motion` the number of seconds since the sketch started, and it hands back
+the numbers for that moment (how twisted, how far along). Those same numbers move the picture *and* fill
+in the equation, so the equation on screen is the real recipe for what you are watching. It isn't a
+decoration.
 
 **Where you'll see it:** 101 sketches have a `motion` field. 164 have a `latex` field.
 
@@ -28,9 +30,11 @@ motion(t) {
 ```
 
 - `motion(t)`: `t` is the sketch's clock, in seconds.
-- `phaseOf(t, PERIOD)` says how far through the loop we are, from 0 (start) to almost 1 (end). `PERIOD` is
+- `phaseOf(t, PERIOD)` says how far through the loop we are (the *phase*, as in the phases of the
+  Moon), from 0 (start) to almost 1 (end). `PERIOD` is
   18, so the loop lasts 18 seconds. It comes from `src/lib/motion.js`.
-- `kappa` is how twisted the curve is. `1 - Math.cos(...)` goes smoothly from 0 up to 2 and back to 0
+- `kappa` is how twisted the curve is. `Math.cos` is a [wave-maker](sine-and-cosine.md), so
+  `1 - Math.cos(...)` goes smoothly from 0 up to 2 and back to 0
   once per loop, so `kappa` rises from 0 to its largest (0.9) and falls again.
 - `s` does the same, but three times per loop (the `3`), sweeping a dot along the curve and back.
 - `return { kappa, s, ... }` hands the numbers over. The app stores them in `ctx.motion` so `update` can

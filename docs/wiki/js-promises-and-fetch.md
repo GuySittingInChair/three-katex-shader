@@ -32,12 +32,15 @@ Promise.all([
 - `fetch(DATA_URL + 'meta.json')` orders the file `meta.json`. The `+` joins the two pieces of text.
 - `.then((r) => r.json())` says "when it arrives, read it as JSON", a text format of labelled values.
 - The second line orders the picture `sky.png`. Picture loaders don't hand out tickets on their own, so
-  `new Promise(...)` wraps one up.
+  `new Promise(...)` makes one. `res` and `rej` are the ticket's two buttons, "done" (resolve) and
+  "failed" (reject), handed to the loader to press when the picture arrives or goes wrong.
 - `Promise.all([...])` waits for *both* tickets.
 - `.then(([meta, tex]) => {` runs once both have arrived. It names them `meta` (the numbers) and `tex` (the
   picture).
-- `if (s.disposed) {...}`: if you flipped to another sketch while waiting, throw the picture away and stop.
-- `mat.uniforms.uSky.value = tex;` hands the sky picture to the shader. Until this moment, the sphere has
+- `s` is a little status note the sketch keeps in its memory, marked `disposed` once you leave. So
+  `if (s.disposed) {...}`: if you flipped to another sketch while waiting, throw the picture away and stop.
+- `mat` is the sky sphere's paint (its material), and `uniforms` the knobs it hands its shader (see
+  [Uniforms](uniforms.md)). `mat.uniforms.uSky.value = tex;` hands the sky picture to the shader. Until this moment, the sphere has
   nothing to show.
 
 Some code writes the same idea with `await`, meaning "pause *this recipe* until the ticket is called".

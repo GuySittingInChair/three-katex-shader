@@ -39,15 +39,15 @@ This is called *swizzling*.
 | GLSL | Means |
 |---|---|
 | `sin`, `cos` | wave-makers: as the input grows, the answer rises and falls between −1 and 1, forever ([more](sine-and-cosine.md)) |
-| `length(v)` | how long an arrow is, so distance from the centre |
+| `length(v)` | how long an arrow is: `length(vec2(3, 4))` is 5. For a position, its distance from the centre |
 | `atan(y, x)` | which direction an arrow points (an angle) |
 | `mix(a, b, t)` | blend from a to b; `t` = 0 gives a, 1 gives b (see [Blending, adding, dimming and gain](colour-blending-and-gain.md)) |
-| `clamp(x, lo, hi)` | keep x between lo and hi |
+| `clamp(x, lo, hi)` | keep x between lo and hi: `clamp(1.4, 0.0, 1.0)` is 1 |
 | `smoothstep(a, b, x)` | a soft switch from 0 to 1 as x goes from a to b |
 | `fract(x)` | the part after the decimal point: 2.75 → 0.75 |
-| `mod(x, y)` | remainder after dividing |
-| `pow(x, p)` | x to the power p |
-| `dot(a, b)` | multiply matching parts and add them up |
+| `mod(x, y)` | remainder after dividing: `mod(7.0, 3.0)` is 1, so counting wraps round like a clock |
+| `pow(x, p)` | x multiplied by itself p times: `pow(2.0, 3.0)` is 8 |
+| `dot(a, b)` | multiply matching parts and add them up: `dot(vec2(1, 2), vec2(3, 4))` is 1×3 + 2×4 = 11 |
 
 ## A full example, line by line
 
@@ -66,7 +66,7 @@ float ring = smoothstep(0.02, 0.0, abs(ringPos));
 - Line 2: `r` is how far this pixel is from the centre.
 - Line 3: `a` is which direction the pixel is in, as an angle.
 - Line 4: `ringPos` is how far this pixel is from the ring. The ring sits 0.4 from the centre, pushed in and
-  out by the music (`wobble`).
+  out by the music (`wobble`, worked out a few lines earlier from the bass, middle and treble).
 - Line 5: if the pixel is within 0.02 of the ring, `ring` is close to 1 (bright). Further away it fades to
   0 (dark). `abs` means "ignore the minus sign", so inside and outside count the same.
 

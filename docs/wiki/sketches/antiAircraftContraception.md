@@ -33,7 +33,9 @@ All three are explained properly on [the physics page](antiAircraftContraception
 **How it's built:**
 - **Simulate first, then replay.** Each attempt's whole flight is worked out in one go by `simulate()`, at
   240 steps per second of flight, then played back. That's how it knows when to slow down.
-- [Seeded randomness](../randomness.md): attempt n uses seed `2000 + n × 7919`.
+- [Seeded randomness](../randomness.md): the dice rolls (where the gun's shots wobble) start from a
+  *seed* number, `2000 + n × 7919` for attempt n, so every attempt is different but replays the same
+  for everyone.
 - [Glow](../glow.md) for the tracers and bursts, [lines](../lines-and-points.md) for the tracer trails,
   and [captions](../comedy-captions.md) under the equation.
 
@@ -57,7 +59,8 @@ acc = add(mul(cross(Om, norm(v)), -(terminal ? 4 : 3) * Vc), mul(norm(v), 2.0));
   the file.
 - `Om` measures how fast the egg is drifting across the cell's view.
 - `Vc` is how fast the gap is closing.
-- Line 2 is meant to turn the cell to cancel that drift, 3 times as hard (4 in the last 150 m), and to
+- Line 2 sets `acc`, the cell's acceleration (how it speeds up and turns). It is meant to turn the cell
+  to cancel that drift, 3 times as hard (4 in the last 150 m), and to
   push forward a little. But the minus sign at the front, `-(terminal ? 4 : 3)`, turns it the wrong
   way, so the drift grows instead. That's the quest below.
 

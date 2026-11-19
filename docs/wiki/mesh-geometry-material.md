@@ -67,10 +67,13 @@ posAttr.needsUpdate = true;
 geometry.computeVertexNormals();
 ```
 
-- Line 1 pushes corner `i` outward, more when the music is louder at that spot.
-- Line 2 tells the graphics chip the corners have changed.
-- Line 3 recomputes which way each bit of surface faces (its *normals*). Light needs those directions
-  to shade the surface correctly.
+- `posAttr` is the shape's list of corner positions (its position *attribute*, from earlier).
+  `setXYZ(i, …)` gives corner `i` a new across, up and depth: here pushed outward, more when the music is
+  louder at that spot. (`...` marks lines left out.)
+- `needsUpdate = true` tells three.js the corners have changed, so it sends them to the graphics chip
+  again.
+- `computeVertexNormals()` recomputes which way each bit of surface faces (its *normals*). Light needs
+  those directions to shade the surface correctly.
 
 ## Shapes worked out entirely on the graphics chip
 

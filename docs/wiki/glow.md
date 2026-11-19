@@ -46,6 +46,7 @@ And how a sketch turns it on, from `src/sketches/antiAircraftContraception.js`:
 const glow = createGlow(ctx, { fov: 50, strength: 0.9, threshold: 0.8, exposure: 1.1, vignette: 0.6 });
 ```
 
+- `ctx` is the bag of useful things the app hands every sketch (the scene, the camera, the sliders).
 - `strength: 0.9`: how strongly the halos are added back.
 - `threshold: 0.8`: only things brighter than 80% of white get a halo.
 - `exposure: 1.1`: brighten everything a touch, like opening a camera's aperture.

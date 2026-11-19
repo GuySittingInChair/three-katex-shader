@@ -23,7 +23,9 @@ const mesh = new THREE.InstancedMesh(geometry, material, COUNT);
 
 - Line 1 carves the stamp: a small cone 0.1 units across (0.05 from centre to edge) and 0.17 tall, with 6 sides. Its tip points up,
   so it can point the way a bird flies.
-- Line 2 makes an *instanced mesh* that will draw that cone `COUNT` (120) times.
+- Line 3 makes an *instanced mesh* (one shape that is drawn many times) that will draw that cone `COUNT`
+  times. `COUNT` is set to 120 at the top of the file. `material` is the paint (see
+  [Mesh, geometry and material](mesh-geometry-material.md)); `...` marks lines left out.
 
 Then, on every frame in `update`, each copy is placed:
 
@@ -34,10 +36,13 @@ dummy.updateMatrix();
 mesh.setMatrixAt(i, dummy.matrix);
 ```
 
-- `dummy` is an invisible helper object, used like a ruler. Line 1 moves it to bird `b`'s position.
-- Line 2 turns it so its "up" points the way the bird is flying (`dir`). A *quaternion* is the way 3D
+- `dummy` is an invisible helper object, used like a ruler. Line 1 moves it to bird `b`'s position
+  (`b.pos`).
+- Line 2 turns it so its "up" (`UP`, set at the top of the file to straight up) points the way the bird
+  is flying (`dir`, the bird's velocity shrunk to length 1, so pure direction). A *quaternion* is the way 3D
   programs store a turn. You only need to know it means "which way something faces".
-- Line 3 squashes position and turn into one block of 16 numbers, called a *matrix*.
+- Line 3 squashes position, turn and size into one block of 16 numbers (a 4 × 4 grid), called a
+  *matrix*. It's the standard way a graphics chip is told "put this here, turned like this".
 - Line 4 gives copy number `i` that block. The stamp is pressed there.
 
 After all 120:
@@ -46,7 +51,8 @@ After all 120:
 mesh.instanceMatrix.needsUpdate = true;
 ```
 
-This tells the graphics chip "the copies have moved, send them again".
+`instanceMatrix` is the list of every copy's block. Setting `needsUpdate` to `true` tells three.js "the
+copies have moved, send them to the graphics chip again". Without it, the birds would freeze.
 
 ## Colour per copy
 
@@ -57,8 +63,8 @@ color.setHSL(0.6 - speed * 0.35, 0.75, 0.55).toArray(instanceColor.array, i * 3)
 ```
 
 `setHSL` picks a colour by hue (position around the colour wheel), saturation (how vivid) and lightness.
-Hue 0.6 is blue, and lower values move towards green. The colour goes into a list with three numbers per
-bird. See [RGB, three numbers](rgb.md).
+Hue 0.6 is blue, and lower values move towards green. `.toArray(instanceColor.array, i * 3)` writes the colour's three numbers into the list of all birds'
+colours, starting at place `i * 3`, because each bird takes three places (red, green, blue). See [RGB, three numbers](rgb.md).
 
 **Try this:** in `boidsFlock.js`, change `ConeGeometry(0.05, 0.17, 6)` to `(0.1, 0.4, 6)`. Every bird
 becomes twice as wide and more than twice as long, because all 120 are stamped from the same cone.

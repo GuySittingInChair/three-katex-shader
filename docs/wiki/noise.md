@@ -30,7 +30,8 @@ This is GLSL, the [shader](shaders.md) language. `p` is a corner's position (two
 keeps only the part after the decimal point (2.75 → 0.75), and `dot` multiplies the numbers in pairs and
 adds them up. Mixed together with odd numbers like 127.1, they scramble a position into a number
 between 0 and 1 that looks random. It isn't truly random:
-the same corner always gets the same number. That's the point, because the picture must not flicker. A
+the same corner always gets the same number. That's the point: the shader redraws the whole picture 60 times a second, so if a corner got a new
+random number each time, the picture would flicker like static. A
 scrambler like this is called a *hash*.
 
 **2. Blend smoothly between corners.**
@@ -63,8 +64,9 @@ for (int i = 0; i < 5; i++) {
 `freq` is how detailed a layer is and `amp` how strong; `*=` means "multiply by". So each time round,
 the next layer is twice as detailed and half as strong. Five layers: big shapes, then finer, then finer
 still. This stacking is called *fbm* (fractal Brownian
-motion, a grand name for "noise on noise on noise"). Each layer is an *octave*, borrowed from music,
-because each doubles the frequency, as an octave doubles a note's pitch.
+motion, a grand name for "noise on noise on noise"). Each layer is an *octave*, borrowed from music:
+going up an octave (from one "do" to the next in do-re-mi) doubles a note's pitch, and each layer
+doubles the detail.
 
 ## The party trick: warping
 

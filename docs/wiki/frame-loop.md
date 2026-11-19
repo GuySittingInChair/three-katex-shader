@@ -32,7 +32,8 @@ setup(ctx) {
   things the app hands over: the camera, the scene, the slider values, the time.
 - `ctx.camera.position.set(0, 0, 3.2);` moves the camera 3.2 units back from the centre, so the ball fits
   on screen.
-- `new THREE.IcosahedronGeometry(1, 3)` builds the ball's shape: a sphere made of small triangles.
+- `new THREE.IcosahedronGeometry(1, 3)` builds the ball's shape from three.js (`THREE`), the 3D toolbox
+  the site uses: a sphere of radius 1 made of small triangles.
 - `return { mesh, geometry, ... }` hands back the things it built. The app keeps them and passes them to
   `update` as `state`, so `update` can find them again.
 
@@ -60,7 +61,7 @@ dispose(ctx, state) {
 
 **The order, every time:** you arrive at a sketch → `setup` once → `update`, frame after frame → you
 leave → `dispose` once. The app's code for this is in `src/core/SketchRunner.js`. If a sketch forgets
-`dispose`, the runner cleans up the basics anyway.
+`dispose`, the runner (that file) still frees the shapes and paints left in the scene.
 
 **Try this:** in `audioReactiveMesh.js`, change `3.2` in `setup` to `6`. The camera starts twice as far
 away, so the ball looks about half the size.

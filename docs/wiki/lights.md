@@ -35,16 +35,19 @@ const ambient = new THREE.AmbientLight(0x404050, 1.2);
 ctx.scene.add(ambient);
 ```
 
+- `THREE` is three.js, the 3D toolbox the site uses; `new THREE.DirectionalLight(…)` means "make a new
+  sun-style light from the toolbox".
 - Line 1 makes a "sun". `0xffffff` is white (see [RGB, three numbers](rgb.md) for colour codes), and `2.0` is its
   strength.
-- Line 2 places it up and to the right, in front. Its rays come from there towards the centre.
+- Line 2 places it at across 2, up 3, towards you 4: up and to the right, in front. Its rays come from there towards the centre.
 - Line 3 adds it to the scene (`ctx` is the bag of useful things the app hands every sketch, including
   the scene). A light that isn't added does nothing.
 - Line 4 makes a dim, slightly blue (`0x404050`) glow everywhere, at strength 1.2.
 - Line 5 adds that too.
 
-The lights only affect materials that react to light, such as `MeshStandardMaterial`. A
-`MeshBasicMaterial` ignores them. See [Mesh, geometry and material](mesh-geometry-material.md).
+A *material* is a shape's paint. The lights only affect paints that react to light, such as
+`MeshStandardMaterial` (shiny or matt, shaded like a real object). A `MeshBasicMaterial` is flat paint
+that glows its own colour evenly and ignores lights. See [Mesh, geometry and material](mesh-geometry-material.md).
 
 These lights are removed again in the sketch's `dispose`, so they don't leak into the next sketch.
 

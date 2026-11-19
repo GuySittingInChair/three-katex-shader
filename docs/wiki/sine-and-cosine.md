@@ -14,7 +14,7 @@ far up.
 **Why sketches need it:** almost everything that moves on this site goes up and down, back and forth, or
 round and round: a wobbling ring, a breathing shape, a camera circling a scene, a rainbow that cycles.
 One `sin` gives smooth back-and-forth with no sudden jumps, and it repeats forever without running out.
-151 of the 166 sketch files use one.
+151 of the 166 sketch files use `sin` or `cos` somewhere.
 
 **Where you'll see it:** written `sin(…)` and `cos(…)` in [shaders](shaders.md), and `Math.sin(…)` and
 `Math.cos(…)` in JavaScript.
@@ -39,10 +39,12 @@ float wobble = uBass * sin(a * 3.0 + uTime * uSpeed)
 
 `a` is the direction from the centre (the angle round the ring). Each line is one wave running round
 the ring:
-- `a * 3.0`: three bumps round the ring. `a * 7.0` makes seven, `a * 13.0` thirteen.
+- `a * 3.0`: going once round the ring, `a` makes one full turn, so `a * 3.0` makes three, and the wave
+  rises and falls three times: three bumps. `a * 7.0` makes seven, `a * 13.0` thirteen.
 - `+ uTime * uSpeed`: the time keeps sliding the wave along, so the bumps travel round. The middle line
   has `−`, so its bumps travel the other way.
-- `uBass`, `uMid`, `uTreble` set how tall each wave is: how loud the low, middle and high notes are.
+- `uBass`, `uMid`, `uTreble` (handed in from the sketch's JavaScript, see [Uniforms](uniforms.md)) set
+  how tall each wave is: how loud the low, middle and high notes are.
 
 Added together, the three waves make the ring's lumpy, living outline: a few big lumps for the bass, many
 fine ripples for the treble.

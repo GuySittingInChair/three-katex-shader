@@ -54,7 +54,7 @@ for (let i = 0; i < boids.length; i++) {
 }
 ```
 
-- `let i = 0` starts a counter at 0.
+- `let i = 0` starts a counter at 0 (`let` makes a name whose value can change; see [Values, names and comments](js-values-and-variables.md)).
 - `i < boids.length` keeps going while the counter is less than the number of birds (120).
 - `i++` adds one to the counter after each round.
 - `boids[i]` is "bird number i". So the block runs 120 times, once per bird.

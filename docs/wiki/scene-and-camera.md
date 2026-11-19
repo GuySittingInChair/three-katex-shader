@@ -44,8 +44,8 @@ ctx.scene.add(mesh);
 
 - Line 1 moves the camera a little up (0.6) and back (3.6). It is looking down slightly at the flock.
 - `...` marks lines left out.
-- Line 2 makes the birds: `COUNT` copies of one bird shape (`geometry`) with one paint (`material`). See [Many copies of one shape (instancing)](instancing.md).
-- Line 3 puts them into the scene. **Anything not added to the scene is never drawn.**
+- Line 3 makes the birds: `COUNT` copies of one bird shape (`geometry`) with one paint (`material`). See [Many copies of one shape (instancing)](instancing.md).
+- Line 4 puts them into the scene. **Anything not added to the scene is never drawn.**
 
 The word `THREE` appears everywhere. It is three.js, the toolbox for 3D drawing that the whole project is
 built on. `new THREE.Something(...)` means "make a new Something from the toolbox".

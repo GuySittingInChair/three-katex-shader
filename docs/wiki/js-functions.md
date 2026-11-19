@@ -24,6 +24,8 @@ function evalBezier(s, kappa) {
 - `function evalBezier` names the recipe `evalBezier` ("evaluate the Bézier curve").
 - `(s, kappa)` are its inputs: how far along the curve, and how twisted it is.
 - Everything between `{` and `}` is the recipe.
+- Its first line calls another recipe, `bernstein`, which works out how strongly each control point
+  pulls at this spot; `...` marks lines left out, which add the pulls up into `out`.
 - `return out;` hands back the result, a point in space.
 
 To *use* it, the code writes its name with inputs in brackets: `evalBezier(0.5, 0.2)`. This is called
@@ -38,7 +40,8 @@ const controlPoint = (i, kappa) => [X[i], Y[i] * Math.cos(i * kappa), Y[i] * Mat
 - `const controlPoint =` names it.
 - `(i, kappa)` are the inputs.
 - `=>` reads as "gives". Whatever follows is the result.
-- The result here is a list of three numbers: a point's x, y and z.
+- The result here is a list of three numbers: a point's x, y and z. `Math.cos` and `Math.sin` are
+  [wave-makers](sine-and-cosine.md); together they swing the point's height round in a circle.
 
 Arrows are a shorter way to write small recipes. They mean the same thing.
 
@@ -69,7 +72,8 @@ When a function is reached through a dot, it belongs to that thing. `ctx.camera.
 calls the camera position's own `set` recipe. `geometry.dispose()` calls the geometry's own "free your
 memory" recipe. The empty brackets `()` mean "no inputs needed".
 
-**Try this:** in `bezierDeCasteljau.js`, `Y` holds the heights of the five control points:
+**Try this:** in `bezierDeCasteljau.js`, `Y` holds the heights of the five *control points*, the dots
+the curve bends towards:
 `[-0.8, 1.1, -0.2, 1.1, -0.8]`. Change the middle `-0.2` to `1.5`. The middle of the zig-zag pops up, and
 the curve, which `evalBezier` works out from those points, bulges upward in the middle.
 
