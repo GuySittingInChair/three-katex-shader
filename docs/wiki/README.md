@@ -128,7 +128,7 @@ Written oldest first, about ten at a time. The full list, with which ones are do
 | [Inferno Cape](sketches/infernoCape.md) | molten rock made of noise warping noise |
 | [Iridescent Sphere](sketches/iridescentSphere.md) | a soap-bubble rainbow shimmer on a ball |
 | [Klein Bottle](sketches/kleinBottle.md) | a Möbius strip inflating into a one-sided bottle |
-| [Kuramoto–Sivashinsky](sketches/kuramotoSivashinsky.md) | a wrinkling flame front, as a honeycomb |
+| [Kuramoto–Sivashinsky](sketches/kuramotoSivashinsky.md) | a wrinkling flame front, as a honeycomb ([the bug that froze it](sketches/kuramotoSivashinsky-fix.md)) |
 | [Kuramoto–Sivashinsky — Life-Seeded](sketches/kuramotoSivashinskyLife.md) | the same flame, fed by a Game of Life board |
 | [Life-Warped Fractal](sketches/lifeWarpedFractal.md) | a kaleidoscope bent by a hidden Game of Life |
 

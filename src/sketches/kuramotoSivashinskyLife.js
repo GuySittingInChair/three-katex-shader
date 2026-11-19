@@ -1,17 +1,21 @@
 import * as THREE from 'three';
 
-const SIZE = 96;
+// The Kuramoto–Sivashinsky flame (see kuramotoSivashinsky.js), fed by a Game
+// of Life board: wherever a Life square is alive, a steady push `drive` is
+// added to h_t. Life supplies structured "fuel"; the flame folds, stretches
+// and dissolves it.
+//
+// 2026-11-18: the equation now runs on the stable spectral solver in a worker
+// (src/lib/ksWorker.js); the old square-by-square stepping froze after about
+// 50 seconds. see docs/wiki/sketches/kuramotoSivashinsky-fix.md
+
+const SIZE = 128;
 const CELLS = SIZE * SIZE;
-let H = new Float32Array(CELLS);
+const DISPLAY_RANGE = 9;
 let LIFE = new Uint8Array(CELLS);
-const display = new Uint8Array(CELLS);
-const lifeDisplay = new Uint8Array(CELLS);
 
-const CLAMP = 4.0;
-const DISPLAY_RANGE = 2.2;
-
-function seed() {
-  for (let i = 0; i < CELLS; i++) H[i] = (Math.random() - 0.5) * 0.2;
+// see docs/wiki/sketches/gameOfLife.md
+function seedLife() {
   for (let i = 0; i < CELLS; i++) LIFE[i] = Math.random() < 0.22 ? 1 : 0;
 }
 
@@ -41,70 +45,6 @@ function stepLife() {
   LIFE = next;
 }
 
-// 5-point Laplacian on a periodic (toroidal) grid.
-function laplacian(field, out, invDxSq) {
-  for (let y = 0; y < SIZE; y++) {
-    const yUp = ((y - 1 + SIZE) % SIZE) * SIZE;
-    const yDown = ((y + 1) % SIZE) * SIZE;
-    const yRow = y * SIZE;
-    for (let x = 0; x < SIZE; x++) {
-      const xLeft = (x - 1 + SIZE) % SIZE;
-      const xRight = (x + 1) % SIZE;
-      const c = field[yRow + x];
-      out[yRow + x] = (field[yUp + x] + field[yDown + x] + field[yRow + xLeft] + field[yRow + xRight] - 4 * c) * invDxSq;
-    }
-  }
-}
-
-// Same Kuramoto–Sivashinsky step as the base sketch, plus a forcing term:
-// wherever the independently-evolving Life board is alive, a constant
-// source is added to h each step. Life supplies structured, self-organizing
-// "fuel"; the KS dynamics fold, stretch, and eventually dissolve it into
-// the surrounding chaos — order continuously being fed into and consumed
-// by turbulence.
-function step(dt, dx, drive) {
-  const invDxSq = 1 / (dx * dx);
-  const lap = new Float32Array(CELLS);
-  const lap2 = new Float32Array(CELLS);
-  laplacian(H, lap, invDxSq);
-  laplacian(lap, lap2, invDxSq);
-
-  const invDx = 1 / dx;
-  const next = new Float32Array(CELLS);
-  let mean = 0;
-  for (let y = 0; y < SIZE; y++) {
-    const yUp = ((y - 1 + SIZE) % SIZE) * SIZE;
-    const yDown = ((y + 1) % SIZE) * SIZE;
-    const yRow = y * SIZE;
-    for (let x = 0; x < SIZE; x++) {
-      const xLeft = (x - 1 + SIZE) % SIZE;
-      const xRight = (x + 1) % SIZE;
-      const idx = yRow + x;
-      const gx = (H[yRow + xRight] - H[yRow + xLeft]) * 0.5 * invDx;
-      const gy = (H[yDown + x] - H[yUp + x]) * 0.5 * invDx;
-      const gradSq = gx * gx + gy * gy;
-      const dh = -lap[idx] - lap2[idx] - 0.5 * gradSq + drive * LIFE[idx];
-      let nh = H[idx] + dt * dh;
-      if (nh > CLAMP) nh = CLAMP;
-      else if (nh < -CLAMP) nh = -CLAMP;
-      next[idx] = nh;
-      mean += nh;
-    }
-  }
-  mean /= CELLS;
-  for (let i = 0; i < CELLS; i++) next[i] -= mean;
-  H = next;
-}
-
-function writeDisplay() {
-  for (let i = 0; i < CELLS; i++) {
-    const v = H[i] / DISPLAY_RANGE;
-    const clamped = v < -1 ? -1 : v > 1 ? 1 : v;
-    display[i] = Math.round((clamped * 0.5 + 0.5) * 255);
-    lifeDisplay[i] = LIFE[i] ? 255 : 0;
-  }
-}
-
 export default {
   name: 'Kuramoto–Sivashinsky — Life-Seeded',
   description: 'The Kuramoto–Sivashinsky chaos field, continuously fed by a Conway\'s Game of Life board evolving underneath it — Life\'s gliders and blinkers inject structured "fuel" that the PDE folds, stretches, and dissolves back into turbulence.',
@@ -115,9 +55,9 @@ export default {
   latex: '\\partial_t h = -\\nabla^2 h - \\nabla^4 h - \\tfrac{1}{2}|\\nabla h|^2 + \\varepsilon\\cdot\\text{alive}(\\mathbf{x})',
 
   params: {
-    dt: { value: 0.04, min: 0.005, max: 0.1, step: 0.005 },
-    spacing: { value: 1.3, min: 0.7, max: 2.2, step: 0.05 },
-    speed: { value: 3, min: 1, max: 8, step: 1 },
+    dt: { value: 0.1, min: 0.02, max: 0.15, step: 0.01 },
+    spacing: { value: 0.9, min: 0.5, max: 1.05, step: 0.05 },
+    speed: { value: 6, min: 1, max: 15, step: 1 },
     drive: { value: 0.35, min: 0.0, max: 1.2, step: 0.02 },
     genRate: { value: 4, min: 1, max: 15, step: 1 },
   },
@@ -151,43 +91,67 @@ export default {
   `,
 
   uniforms() {
-    seed();
-    writeDisplay();
-    const texture = new THREE.DataTexture(display, SIZE, SIZE, THREE.RedFormat, THREE.UnsignedByteType);
-    texture.magFilter = THREE.LinearFilter;
-    texture.minFilter = THREE.LinearFilter;
-    texture.needsUpdate = true;
-
-    const lifeTexture = new THREE.DataTexture(lifeDisplay, SIZE, SIZE, THREE.RedFormat, THREE.UnsignedByteType);
-    lifeTexture.magFilter = THREE.LinearFilter;
-    lifeTexture.minFilter = THREE.LinearFilter;
-    lifeTexture.wrapS = THREE.RepeatWrapping;
-    lifeTexture.wrapT = THREE.RepeatWrapping;
-    lifeTexture.needsUpdate = true;
-
-    return { uField: { value: texture }, uLife: { value: lifeTexture } };
+    const make = (fill) => {
+      const t = new THREE.DataTexture(new Uint8Array(CELLS).fill(fill), SIZE, SIZE, THREE.RedFormat, THREE.UnsignedByteType);
+      t.magFilter = THREE.LinearFilter;
+      t.minFilter = THREE.LinearFilter;
+      t.wrapS = THREE.RepeatWrapping;
+      t.wrapT = THREE.RepeatWrapping;
+      t.needsUpdate = true;
+      return t;
+    };
+    return { uField: { value: make(128) }, uLife: { value: make(0) } };
   },
 
-  setup() {
-    return { genTimer: 0 };
+  setup(ctx) {
+    seedLife();
+    const worker = new Worker(new URL('../lib/ksWorker.js', import.meta.url), { type: 'module' });
+    const sim = { latest: null, sent: '', genTimer: 0, lifeDirty: true };
+    worker.onmessage = (e) => (sim.latest = e.data);
+    worker.postMessage({ type: 'init', size: SIZE, params: paramsFor(ctx) });
+    return { worker, sim };
   },
 
   update(ctx, state) {
-    state.genTimer += ctx.delta;
+    const { sim, worker } = state;
+    sim.genTimer += ctx.delta;
     const genInterval = 1 / ctx.params.genRate;
-    while (state.genTimer >= genInterval) {
-      state.genTimer -= genInterval;
+    while (sim.genTimer >= genInterval) {
+      sim.genTimer -= genInterval;
       stepLife();
+      sim.lifeDirty = true;
+    }
+    if (sim.lifeDirty) {
+      sim.lifeDirty = false;
+      worker.postMessage({ type: 'force', force: Float32Array.from(LIFE) });
+      const lifeTexture = state.uniforms.uLife.value;
+      for (let i = 0; i < CELLS; i++) lifeTexture.image.data[i] = LIFE[i] ? 255 : 0;
+      lifeTexture.needsUpdate = true;
     }
 
-    const substeps = Math.round(ctx.params.speed);
-    for (let i = 0; i < substeps; i++) {
-      step(ctx.params.dt, ctx.params.spacing, ctx.params.drive);
+    const p = paramsFor(ctx);
+    const key = JSON.stringify(p);
+    if (key !== sim.sent) {
+      sim.sent = key;
+      worker.postMessage({ type: 'params', params: p });
     }
-    writeDisplay();
-    state.uniforms.uField.value.image.data = display;
-    state.uniforms.uField.value.needsUpdate = true;
-    state.uniforms.uLife.value.image.data = lifeDisplay;
-    state.uniforms.uLife.value.needsUpdate = true;
+    if (sim.latest) {
+      const texture = state.uniforms.uField.value;
+      const out = texture.image.data;
+      for (let i = 0; i < CELLS; i++) {
+        const v = sim.latest[i] / DISPLAY_RANGE;
+        out[i] = Math.round(((v < -1 ? -1 : v > 1 ? 1 : v) * 0.5 + 0.5) * 255);
+      }
+      texture.needsUpdate = true;
+      sim.latest = null;
+    }
+  },
+
+  dispose(ctx, state) {
+    state.worker.terminate();
   },
 };
+
+function paramsFor(ctx) {
+  return { dt: ctx.params.dt, spacing: ctx.params.spacing, speed: ctx.params.speed, drive: ctx.params.drive };
+}
