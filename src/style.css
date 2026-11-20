@@ -3553,3 +3553,72 @@ body.is-recording.rec-panel-open #rec-indicator {
 }
 .code-term-more:hover,
 .code-term-more:focus-visible { background: rgba(255, 255, 255, 0.06); }
+
+/* ---- Astronomy hub (/astronomy) and its home-page feature ---- */
+.hero-feature {
+  display: block;
+  margin: 22px auto 0;
+  max-width: 520px;
+  padding: 14px 18px;
+  border: 1px solid rgba(157, 180, 255, 0.45);
+  border-radius: 14px;
+  background: rgba(8, 12, 30, 0.72);
+  color: var(--text);
+  text-decoration: none;
+  text-align: left;
+  backdrop-filter: blur(6px);
+}
+.hero-feature:hover,
+.hero-feature:focus-visible { border-color: #9db4ff; background: rgba(14, 20, 48, 0.85); }
+.hero-feature-kicker { display: block; font: 600 0.78rem var(--font); color: #9db4ff; letter-spacing: 0.04em; text-transform: uppercase; }
+.hero-feature-title { display: block; font-weight: 600; font-size: 1.05rem; margin: 4px 0; }
+.hero-feature-text { display: block; font-size: 0.88rem; color: var(--muted); line-height: 1.5; }
+
+.topbar-link { text-decoration: none; }
+@media (max-width: 720px) {
+  .topbar-link { display: none; } /* phones: these live in the More menu */
+}
+
+.astro-inner section { margin: 34px 0; }
+.astro-inner h2 { font-size: 1.2rem; margin-bottom: 12px; }
+.astro-hidden {
+  padding: 16px 18px;
+  border: 1px solid rgba(157, 180, 255, 0.35);
+  border-radius: 14px;
+  background: rgba(157, 180, 255, 0.06);
+  line-height: 1.6;
+}
+.astro-hidden ul { padding-left: 20px; margin-top: 8px; }
+.astro-hidden li { margin-bottom: 6px; }
+.astro-inner a { color: var(--accent); }
+.astro-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.astro-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+.astro-card-main { color: var(--text) !important; text-decoration: none; flex: 1; }
+.astro-card-main:hover h3,
+.astro-card-main:focus-visible h3 { text-decoration: underline; }
+.astro-thumb { margin: 0; --h: 225; }
+.astro-card h3 { font-size: 1rem; margin: 10px 12px 4px; }
+.astro-card p { font-size: 0.85rem; color: var(--muted); margin: 0 12px 12px; line-height: 1.5; }
+.astro-card-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  padding: 8px 12px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.astro-note { color: var(--muted); font-weight: 400; }
+.astro-wiki { list-style: none; padding: 0; }
+.astro-wiki li { margin-bottom: 10px; }
+.astro-wiki span { display: block; color: var(--muted); font-size: 0.88rem; }

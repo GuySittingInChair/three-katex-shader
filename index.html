@@ -33,6 +33,11 @@
             <a class="btn btn-ghost" data-link href="/sketches">Browse sketches</a>
             <a class="btn btn-ghost" data-link href="/wiki">How it works (wiki)</a>
           </div>
+          <a class="hero-feature" data-link href="/astronomy">
+            <span class="hero-feature-kicker">🔭 Astronomy</span>
+            <span class="hero-feature-title">Real sky data, from the Sun to the oldest light</span>
+            <span class="hero-feature-text">Gaia's stars, Webb's deep field, Planck's map of the early universe, the first gravitational wave, and more, all animated and explained.</span>
+          </a>
         </div>
       </section>
     </main>
@@ -43,6 +48,7 @@
         <header class="page-head">
           <a class="brand" href="/" data-link>aiship</a>
           <nav class="page-nav">
+            <a href="/astronomy" data-link>Astronomy</a>
             <a href="/wiki" data-link>Wiki</a>
             <a href="/games" data-link>Games</a>
             <button class="bar-btn account-btn" type="button" data-role="page-account">Log in</button>
@@ -56,6 +62,9 @@
         </footer>
       </div>
     </main>
+
+    <!-- Astronomy hub (/astronomy) -->
+    <main id="astronomy-page" class="landing sketches-page" hidden></main>
 
     <!-- Games (/games, /games/<id>) -->
     <main id="games-page" class="landing sketches-page" hidden></main>
@@ -75,6 +84,8 @@
       </button>
       <a class="topbar-author" id="topbar-author" href="/" data-link></a>
       <div class="topbar-right">
+        <a class="bar-btn topbar-link" href="/astronomy" data-link>Astronomy</a>
+        <a class="bar-btn topbar-link" href="/games" data-link>Games</a>
         <button id="review-toggle" class="bar-btn hidden" type="button">Review</button>
         <button id="account-toggle" class="bar-btn account-btn" type="button">Log in</button>
       </div>
@@ -114,6 +125,7 @@
     </nav>
 
     <div id="more-menu" class="menu hidden" role="menu">
+      <a class="menu-link" href="/astronomy" data-link role="menuitem">Astronomy</a>
       <a class="menu-link" href="/games" data-link role="menuitem">Games</a>
       <button id="media-toggle" type="button" role="menuitem">Record a clip <kbd>R</kbd></button>
       <button id="audio-toggle" type="button" role="menuitem">Use microphone</button>

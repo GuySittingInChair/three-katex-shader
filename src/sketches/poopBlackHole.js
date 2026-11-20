@@ -95,7 +95,7 @@ export default {
     'A tonne of poop is squeezed while Bekenstein’s bound on how many bits it could store shrinks with it. You ' +
     'can’t beat the bound: at its Schwarzschild radius the pile becomes a black hole whose entropy equals it ' +
     'exactly. Then it Hawking-evaporates in 84 nanoseconds. Every number is live.',
-  tags: ['bekenstein bound', 'black hole', 'entropy', 'hawking radiation', 'information', 'poop'],
+  tags: ['astronomy', 'bekenstein bound', 'black hole', 'entropy', 'hawking radiation', 'information', 'poop'],
   category: 'Physics',
   mode: 'shader',
   shaderLang: 'glsl',

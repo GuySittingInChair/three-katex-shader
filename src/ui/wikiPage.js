@@ -13,6 +13,7 @@ export function createWikiPage(el) {
           <a href="/wiki" data-link>Wiki home</a>
           <a href="/wiki/glossary" data-link>Glossary</a>
           <a href="/sketches" data-link>Sketches</a>
+          <a href="/astronomy" data-link>Astronomy</a>
         </nav>
       </header>
       <div class="wiki-open hidden"></div>

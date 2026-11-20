@@ -34,7 +34,7 @@ export default {
     'Two pairs of robot friends hold hands and fall into a black hole. Tidal forces, solved exactly, pull the ' +
     'pair falling one behind the other 7.8× apart by the horizon, and squeeze the pair falling side by side to ' +
     '1/12 of the gap: a forced hug. Both friendship distances are live.',
-  tags: ['general relativity', 'black hole', 'tidal forces', 'geodesic deviation', 'robots'],
+  tags: ['astronomy', 'general relativity', 'black hole', 'tidal forces', 'geodesic deviation', 'robots'],
   category: 'Physics',
   mode: 'shader',
   shaderLang: 'glsl',

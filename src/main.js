@@ -32,6 +32,7 @@ import { promptSignIn } from './ui/signIn.js';
 import { createFeed } from './ui/feed.js';
 import { createProfilePage } from './ui/profilePage.js';
 import { createGamesPage } from './ui/gamesPage.js';
+import { createAstronomyPage } from './ui/astronomyPage.js';
 import { createWikiPage } from './ui/wikiPage.js';
 import { createToast, createViewMode } from './ui/viewMode.js';
 import { createRecorder } from './core/recorder.js';
@@ -53,6 +54,7 @@ function parseRoute() {
   const u = /^\/u\/([^/]+)\/?$/.exec(location.pathname);
   if (u) return { page: 'profile', name: decodeURIComponent(u[1]) };
   if (/^\/sketches\/?$/.test(location.pathname)) return { page: 'sketches' };
+  if (/^\/astronomy\/?$/.test(location.pathname)) return { page: 'astronomy' };
   const g = /^\/games(?:\/([^/]+))?\/?$/.exec(location.pathname);
   if (g) return { page: 'games', game: g[1] ? decodeURIComponent(g[1]) : null };
   const w = /^\/wiki(?:\/([\w/-]+?))?\/?$/.exec(location.pathname);
@@ -440,6 +442,8 @@ const profileEl = $('profile');
 const sketchesEl = $('sketches-page');
 const gamesEl = $('games-page');
 const gamesPage = createGamesPage(gamesEl);
+const astronomyEl = $('astronomy-page');
+const astronomyPage = createAstronomyPage(astronomyEl);
 const wikiEl = $('wiki-page');
 const wikiPage = createWikiPage(wikiEl);
 let page = 'viewer';
@@ -454,6 +458,7 @@ function showPage(next) {
   sketchesEl.hidden = next !== 'sketches';
   gamesEl.hidden = next !== 'games';
   wikiEl.hidden = next !== 'wiki';
+  astronomyEl.hidden = next !== 'astronomy';
   if (next !== 'viewer') {
     closeAllPanels();
     closeMenu();
@@ -487,6 +492,9 @@ function applyRoute() {
     profilePage.show(route.name);
   } else if (route.page === 'sketches') {
     showPage('sketches');
+  } else if (route.page === 'astronomy') {
+    showPage('astronomy');
+    astronomyPage.show();
   } else if (route.page === 'wiki') {
     showPage('wiki');
     wikiPage.show(route.slug, decodeURIComponent(location.hash.slice(1)));

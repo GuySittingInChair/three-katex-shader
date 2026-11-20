@@ -28,7 +28,7 @@ export default {
     'Light traced around a black hole with general relativity, per pixel on the GPU. Rays closer than 3√3 ' +
     'masses fall in (the shadow); the far side of the glowing disk is bent over the top into an arch; the side ' +
     'coming toward you is Doppler-boosted. The viewing angle is shown live.',
-  tags: ['general relativity', 'black hole', 'ray tracing', 'lensing'],
+  tags: ['astronomy', 'general relativity', 'black hole', 'ray tracing', 'lensing'],
   category: 'Physics',
   mode: 'shader',
   shaderLang: 'glsl',

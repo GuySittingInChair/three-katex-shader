@@ -72,10 +72,10 @@ Nothing limits walkthroughs to 20. These are all the caps I found; each has a de
 
 | # | Item | Status | Done means |
 |---|------|--------|------------|
-| 1.20 | "Astronomy" in the header next to Games and Review, plus the mobile menu | todo | Visible on every page and at phone width |
-| 1.21 | `/astronomy` hub, built from tags: astronomy sketches (16 in the Astronomy category plus the space-physics ones, by tag), their walkthroughs, astronomy wiki entries, and the astronomy sections of `docs/guide.md` and `docs/galaxy-engine.md`. Anything tagged later appears there automatically | todo | Adding a tag to a test sketch makes it appear with no other change |
-| 1.22 | Find astronomy content that nothing links to yet, and include it | todo | List of what was found recorded here |
-| 1.23 | Feature astronomy on the home page | todo | Section visible on the home page, desktop and phone |
+| 1.20 | "Astronomy" in the header next to Games and Review, plus the mobile menu | done (sketches, games and wiki page headers, the sketch viewer's top bar on desktop, and the More menu on phones; each link checked visible and followed in Firefox at 1280 and 390 px) | Visible on every page and at phone width |
+| 1.21 | `/astronomy` hub, built from tags: astronomy sketches (16 in the Astronomy category plus the space-physics ones, by tag), their walkthroughs, astronomy wiki entries, and the astronomy sections of `docs/guide.md` and `docs/galaxy-engine.md`. Anything tagged later appears there automatically | done (/astronomy: any sketch with category Astronomy or tag `astronomy`, split by the `real data` tag; walkthroughs of those sketches and wiki pages tagged `astronomy` are listed automatically. 26 sketches today: 16 real-data, 10 space physics. 8 space-physics sketches got the `astronomy` tag) | Adding a tag to a test sketch makes it appear with no other change |
+| 1.22 | Find astronomy content that nothing links to yet, and include it | done (found: the Messier explorer's Unknown Universe, Arp colliding pairs with fitted orbits, M51 structure and time machine, galaxy motions, the Local Group time machine and the stars around the Sun, all behind buttons inside one sketch; the hub describes each and names its button. `docs/galaxy-engine.md` was only linked from the guide; the hub links it on GitHub. 13 astronomy sketches had no thumbnail; made) | List of what was found recorded here |
+| 1.23 | Feature astronomy on the home page | done (a feature card under the home page buttons, clicked through to the hub at 1280 and 390 px) | Section visible on the home page, desktop and phone |
 
 ### 1D. Colours
 
@@ -93,6 +93,7 @@ Nothing limits walkthroughs to 20. These are all the caps I found; each has a de
 |---|------|--------|------------|
 | 1.31 | The code panel hides `import` lines, so its line numbers can be a few lower than the file's (and GitHub's). Make the panel number lines as the file does | done (panel margin shows the file's numbers; wiki link /s/gameOfLife#L93-96 highlights lines 93–96, each checked against the file; GitHub link is #L93-L96; a "similar line" pick checked against its file) | The same line has the same number in the panel, the wiki bar and GitHub |
 | 1.32 | Quotes made honest: 29 code blocks skipped lines without saying so; each gap now shows "...". 5 quotes had been reworded and now match the code exactly. 6 pages counted "..." as a numbered line; renumbered | done (all 162 quotes match, per the test above; every "Line N" checked against the numbered line by script and by reading) | n/a |
+| 1.33 | Every gallery thumbnail showed the "Show controls" button in its corner (since September). Thumbnail tool fixed; regenerating all 166 | doing | All thumbnails redone and checked on a contact sheet |
 | 1.30 | Find where "only 20 walkthroughs" shows up (live wiki index, sketch pages, explain panel) and fix it if it's a bug | todo | Cause found and recorded |
 | 1.29 | `/feed.xml` built at build time: new walkthroughs and wiki entries, each with its summary and the date it first appeared (from git) | todo | Passes a feed validator; opens in a feed reader; linked in `<head>` |
 

@@ -123,7 +123,7 @@ export default {
     'A rubber duck falls into a 10-solar-mass black hole. Tidal forces from the geodesic deviation equation, ' +
     'solved exactly, stretch it 7.8× along the fall and squeeze it 12× across by the horizon. The tidal pull ' +
     'across the duck (in g) and the proper time it has left (in milliseconds) are live.',
-  tags: ['general relativity', 'black hole', 'spaghettification', 'tidal forces', 'geodesic deviation', 'rubber duck'],
+  tags: ['astronomy', 'general relativity', 'black hole', 'spaghettification', 'tidal forces', 'geodesic deviation', 'rubber duck'],
   category: 'Physics',
   mode: 'shader',
   shaderLang: 'glsl',

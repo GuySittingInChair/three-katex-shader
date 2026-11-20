@@ -29,7 +29,7 @@ export default {
     'A traversable wormhole joining two universes, traced per pixel with general relativity. Light passing ' +
     'closer than the throat goes through to the other universe’s sky; the rest is bent around it. The camera ' +
     'flies through and back. Its position ℓ is shown live.',
-  tags: ['general relativity', 'wormhole', 'ray tracing', 'lensing'],
+  tags: ['astronomy', 'general relativity', 'wormhole', 'ray tracing', 'lensing'],
   category: 'Physics',
   mode: 'shader',
   shaderLang: 'glsl',

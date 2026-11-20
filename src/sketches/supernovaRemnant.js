@@ -122,7 +122,7 @@ export default {
     'A star explodes and its shock sweeps up the galaxy around it: free expansion, then the Sedov–Taylor blast ' +
     'wave R = ξ₀(Et²/ρ)^⅕ with ξ₀ solved live from Sedov’s equations, then a cooling snowplow shell. ' +
     'Each loop is a new star in new gas, from 36 days to 160 000 years.',
-  tags: ['supernova', 'blast wave', 'Sedov–Taylor', 'similarity solution', 'dimensional analysis', 'astrophysics', 'glow'],
+  tags: ['astronomy', 'supernova', 'blast wave', 'Sedov–Taylor', 'similarity solution', 'dimensional analysis', 'astrophysics', 'glow'],
   category: 'Physics',
 
   mode: '3d',

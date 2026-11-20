@@ -165,7 +165,7 @@ export default {
     'whose stars all move at about the same speed (dark matter, switched off halfway to show the difference), ' +
     'galaxies looping round a cluster, and past that, the expansion of space, where orbiting stops. Each scale ' +
     'runs on its real equation, shown live.',
-  tags: ['gravity', 'orbits', 'kepler', 'dark matter', 'cosmology', 'quantum'],
+  tags: ['astronomy', 'gravity', 'orbits', 'kepler', 'dark matter', 'cosmology', 'quantum'],
   category: 'Physics',
   mode: '3d',
   controls: 'orbit',

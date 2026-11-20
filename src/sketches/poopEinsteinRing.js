@@ -99,7 +99,7 @@ export default {
     'A poop passes behind a robot of a trillion solar masses, and general relativity bends it into an Einstein ' +
     'ring, per pixel, exactly. The wallpaper of tiny poops behind them bends too. Faint lines are Fermat’s ' +
     'arrival-time surface; the second poop image arrives months late, and the equations say exactly how late.',
-  tags: ['general relativity', 'lensing', 'einstein ring', 'poop', 'fermat principle', 'time delay'],
+  tags: ['astronomy', 'general relativity', 'lensing', 'einstein ring', 'poop', 'fermat principle', 'time delay'],
   category: 'Physics',
   mode: 'shader',
   shaderLang: 'glsl',

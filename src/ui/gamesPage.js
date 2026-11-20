@@ -113,6 +113,7 @@ export function createGamesPage(container) {
         <a class="brand" href="/" data-link>aiship</a>
         <nav class="page-nav">
           <a href="/sketches" data-link>Sketches</a>
+          <a href="/astronomy" data-link>Astronomy</a>
           <a href="/games" data-link>Games</a>
         </nav>
       </header>

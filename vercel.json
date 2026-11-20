@@ -13,6 +13,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/astronomy",
+      "destination": "/index.html"
+    },
+    {
       "source": "/games",
       "destination": "/index.html"
     },

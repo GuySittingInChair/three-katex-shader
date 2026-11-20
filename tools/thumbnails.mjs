@@ -36,6 +36,10 @@ for (const [i, id] of ids.entries()) {
     // Set after the app has started (it resets the view on load).
     await page.evaluate(() => {
       document.body.dataset.view = 'clean';
+      // Clean view still shows the "Show controls" button; keep it out of the picture.
+      const st = document.createElement('style');
+      st.textContent = '.show-controls { display: none !important; }';
+      document.head.append(st);
     });
     await new Promise((r) => setTimeout(r, 300));
     await page.screenshot({ path: path.join(OUT, `${id}.jpg`), type: 'jpeg', quality: 78 });
