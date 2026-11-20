@@ -14,12 +14,19 @@ project's code and explains them one at a time.
   shape, each with an equation on screen and sliders to play with. Each sketch is one file of code.
 - A **walkthrough** is a wiki page that tours one sketch: what you see, the idea behind it, and its most
   important lines of code.
-- The buttons along the bottom of a sketch open **panels**. **Explain** shows that sketch's walkthrough.
-  **Code** shows the sketch's code; in its **Read** view, underlined words are links to these pages.
-  **Params** holds the sliders.
+- The buttons along the bottom of a sketch open **panels**. **Explain** shows that sketch's walkthrough, if it
+  has one yet (31 sketches do), and the expert notes. **Code** shows the sketch's code; in its **Read** view,
+  underlined words are links to these pages, and lines a wiki page explains are marked with a link back to
+  that explanation. **Params** holds the sliders.
 - **Claude** is the AI that writes and maintains this project and this wiki.
 
-You can read it on the site at [aiship.lol/wiki](https://aiship.lol/wiki).
+You can read it on the site at [aiship.lol/wiki](https://aiship.lol/wiki). Every code example on these pages
+has numbered lines ("Line 3" means the line numbered 3) and a link that opens those exact lines in the
+sketch's code. New pages are announced in the RSS feed at [aiship.lol/feed.xml](https://aiship.lol/feed.xml),
+and everything about space is gathered on the [Astronomy page](https://aiship.lol/astronomy).
+
+**Checked, page by page.** Every page is being read in full and every number, quote and claim checked against
+the code. [The audit log](_audit.md) lists each page, how it was checked, and what was wrong.
 
 **If an explanation is bad, say so.** On the site, highlight the sentence that lost you and press the **💬 This
 is unclear** button that pops up (or use **Something here unclear?** at the bottom of any page). Say what
@@ -80,7 +87,7 @@ Flat `shader` pictures and their coordinates; drawing on a hidden canvas (`Canva
 - [Textures: pictures a shader can look things up in](textures.md)
 - [GLSL basics](glsl-basics.md)
 - [Simulating on the graphics chip](render-targets.md)
-- *(planned)* Ray marching: 3D shapes drawn by a shader (13 sketches)
+- *(planned)* Ray marching: 3D shapes drawn by a shader (14 sketches)
 
 ## 7. Colour
 - [1. RGB, three numbers](rgb.md)
@@ -119,8 +126,8 @@ project](_survey.md).
 How to read the captions, symbol by symbol. For now, see `docs/guide.md` sections 3 and 4.
 
 ## 15. Sketch walkthroughs
-Written oldest first, about ten at a time. The full list, with which ones are done, is at the end of [Survey
-of the project](_survey.md).
+31 of the 166 sketches have one so far, and more are being written, with astronomy first. The full list of
+sketches, with which ones are done, is at the end of [Survey of the project](_survey.md).
 
 | Sketch | What it is |
 |---|---|

@@ -38,12 +38,12 @@ Theory, Vector Fields and Voxels.
 | Technique | Sketches | Wiki page |
 |---|---|---|
 | Full-screen shader picture (`shader` mode) | 87 | [Shaders: two questions](shaders.md) |
-| Shader programs inside 3D scenes (`ShaderMaterial`) | about 40 more | [Shaders: two questions](shaders.md) |
+| Shader programs inside 3D scenes (`ShaderMaterial`) | 38 more | [Shaders: two questions](shaders.md) |
 | Uniforms: numbers handed from JavaScript to a shader | nearly all | [Uniforms: knobs passed in from JavaScript](uniforms.md) |
 | A closed-form loop (`motion(t)`, `src/lib/motion.js`) | 101 | *(planned: animation and timing)* |
 | Smooth steps and fades (`smoothstep`, `smooth`) | about 95 | *(planned: animation and timing)* |
 | Blending two values (`mix`, `lerp`) | about 100 | [Colour 2: blending, adding, dimming and gain](colour-blending-and-gain.md) |
-| The cosine colour palette | 30 | [Colour 3: the cosine palette (the rainbow trick)](cosine-palette.md) |
+| The cosine colour palette | 43 | [Colour 3: the cosine palette (the rainbow trick)](cosine-palette.md) |
 | Sine and cosine waves | 151 | [Sine and cosine: the wave-makers](sine-and-cosine.md) |
 | Colour scales for data (CMB, temperature, density) | the data sketches | [Colour 4: colour scales for data, and how they are chosen](colour-scales.md) |
 | Meshes, geometry and materials | all `3d` sketches | [Drawing in 3D 2: mesh, geometry and material](mesh-geometry-material.md) |
@@ -56,18 +56,18 @@ Theory, Vector Fields and Voxels.
 | Drawing on a hidden 2D canvas (`CanvasTexture`) | 12 | *(planned: drawing in 2D)* |
 | Grids of numbers stored as a picture (`DataTexture`) | 15 | [Textures: pictures a shader can look things up in](textures.md) |
 | Simulating on the GPU by rendering back and forth (`WebGLRenderTarget`) | 5 | [Simulating on the graphics chip: render targets and ping-pong](render-targets.md) |
-| Ray marching distance fields (3D shapes drawn by a shader) | 13 | *(planned: shaders, part 2)* |
+| Ray marching distance fields (3D shapes drawn by a shader) | 14 | *(planned: shaders, part 2)* |
 | Escape-time fractals (repeat z → z² + c) | many of the 43 fractals | *(planned: math)* |
 | Surfaces that change shape on the GPU (`src/lib/morphSurface.js`) | 5 | [Drawing in 3D 2: mesh, geometry and material](mesh-geometry-material.md) |
-| Stepping a simulation forward in time (Euler, Runge–Kutta, Verlet) | 20 | *(planned: simulation)* |
+| Stepping a simulation forward in time (Euler, Runge–Kutta, Verlet) | about 20 | *(planned: simulation)* |
 | Loops that refine a guess (Newton's method) | 10 | *(planned: math)* |
 | Realistic scenes (`src/lib/environment.js`) | 9 | *(planned)*; also docs/guide.md §13 |
 | The comedy formula (`src/lib/bit.js`) | 33 | docs/guide.md §12 |
 | Soft glow (`src/lib/glow.js`) | 13 | [Glow: making bright things shine](glow.md) |
 | Noise and fbm (home-made smooth randomness) | 14 | [Noise: randomness that looks natural](noise.md) |
 | Random numbers and seeds (`Math.random`, seeded generators) | many | [Random numbers, and seeds that make them repeatable](randomness.md) |
-| Sliders that rebuild the sketch (`rebuild: true`) | several | [Params: the sliders](params.md) |
-| Kuramoto–Sivashinsky solver (`src/lib/kuramotoSivashinsky.js`) | 5 | *(planned: science)* |
+| Sliders that rebuild the sketch (`rebuild: true`) | 9 | [Params: the sliders](params.md) |
+| Kuramoto–Sivashinsky solver (`src/lib/kuramotoSivashinsky.js`, `ksSpectral.js`) | 7 | *(planned: science)* |
 | Voronoi cells (`src/lib/voronoi.js`) | 2 | *(planned: math)* |
 | Live sound input (`ctx.audio`) | 8 | *(planned: audio)* |
 | Loading data files (`fetch`) | 16 | [Reading JavaScript 5: loading data (`fetch`, `Promise`, `await`)](js-promises-and-fetch.md) |

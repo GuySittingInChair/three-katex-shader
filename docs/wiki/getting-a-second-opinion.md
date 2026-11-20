@@ -35,10 +35,10 @@ already understands a thing can't easily see the gap a beginner falls into. A se
    `--local` to the end to also have the AI on your computer do the review, this time playing a strict editor
    (a few minutes). It saves its verdict as a message for Claude too.
 
-To check every page at once, type `wikicritic all`. The classmate reads all of them, one after another (about
-8 to 12 hours, so leave it running overnight; it pauses while fake chat is live, and skips pages it has
-already read that haven't changed). It keeps a list, least clear first, in `tools/wiki-review/out/ALL.md`.
-Then tell Claude "fix the wiki".
+To check every page at once, type `wikicritic all`. The classmate reads all of them, one after another (the
+last full run, of 68 pages, took 6 hours 50 minutes, so leave it running overnight; it pauses while fake chat
+is live, and skips pages it has already read that haven't changed). It keeps a list, least clear first, in
+`tools/wiki-review/out/ALL.md`. Then tell Claude "fix the wiki".
 
 To check something Claude said in the chat instead of a page: copy Claude's reply, then type `wikicritic
 paste`.
@@ -51,6 +51,10 @@ The page name is the part after `/wiki/` in the site's address, so `aiship.lol/w
   it means the explanation was easy to miss. Claude is asked to fix the sentence, not argue.
 - It's told to quote the page word for word. Complaints that quote words that aren't there are thrown away
   automatically, and the tool tells you how many.
+- **Its scores are a rough signal, not a measurement.** The same page can score differently on two readings,
+  and its code check is often wrong: in the first full run, 6 of its 7 "factual errors" turned out to be
+  correct on checking. Treat its output as questions to look into, never as proof that a page is right or
+  wrong. Claude checks every claim against the code before changing anything.
 - It won't run while your fake chat is live, so it doesn't steal the graphics card mid-stream.
 - Everything it writes is kept in `tools/wiki-review/out/` in the project (not on the website).
 

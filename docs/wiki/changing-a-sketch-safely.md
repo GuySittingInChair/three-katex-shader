@@ -58,9 +58,9 @@ npm run dev
   is *committed* (deliberately saved into the history; Claude does this when you ask it to). Saving a file in
   an editor doesn't commit it. So you can always get back to the last committed version: ask Claude "undo my
   changes to `boidsFlock.js`".
-- **Don't edit `public/data/`.** That folder holds the science data some sketches load (star maps, earthquake
-  lists). Those files are made by scripts in `tools/`, and a hand edit would be overwritten the next time a
-  script runs. Change the script instead, or ask Claude to.
+- **Don't edit `public/data/`.** That folder holds the science data some sketches load (star maps, sunspot
+records, the map of the oldest light). Those files are made by scripts in `tools/`, and a hand edit would be
+overwritten the next time a script runs. Change the script instead, or ask Claude to.
 
 **What it looks like in the code:** the friendliest numbers to try are slider settings, in `params`. From
 `src/sketches/boidsFlock.js`:
