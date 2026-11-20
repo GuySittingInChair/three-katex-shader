@@ -17,9 +17,9 @@ cycle round, and a soft white highlight glints on one side as the ball turns. Dr
    angle and it's a mirror. Most shiny things work this way: surfaces you see face-on show little reflection,
    and surfaces you see edge-on reflect a lot. It's called the *Fresnel effect* (say "freh-NEL"), after the
    French physicist who worked it out in the 1820s.
-2. **Thin films make rainbows.** A soap bubble's skin is thinner than a wavelength of light. Light bouncing
-   off the front and back of the skin interferes, and which colour wins depends on the angle you look from.
-   That's *iridescence*.
+2. **Thin films make rainbows.** A soap bubble's skin is about as thick as a wavelength of light: well under a
+   thousandth of a millimetre. Light bouncing off the front and back of the skin interferes, and which colour
+   wins depends on the angle you look from. That's *iridescence*.
 
 The sketch combines them: the more edge-on a spot is, the stronger its shimmer, and the further round the
 rainbow its colour goes. It's not real optics (that would be much harder), but it fools the eye.
@@ -69,7 +69,8 @@ sideways one (`rotation.x`), so it tumbles slightly.
 
 **Numbers worth knowing:**
 - **3.5**: the default power. Even 80% of the way from the middle of the ball to its edge, the shimmer is only
-  about 4% of full strength, which is why the face looks black.
+  about 4% of full strength (there the surface is tilted so `1 − dot(n, v)` is 0.4, and 0.4 to the power 3.5
+  is 0.04), which is why the face looks black.
 - **4,225** points on the sphere (65 × 65).
 - **20 seconds**: one trip round the rainbow drift, at the default **Hue speed** of 0.05.
 

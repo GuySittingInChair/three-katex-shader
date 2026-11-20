@@ -82,6 +82,13 @@ and the sketch drew a flat green disc. It now uses the right one, worked out fro
 - **7 sides, 3 at each corner**: the {7,3} tiling, in mathematicians' shorthand.
 - **14** triangles per tile: each tile is 14 mirror images of one triangle.
 - **9 rings** painted by default (the **Depth** slider, 1 to 30). Further out is left dark.
+- **0.13**: each ring moves 0.13 round the [cosine palette](../cosine-palette.md), starting at 0.55. Worked
+  out, the rings go <span class="swatch" style="background:#06dc97"></span> sea green (the middle tile), <span
+  class="swatch" style="background:#49ff35"></span> green, <span class="swatch"
+  style="background:#aed101"></span> yellow, <span class="swatch" style="background:#f6701d"></span> orange,
+  <span class="swatch" style="background:#f31877"></span> pink, <span class="swatch"
+  style="background:#a702d7"></span> purple, <span class="swatch" style="background:#423bff"></span> blue,
+  <span class="swatch" style="background:#049fd7"></span> sky blue, and on round the wheel.
 
 **Try this (funky):** drag **Depth** to 2. Only the tiles nearest the middle are painted, floating in the dark
 like a flower. Then drag it up to 30 for a full bloom right to the rim, and set **Spin** to −1 to watch the

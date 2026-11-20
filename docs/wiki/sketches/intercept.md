@@ -67,7 +67,9 @@ that page.
 - **2.3 km**: where each attack starts, at 45 m up, about the height of a 15-storey building.
 - **1,100 rounds a minute** from both barrels, leaving at 1,175 m/s and down to about 850 m/s by 2 km.
 - **0.75 to 1.6 km**: where the drone was shot down in a test of 40 attacks, after 20 to 200 rounds.
-- **10 m/s versus 100 m/s**: a falling wing versus the falling warhead section.
+- **15 m/s versus 100 m/s**: the top falling speed of a broken-off wing (8 kg, broad and flat) versus the
+  warhead section (50 kg, compact), worked out from the masses and drag in the file. A wing drifts down at the
+  speed of a fast cyclist; the warhead drops like a stone.
 
 **Try this:** drag the **speed** slider to 0.2 and watch a dive in near-slow-motion: the gun's tracers are
 aimed ahead of the drone, at where it's predicted to be, and you can watch its weaving make the gun's guesses
