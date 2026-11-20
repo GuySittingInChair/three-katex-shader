@@ -37,12 +37,32 @@ vec3 planck(float x) {    // −1 … +1: deep blue, pale blue, cream, orange, d
   (coldest) to +1 (hottest). The comment after `//` lists the five colours in order.
 - Line 2 turns −1…+1 into 0…1. `clamp` keeps anything outside the range at the end colours.
 - Line 3 sets the fixed colours: deep blue, pale blue, cream, and (further along) orange and deep red.
-- Lines 4 and 5 blend with `mix(a, b, t)`: partway from colour `a` to colour `b`, by `t` (0 to 1). See
-  [Blending](colour-blending-and-gain.md). in the first quarter, from deep blue to pale blue; in the second,
-  from pale blue to cream, and so on.
+- Lines 4 and 5 blend with `mix(a, b, t)`: partway from colour `a` to colour `b`, by `t` (0 to 1); see
+  [Blending](colour-blending-and-gain.md). In the first quarter of the range it blends from deep blue to pale
+  blue, in the second from pale blue to cream, and two more lines further down do the same for cream to orange
+  and orange to deep red.
 
 So cream marks "average", blue "colder than average" and red "warmer". It mimics the scale the Planck team
 used on their own maps, so the picture looks like the one scientists know.
+
+**Following the numbers to a colour.** The sketch feeds in each spot's temperature difference from average, in
+millionths of a degree (µK), divided by 300: `planck(T / 300.0 * uGain)`, where `uGain` is 1 on the full map.
+Worked out for six spots:
+
+| spot | `x` after line 2 | blend | colour |
+|---|---|---|---|
+| 300 µK colder | 0 | all `c0` | <span class="swatch" style="background:#0000e6"></span> deep blue |
+| 150 µK colder | 0.25 | all `c1` | <span class="swatch" style="background:#3399ff"></span> pale blue |
+| exactly average | 0.5 | all `c2` | <span class="swatch" style="background:#ffedd9"></span> cream |
+| 90 µK warmer | 0.65 | 60% of the way from `c2` to `c3` | <span class="swatch" style="background:#ffb36e"></span> apricot |
+| 150 µK warmer | 0.75 | all `c3` | <span class="swatch" style="background:#ff8c26"></span> orange |
+| 300 µK warmer (or more) | 1 | all `c4` | <span class="swatch" style="background:#8c0000"></span> deep red |
+
+The 90 µK row, step by step: 90 ÷ 300 = 0.3. Line 2 turns that into 0.3 × 0.5 + 0.5 = 0.65. That is past 0.5,
+so the third blend applies: (0.65 − 0.5) ÷ 0.25 = 0.6, so 60% of the way from cream (1.0, 0.93, 0.85) to
+orange (1.0, 0.55, 0.15). Green goes 0.93 → 0.55, and 60% of the way is 0.93 − 0.6 × 0.38 = 0.70. Blue goes
+0.85 → 0.15, and 60% of the way is 0.43. Red stays 1.0. Full red, about two thirds green, under half blue: a
+warm apricot.
 
 ## How Claude chooses a colour scale
 
@@ -61,8 +81,9 @@ used on their own maps, so the picture looks like the one scientists know.
    there.
 4. **Check for colour blindness.** About 1 in 12 men can't tell red from green well. Blue against orange or
    red is safer than red against green. The scale should still make sense printed in grey.
-5. **Keep it readable on black.** The site's background is black, so the darkest colour of a sequential scale
-   must still be visible against it, or must be meant to fade into it.
+5. **Keep it readable on black.** The sketches are drawn on black (whatever colours the site's menus use), so
+   the darkest colour of a sequential scale must still be visible against it, or must be meant to fade into
+   it.
 
 The [cosine palette](cosine-palette.md) breaks rules 3 and 4 on purpose. It is for art, not data.
 

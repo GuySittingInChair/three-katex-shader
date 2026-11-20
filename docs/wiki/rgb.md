@@ -32,8 +32,10 @@ vec3 brightWater = vec3(0.4, 0.85, 0.95);
   floor.
 
 In JavaScript (the language the rest of a sketch is written in) the same thing is written `new
-THREE.Color(0.95, 0.76, 0.42)`: "make a new colour" from three.js (`THREE`), the 3D toolbox the site is built
-on. That one, from `src/sketches/bezierDeCasteljau.js`, is a warm gold.
+THREE.Color(red, green, blue)`: "make a new colour" from three.js (`THREE`), the 3D toolbox the site is built
+on. `src/sketches/bezierDeCasteljau.js` gives that a short name, `col`, and then writes `col(0.95, 0.76,
+0.42)` for its gold dot: lots of red, a fair amount of green, a little blue <span class="swatch"
+style="background:#f2c26b"></span>.
 
 ## Form 2: a code like `0xffffff` (JavaScript)
 
@@ -63,14 +65,28 @@ color.setHSL(0.6 - speed * 0.35, 0.75, 0.55).toArray(instanceColor.array, i * 3)
 `speed` runs from 0 for the slowest to 1 for the fastest)
 
 Instead of three bulbs, HSL describes a colour the way people do:
-- **hue**: where on the colour wheel, from 0 to 1 (0 is red, about 0.33 green, about 0.6 blue, and back to red
-  at 1);
+- **hue**: where on the colour wheel, from 0 to 1: 0 is red, 0.17 yellow, 0.33 green, 0.5 cyan, 0.67 blue,
+  0.83 magenta, and back to red at 1;
 - **saturation**: how vivid, from 0 (grey) to 1 (pure colour);
 - **lightness**: from 0 (black) through 0.5 (the colour itself) to 1 (white).
 
 `color.setHSL(hue, saturation, lightness)` sets a colour this way (the `.toArray(…)` part then copies it into
-bird `i`'s place in the list of all the birds' colours). Here slow birds get hue 0.6 (blue) and fast birds
-move towards hue 0.25 (yellow-green).
+bird `i`'s place in the list of all the birds' colours).
+
+**Following the numbers to a colour.** The hue is `0.6 - speed * 0.35`; saturation and lightness stay at 0.75
+and 0.55. Worked out for five speeds (the swatch is the colour that comes out):
+
+| speed | hue = 0.6 − speed × 0.35 | on the wheel | colour |
+|---|---|---|---|
+| 0 (slowest) | 0.6 | 216° | <span class="swatch" style="background:#367be2"></span> sky blue |
+| 0.25 | 0.51 | 184° | <span class="swatch" style="background:#36d5e2"></span> cyan |
+| 0.5 | 0.43 | 153° | <span class="swatch" style="background:#36e295"></span> sea green |
+| 0.75 | 0.34 | 122° | <span class="swatch" style="background:#36e23a"></span> green |
+| 1 (fastest) | 0.25 | 90° | <span class="swatch" style="background:#8ce236"></span> lime |
+
+("On the wheel" is the hue times 360, in degrees.) So a bird's colour slides from blue through green to lime
+as it speeds up. `speed` here is the bird's speed divided by the fastest any bird may go, so it runs from
+almost 0 to 1.
 
 ## A fourth number: see-through-ness
 

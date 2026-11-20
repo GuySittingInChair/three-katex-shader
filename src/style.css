@@ -3863,3 +3863,13 @@ body.is-recording.rec-panel-open #rec-indicator {
 }
 .palette-pick option { color: var(--text); background: var(--bg); }
 .menu .palette-pick { padding: 8px 14px; }
+
+/* A small square showing a colour, used in wiki explanations of colour. */
+.swatch {
+  display: inline-block;
+  width: 0.95em;
+  height: 0.95em;
+  vertical-align: -0.12em;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
