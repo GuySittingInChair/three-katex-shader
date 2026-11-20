@@ -5,18 +5,20 @@ added: 2026-11-18
 
 # GLSL basics: reading a shader
 
-**In one sentence:** GLSL is the language *shaders* are written in: the small programs the graphics chip
-runs once for every pixel, to decide its colour. It looks like JavaScript (the language the rest of the
-site is written in), but it is fussier about numbers and has built-in types for positions and colours.
+**In one sentence:** GLSL is the language *shaders* are written in: the small programs the graphics chip runs
+once for every pixel, to decide its colour. It looks like JavaScript (the language the rest of the site is
+written in), but it is fussier about numbers and has built-in types for positions and colours.
 
 **Picture it:** the same recipe written for a different kitchen. The steps are familiar, but this kitchen
-measures everything precisely, and its bowls come in fixed sizes: one, two, three or four compartments. The bowls are GLSL's *types*: every
-number must go in a bowl of the right size, and you must say which bowl you're using.
+measures everything precisely, and its bowls come in fixed sizes: one, two, three or four compartments. The
+bowls are GLSL's *types*: every number must go in a bowl of the right size, and you must say which bowl you're
+using.
 
 **Why sketches need it:** the graphics chip only understands shader languages. Every pattern, fractal and
 fluid on the site is written in GLSL.
 
-**Where you'll see it:** inside the backtick blocks of 126 sketch files. See [Shaders: two questions](shaders.md).
+**Where you'll see it:** inside the backtick blocks of 126 sketch files. See [Shaders: two
+questions](shaders.md).
 
 ## The bowls: types
 
@@ -29,15 +31,14 @@ fluid on the site is written in GLSL.
 | `vec4` | four numbers: colour plus see-through-ness | `vec4(color, 1.0)` |
 | `bool` | true or false | `bool inDish(...)` |
 
-**Numbers need a dot.** Write `1.0`, not `1`. GLSL treats `1` as a whole number and may refuse to mix it
-with decimals. Forgetting the dot is the most common reason a shader won't run.
+**Numbers need a dot.** Write `1.0`, not `1`. GLSL treats `1` as a whole number and may refuse to mix it with
+decimals. Forgetting the dot is the most common reason a shader won't run.
 
 ## Reading the parts: `.x .y .z` and `.rgb`
 
 Most shaders have a `uv`: this pixel's position on screen, as two numbers (a `vec2`). `uv.x` is how far
-across, and `uv.y` is how far up. For colours, `.r .g .b` mean the same
-places. You can take several at once: `color.rgb`, or even shuffle them: `uv.xyx` is "x, y, then x again".
-This is called *swizzling*.
+across, and `uv.y` is how far up. For colours, `.r .g .b` mean the same places. You can take several at once:
+`color.rgb`, or even shuffle them: `uv.xyx` is "x, y, then x again". This is called *swizzling*.
 
 ## Built-in tools
 
@@ -67,17 +68,17 @@ float ringPos = r - 0.4 - 0.15 * wobble;
 float ring = smoothstep(0.02, 0.0, abs(ringPos));
 ```
 
-- Line 1: `vUv` is the pixel's position from 0 (left or bottom edge) to 1 (right or top). Subtracting 0.5
-  and doubling moves the zero point to the middle of the screen. Now `uv` runs from −1 to +1.
+- Line 1: `vUv` is the pixel's position from 0 (left or bottom edge) to 1 (right or top). Subtracting 0.5 and
+  doubling moves the zero point to the middle of the screen. Now `uv` runs from −1 to +1.
 - Line 2: `r` is how far this pixel is from the centre.
 - Line 3: `a` is which direction the pixel is in, as an angle.
 - Line 4: `ringPos` is how far this pixel is from the ring. The ring sits 0.4 from the centre, pushed in and
   out by the music (`wobble`, worked out a few lines earlier from the bass, middle and treble).
-- Line 5: if the pixel is within 0.02 of the ring, `ring` is close to 1 (bright). Further away it fades to
-  0 (dark). `abs` means "ignore the minus sign", so inside and outside count the same.
+- Line 5: if the pixel is within 0.02 of the ring, `ring` is close to 1 (bright). Further away it fades to 0
+  (dark). `abs` means "ignore the minus sign", so inside and outside count the same.
 
-**Try this:** in `audioPulse.js`, change `0.4` in line 4 to `0.8`. The ring doubles in size and nearly
-touches the top and bottom of the screen.
+**Try this:** in `audioPulse.js`, change `0.4` in line 4 to `0.8`. The ring doubles in size and nearly touches
+the top and bottom of the screen.
 
 **Related:** [Shaders: two questions](shaders.md) · [Uniforms: knobs passed in from JavaScript](uniforms.md) ·
 [Decisions (`if`) and loops (`for`)](js-decisions-and-loops.md) · `docs/guide.md` section 7

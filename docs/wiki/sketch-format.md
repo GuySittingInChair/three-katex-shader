@@ -5,14 +5,15 @@ added: 2026-11-18
 
 # The sketch format: every field
 
-**In one sentence:** a sketch file is one big labelled list (an *object*, see
-[Lists (arrays) and labelled boxes (objects)](js-arrays-and-objects.md)), and each label, called a *field*, has a fixed job.
+**In one sentence:** a sketch file is one big labelled list (an *object*, see [Lists (arrays) and labelled
+boxes (objects)](js-arrays-and-objects.md)), and each label, called a *field*, has a fixed job.
 
 **Picture it:** a form with boxes. "Name", "Description", "Which shelf". Some boxes hold words, some hold
-numbers, and a few hold instructions (`setup`, `update`). The app (the website's own code, which runs every sketch) reads the form and knows what to do.
+numbers, and a few hold instructions (`setup`, `update`). The app (the website's own code, which runs every
+sketch) reads the form and knows what to do.
 
-**Why it matters:** every one of the 166 sketches uses the same boxes. Learn them once and you can open
-any file and know which part does what.
+**Why it matters:** every one of the 166 sketches uses the same boxes. Learn them once and you can open any
+file and know which part does what.
 
 ## The labels (shown in the app)
 
@@ -69,8 +70,8 @@ controls: 'orbit',
 - Line 5 makes it a 3D scene.
 - Line 6 lets you drag the view around the flock.
 
-**Try this:** delete the line `controls: 'orbit',` from `boidsFlock.js`. The flock still flies, but
-dragging no longer turns the view. Put the line back afterwards.
+**Try this:** delete the line `controls: 'orbit',` from `boidsFlock.js`. The flock still flies, but dragging
+no longer turns the view. Put the line back afterwards.
 
-**Related:** [What a sketch is](what-is-a-sketch.md) · [Params: the sliders](params.md) ·
-[Motion and the live equation](motion-and-latex.md) · [The frame loop: setup, update, dispose](frame-loop.md)
+**Related:** [What a sketch is](what-is-a-sketch.md) · [Params: the sliders](params.md) · [Motion and the live
+equation](motion-and-latex.md) · [The frame loop: setup, update, dispose](frame-loop.md)

@@ -5,11 +5,11 @@ added: 2026-11-18
 
 # Reading JavaScript 1: values, names and comments
 
-**In one sentence:** a *variable* is a name stuck on a value, so the code can refer to "PERIOD" instead
-of repeating the number 18 everywhere.
+**In one sentence:** a *variable* is a name stuck on a value, so the code can refer to "PERIOD" instead of
+repeating the number 18 everywhere.
 
-**Picture it:** labelled jars in a kitchen. The jar labelled "sugar" holds sugar. When a recipe says "add
-the sugar", you know which jar to reach for. A variable is the label, and the value is what's in the jar.
+**Picture it:** labelled jars in a kitchen. The jar labelled "sugar" holds sugar. When a recipe says "add the
+sugar", you know which jar to reach for. A variable is the label, and the value is what's in the jar.
 
 **Why sketches need it:** names make numbers readable. `COUNT = 120` tells you that 120 is how many birds
 there are. It also means changing one line changes it everywhere.
@@ -55,13 +55,13 @@ count++;
 remainder after dividing: `7 % 3` is 1.
 
 `Math.` is a toolbox of math: `Math.sin`, `Math.cos`, `Math.sqrt` (square root), `Math.PI` (3.14159…),
-`Math.random()` (a random number between 0 and 1), `Math.min` and `Math.max` (the smaller or larger of
-two numbers), `Math.floor` (round down to a whole number: 3.7 becomes 3).
+`Math.random()` (a random number between 0 and 1), `Math.min` and `Math.max` (the smaller or larger of two
+numbers), `Math.floor` (round down to a whole number: 3.7 becomes 3).
 
 ## Comments
 
-Anything after `//` on a line is a note for people. The computer ignores it. So is anything between `/*`
-and `*/`. In `boidsFlock.js`:
+Anything after `//` on a line is a note for people. The computer ignores it. So is anything between `/*` and
+`*/`. In `boidsFlock.js`:
 
 ```js
 // Soft boundary steering back toward center.
@@ -71,12 +71,13 @@ This tells you what the next few lines do. Comments are the best place to start 
 
 ## Dots: "belonging to"
 
-A dot means "the part of this thing called…". `ctx.camera.position` is "the position of the camera that
-`ctx` holds". `boid.vel.x` is "the x part of this bird's velocity".
+A dot means "the part of this thing called…". `ctx.camera.position` is "the position of the camera that `ctx`
+holds". `boid.vel.x` is "the x part of this bird's velocity".
 
-**Try this:** in `boidsFlock.js`, change `const COUNT = 120;` to `const COUNT = 400;`. You get more than
-three times as many birds, and the flock looks denser. The animation may get slower too, because each bird
-checks every other bird on every frame.
+**Try this:** in `boidsFlock.js`, change `const COUNT = 120;` to `const COUNT = 400;`. You get more than three
+times as many birds, and the flock looks denser. The animation may get slower too, because each bird checks
+every other bird on every frame.
 
-**Related:** [Functions and arrows (`=>`)](js-functions.md) · [Decisions (`if`) and loops (`for`)](js-decisions-and-loops.md) ·
-[Lists (arrays) and labelled boxes (objects)](js-arrays-and-objects.md) · `docs/guide.md` section 5
+**Related:** [Functions and arrows (`=>`)](js-functions.md) · [Decisions (`if`) and loops
+(`for`)](js-decisions-and-loops.md) · [Lists (arrays) and labelled boxes (objects)](js-arrays-and-objects.md)
+· `docs/guide.md` section 5

@@ -7,44 +7,44 @@ added: 2026-11-18
 
 File: `src/sketches/belousovZhabotinsky.js` · Mode: shader · Category: Reaction-Diffusion
 
-**What you see:** a round dish, seen from above. It plays out one experiment, about 25 seconds long, and
-then repeats it:
+**What you see:** a round dish, seen from above. It plays out one experiment, about 25 seconds long, and then
+repeats it:
 1. **Quiet dish** (first second or so): an even colour.
 2. **A spark** in the centre: a ring of colour spreads outward, like a ripple in a pond.
-3. **The ring is cut** across the middle: its two loose ends curl up into a pair of spirals turning
-   opposite ways.
+3. **The ring is cut** across the middle: its two loose ends curl up into a pair of spirals turning opposite
+   ways.
 4. **Spirals fill the dish.** New waves keep peeling off them.
 5. **The recipe changes:** the waves crowd closer together and race faster, then relax again.
 6. **Quench:** a flood of the inhibitor wipes every wave out, and the dish goes quiet.
 
 The "Poke the dish" button sparks a new ring at a random spot.
 
-**The idea behind it:** the Belousov–Zhabotinsky (BZ) reaction is a real chemistry demonstration. A
-liquid flips between red and blue on its own, again and again, and in a shallow dish it forms spreading
-rings and spirals. Two ingredients drive it:
+**The idea behind it:** the Belousov–Zhabotinsky (BZ) reaction is a real chemistry demonstration. A liquid
+flips between red and blue on its own, again and again, and in a shallow dish it forms spreading rings and
+spirals. Two ingredients drive it:
 - an *activator*, which makes more of itself: a spark that spreads;
-- a *catalyst* that slowly builds up behind each wave and holds back the activator, so the spot that has
-  fired needs time to recover. That is why waves move forward but never backward.
+- a *catalyst* that slowly builds up behind each wave and holds back the activator, so the spot that has fired
+  needs time to recover. That is why waves move forward but never backward.
 
 The activator also spreads to neighbouring spots (*diffusion*), so a spark becomes a moving front. The
 equation on screen is the standard simplified model of this chemistry. `u` is the activator, `v` is the
-catalyst, and `f` controls how strongly the catalyst holds things back. Large `f` means the dish waits
-quietly until sparked (*excitable*). Small `f` means it pulses on its own (*oscillatory*). The number λ
-(the Greek letter lambda) shown on screen tells which. Think of it as a test of the dish's resting
-state: nudge it slightly, and λ says whether the nudge dies away (negative: it settles back and waits,
-excitable) or grows (positive: it can't sit still, oscillatory).
+catalyst, and `f` controls how strongly the catalyst holds things back. Large `f` means the dish waits quietly
+until sparked (*excitable*). Small `f` means it pulses on its own (*oscillatory*). The number λ (the Greek
+letter lambda) shown on screen tells which. Think of it as a test of the dish's resting state: nudge it
+slightly, and λ says whether the nudge dies away (negative: it settles back and waits, excitable) or grows
+(positive: it can't sit still, oscillatory).
 
 **Where the data comes from:** no data. It is a simulation.
 
 **How it's built:**
 - The dish is 512 × 512 cells. Their amounts live in a hidden picture on the graphics chip, updated by
-  [ping-pong rendering](../render-targets.md): two hidden pictures, each step reading one and writing
-  the other, like two whiteboards used in turn.
-- Three kinds of [shader](../shaders.md) (small programs on the graphics chip): a *step* shader updates
-  every cell by one tick, *event* shaders make the spark and the cut, and a *display* shader turns the
-  amounts into the colours you see.
-- `motion(t)` runs the script: what time it is in the experiment, and the current `f`.
-  See [Motion and the live equation](../motion-and-latex.md).
+  [ping-pong rendering](../render-targets.md): two hidden pictures, each step reading one and writing the
+  other, like two whiteboards used in turn.
+- Three kinds of [shader](../shaders.md) (small programs on the graphics chip): a *step* shader updates every
+  cell by one tick, *event* shaders make the spark and the cut, and a *display* shader turns the amounts into
+  the colours you see.
+- `motion(t)` runs the script: what time it is in the experiment, and the current `f`. See [Motion and the
+  live equation](../motion-and-latex.md).
 
 **A tour of the file:**
 
@@ -88,10 +88,10 @@ if (m.tau >= 3 && !state.done.stim) {
 }
 ```
 
-`&&` means "and", `!` means "not": once τ reaches 3, and if the spark hasn't been done yet this loop,
-spark a spot 3 units wide in the centre (`runEvent`), and note that it has been done. A similar block cuts
-the ring at τ = 8. The cut's direction turns by the *golden angle* (about 137.5°) each loop, so no two
-loops look the same.
+`&&` means "and", `!` means "not": once τ reaches 3, and if the spark hasn't been done yet this loop, spark a
+spot 3 units wide in the centre (`runEvent`), and note that it has been done. A similar block cuts the ring at
+τ = 8. The cut's direction turns by the *golden angle* (about 137.5°) each loop, so no two loops look the
+same.
 
 Then the ticks run, as described in [Simulating on the graphics chip](../render-targets.md).
 
@@ -99,9 +99,10 @@ Then the ticks run, as described in [Simulating on the graphics chip](../render-
 - **25 seconds**: one experiment (100 units ÷ 4 a second).
 - **262,144**: cells in the square holding the dish, each updated 200 times a second.
 - **About 5**: the dish's own pulse period, in chemical time, when it oscillates.
-- **137.5°**: the golden angle, the same angle sunflowers use to space their seeds. Turning by it again
-  and again never lands exactly on an earlier direction, so the cuts keep finding new angles.
+- **137.5°**: the golden angle, the same angle sunflowers use to space their seeds. Turning by it again and
+  again never lands exactly on an earlier direction, so the cuts keep finding new angles.
 
-**Words on this page:** [reaction–diffusion](../glossary.md#reaction-diffusion), [diffusion](../glossary.md#diffusion),
-[render target](../glossary.md#render-target), [ping-pong](../glossary.md#ping-pong), [excitable](../glossary.md#excitable),
-[golden angle](../glossary.md#golden-angle)
+**Words on this page:** [reaction–diffusion](../glossary.md#reaction-diffusion),
+[diffusion](../glossary.md#diffusion), [render target](../glossary.md#render-target),
+[ping-pong](../glossary.md#ping-pong), [excitable](../glossary.md#excitable), [golden
+angle](../glossary.md#golden-angle)

@@ -8,12 +8,12 @@ added: 2026-11-18
 **In one sentence:** a 3D sketch puts objects into a *scene* and photographs it with a *camera*, about 60
 times a second.
 
-**Picture it:** a model railway on a table, with a phone camera pointed at it. The table and everything on
-it is the scene. The phone is the camera. What you see on screen is the phone's photo. Move the phone and
-the photo changes, even though the railway hasn't moved.
+**Picture it:** a model railway on a table, with a phone camera pointed at it. The table and everything on it
+is the scene. The phone is the camera. What you see on screen is the phone's photo. Move the phone and the
+photo changes, even though the railway hasn't moved.
 
-**Why sketches need it:** the 79 `3d` sketches are little worlds. The computer stores where every object
-is in that world, then works out what the camera would see.
+**Why sketches need it:** the 79 `3d` sketches are little worlds. The computer stores where every object is in
+that world, then works out what the camera would see.
 
 **Where you'll see it:** every sketch with `mode: '3d'`. The app makes the scene and camera for you, in
 `src/core/SketchRunner.js`, and hands them over as `ctx.scene` and `ctx.camera`.
@@ -50,7 +50,8 @@ ctx.scene.add(mesh);
 
 - Line 1 moves the camera a little up (0.6) and back (3.6). It is looking down slightly at the flock.
 - `...` marks lines left out.
-- Line 2 makes the birds: `COUNT` copies of one bird shape (`geometry`) with one paint (`material`). See [Many copies of one shape (instancing)](instancing.md).
+- Line 2 makes the birds: `COUNT` copies of one bird shape (`geometry`) with one paint (`material`). See [Many
+  copies of one shape (instancing)](instancing.md).
 - Line 3 puts them into the scene. **Anything not added to the scene is never drawn.**
 
 The word `THREE` appears everywhere. It is three.js, the toolbox for 3D drawing that the whole project is
@@ -60,8 +61,8 @@ built on. `new THREE.Something(...)` means "make a new Something from the toolbo
 
 Every object has:
 - `.position`: where it is, `(x, y, z)`.
-- `.rotation`: how it is turned, in *radians*. A full turn is about 6.28 radians (2π), so a quarter
-  turn is about 1.57.
+- `.rotation`: how it is turned, in *radians*. A full turn is about 6.28 radians (2π), so a quarter turn is
+  about 1.57.
 - `.scale`: how big it is. 1 is normal size, and 2 is twice as big.
 
 From `src/sketches/audioReactiveMesh.js`:
@@ -71,12 +72,11 @@ state.mesh.rotation.y += ctx.delta * ctx.params.spin;
 ```
 
 `ctx.delta` is the time since the last frame (about 1/60 of a second), `ctx.params.spin` is the **Spin**
-slider, and `+=` means "add to". So this turns the ball around its up-down (`y`) axis, a little more on
-every frame. See
-[The frame loop: setup, update, dispose](frame-loop.md).
+slider, and `+=` means "add to". So this turns the ball around its up-down (`y`) axis, a little more on every
+frame. See [The frame loop: setup, update, dispose](frame-loop.md).
 
-**Try this:** in `boidsFlock.js`, change `ctx.camera.position.set(0, 0.6, 3.6)` to `(0, 4, 0.1)`. The
-camera now hangs almost straight above the flock, looking down, so you see it from above, like a map.
+**Try this:** in `boidsFlock.js`, change `ctx.camera.position.set(0, 0.6, 3.6)` to `(0, 4, 0.1)`. The camera
+now hangs almost straight above the flock, looking down, so you see it from above, like a map.
 
-**Related:** [Mesh, geometry and material](mesh-geometry-material.md) ·
-[How the camera moves](camera-and-controls.md) · [Lights](lights.md)
+**Related:** [Mesh, geometry and material](mesh-geometry-material.md) · [How the camera
+moves](camera-and-controls.md) · [Lights](lights.md)

@@ -5,8 +5,8 @@ added: 2026-11-18
 
 # Survey of the project
 
-This is the map the wiki is built from. It lists what is actually in the project: the kinds of sketches,
-the techniques they share, the science they lean on, and where every data set comes from. The full list of
+This is the map the wiki is built from. It lists what is actually in the project: the kinds of sketches, the
+techniques they share, the science they lean on, and where every data set comes from. The full list of
 sketches, oldest first, is at the end.
 
 Update this file whenever a sketch, a data set or a shared technique is added.
@@ -21,17 +21,17 @@ There are two **modes**, which decide how a sketch draws:
 | `3d` | 79 | A 3D scene with objects, a camera and often lights. Usually you can drag to look around. |
 
 A `2d` mode is reserved in `src/core/SketchRunner.js`, but no sketch uses it. Flat drawing happens in two
-other ways: `shader` mode, and drawing onto a hidden 2D canvas that is then used as a picture
-("canvas textures", 12 sketches).
+other ways: `shader` mode, and drawing onto a hidden 2D canvas that is then used as a picture ("canvas
+textures", 12 sketches).
 
-**Categories.** Each sketch names one category, and `src/core/taxonomy.js` sorts categories into seven
-groups (Mathematics, Systems, Fields, Geometry, Rendering, Audio, Experiments). The categories in use:
-Fractals 43, Physics 27, Astronomy 16, Chaos 8, Biology 5, Topology 4, Geometry 4, Functional Analysis 4,
-Reaction-Diffusion 3, Surfaces 3, Fluid Flow 3, Shaders 3, Knots 3, Particles 3, Waves 3, Splines 2,
-Optics 2, Graphs & Networks 2, Procedural Textures 2, Dynamical Systems 2, Algebraic Art 2, Chemistry 2,
-and one each for Audio-Reactive, Audio-Reactive Fractal, Visualization, Emergence, Growth, Meshes,
-Probability, Cellular Automata, Synthesis, Non-Euclidean, Materials, 3D, Waveforms, Optimization,
-Ray Tracing, Spectra, 4D, Number Theory, Vector Fields and Voxels.
+**Categories.** Each sketch names one category, and `src/core/taxonomy.js` sorts categories into seven groups
+(Mathematics, Systems, Fields, Geometry, Rendering, Audio, Experiments). The categories in use: Fractals 43,
+Physics 27, Astronomy 16, Chaos 8, Biology 5, Topology 4, Geometry 4, Functional Analysis 4,
+Reaction-Diffusion 3, Surfaces 3, Fluid Flow 3, Shaders 3, Knots 3, Particles 3, Waves 3, Splines 2, Optics 2,
+Graphs & Networks 2, Procedural Textures 2, Dynamical Systems 2, Algebraic Art 2, Chemistry 2, and one each
+for Audio-Reactive, Audio-Reactive Fractal, Visualization, Emergence, Growth, Meshes, Probability, Cellular
+Automata, Synthesis, Non-Euclidean, Materials, 3D, Waveforms, Optimization, Ray Tracing, Spectra, 4D, Number
+Theory, Vector Fields and Voxels.
 
 ## Techniques used in more than one sketch
 
@@ -74,8 +74,8 @@ Ray Tracing, Spectra, 4D, Number Theory, Vector Fields and Voxels.
 | Map projections (Mollweide, gnomonic) | 2 | *(planned: maps and the sky)* |
 | Buttons on a sketch (`actions`) | 7 | [The sketch format: every field](sketch-format.md) |
 
-Techniques found in only one sketch (for example the 3D galaxy engine in `src/lib/galaxy/`, used by
-Messier in Depth and described in `docs/galaxy-engine.md`) are explained in that sketch's walkthrough.
+Techniques found in only one sketch (for example the 3D galaxy engine in `src/lib/galaxy/`, used by Messier in
+Depth and described in `docs/galaxy-engine.md`) are explained in that sketch's walkthrough.
 
 ## Science and math topics
 
@@ -84,23 +84,23 @@ Messier in Depth and described in `docs/galaxy-engine.md`) are explained in that
   Menger sponge, Kleinian and pseudo-Kleinian sets, iterated function systems, the dragon curve.
 - **Chaos and dynamical systems:** the logistic map and bifurcation, the Lorenz attractor, the double
   pendulum, the Kuramoto–Sivashinsky equation, synchronisation (fireflies), predator and prey.
-- **Patterns in chemistry and biology:** reaction–diffusion (Belousov–Zhabotinsky, Brusselator,
-  Gray–Scott), Liesegang rings, diffusion-limited growth, phyllotaxis (sunflowers), flocking (boids),
-  a fruit-fly connectome, epidemic models (SIR).
-- **Geometry and topology:** surfaces (Möbius strip, Klein bottle, Boy's surface, Enneper, helicoid,
-  minimal surfaces), knots, the Hopf fibration, the tesseract (4D), hyperbolic and Penrose tilings,
-  Voronoi cells, Bézier and NURBS curves, the brachistochrone.
-- **Waves, signals and Fourier:** Fourier series and epicycles, Chladni plates, wave interference,
-  caustics, oscilloscopes and spectra, orthogonal polynomials (Gram–Schmidt), weak convergence.
-- **Physics:** Newtonian gravity (n-body, orbits), fluids (Navier–Stokes), the Ising model, special
-  relativity (Lorentz boosts, the twin paradox, relativistic flight, the Terrell rotation), general
-  relativity (black-hole lensing, Einstein rings, wormholes, Penrose diagrams, spaghettification),
-  quantum mechanics (tunnelling, hydrogen orbitals, coherent states), Noether's theorem.
-- **Astronomy, with real data:** the cosmic microwave background and its power spectrum, spherical
-  harmonics, Cepheid variable stars and the distance ladder, Type Ia supernovae and the accelerating
-  universe, galaxy rotation curves and missing mass, the cosmic web of galaxies, exoplanets and the
-  transit method, Kepler's laws, pulsars, gravitational waves, the Sun's spot cycle, the asteroid belt,
-  Gaia's map of nearby stars, the Voyager flybys, the Messier catalogue, the JWST deep field.
+- **Patterns in chemistry and biology:** reaction–diffusion (Belousov–Zhabotinsky, Brusselator, Gray–Scott),
+  Liesegang rings, diffusion-limited growth, phyllotaxis (sunflowers), flocking (boids), a fruit-fly
+  connectome, epidemic models (SIR).
+- **Geometry and topology:** surfaces (Möbius strip, Klein bottle, Boy's surface, Enneper, helicoid, minimal
+  surfaces), knots, the Hopf fibration, the tesseract (4D), hyperbolic and Penrose tilings, Voronoi cells,
+  Bézier and NURBS curves, the brachistochrone.
+- **Waves, signals and Fourier:** Fourier series and epicycles, Chladni plates, wave interference, caustics,
+  oscilloscopes and spectra, orthogonal polynomials (Gram–Schmidt), weak convergence.
+- **Physics:** Newtonian gravity (n-body, orbits), fluids (Navier–Stokes), the Ising model, special relativity
+  (Lorentz boosts, the twin paradox, relativistic flight, the Terrell rotation), general relativity
+  (black-hole lensing, Einstein rings, wormholes, Penrose diagrams, spaghettification), quantum mechanics
+  (tunnelling, hydrogen orbitals, coherent states), Noether's theorem.
+- **Astronomy, with real data:** the cosmic microwave background and its power spectrum, spherical harmonics,
+  Cepheid variable stars and the distance ladder, Type Ia supernovae and the accelerating universe, galaxy
+  rotation curves and missing mass, the cosmic web of galaxies, exoplanets and the transit method, Kepler's
+  laws, pulsars, gravitational waves, the Sun's spot cycle, the asteroid belt, Gaia's map of nearby stars, the
+  Voyager flybys, the Messier catalogue, the JWST deep field.
 
 ## Data sources
 
@@ -131,21 +131,21 @@ Every data set lives in `public/data/<folder>/` and is made once, on this comput
 
 **File formats in `public/data/`:**
 - `meta.json`: a text file of labelled numbers and notes (counts, fitted values, sources).
-- `*.bin`: long runs of numbers packed tightly as raw bytes, to keep downloads small. Each build
-  script's opening comment says exactly how they are packed.
-- `sky.png` (CMB): a picture used as data. Its red, green and blue channels hold three different
-  versions of the temperature map, not colours.
+- `*.bin`: long runs of numbers packed tightly as raw bytes, to keep downloads small. Each build script's
+  opening comment says exactly how they are packed.
+- `sky.png` (CMB): a picture used as data. Its red, green and blue channels hold three different versions of
+  the temperature map, not colours.
 - `atlas.jpg`: many small pictures packed into one big one.
 - `*.jpg` in `img/`: ordinary photographs (sky-survey plates turned into colour).
 
-**Formats the scripts read (never sent to the browser):** FITS (astronomy's standard image and table
-format), CSV (tables as text), HEALPix (a way of cutting the sphere of the sky into equal-area pixels,
-used by the Planck map), HTML and JSON answers from NED, Wikipedia and SkyView.
+**Formats the scripts read (never sent to the browser):** FITS (astronomy's standard image and table format),
+CSV (tables as text), HEALPix (a way of cutting the sphere of the sky into equal-area pixels, used by the
+Planck map), HTML and JSON answers from NED, Wikipedia and SkyView.
 
 ## Shared code in `src/lib/`
 
-`motion.js` (loop timing), `fatLines.js` (lines and dots), `morphSurface.js` + `surfaceMaterial.js`
-(GPU surfaces), `environment.js` (realistic scenes), `bit.js` (comedy timing), `glow.js`, `voronoi.js`,
+`motion.js` (loop timing), `fatLines.js` (lines and dots), `morphSurface.js` + `surfaceMaterial.js` (GPU
+surfaces), `environment.js` (realistic scenes), `bit.js` (comedy timing), `glow.js`, `voronoi.js`,
 `kuramotoSivashinsky.js`, `curves.js`, `parametric.js`, `equation.js`, `hopf.js`, `skullHead.js`,
 `flyConnectome.js`, `galaxy/` (galaxy engine) and `sky/` (star layer).
 
