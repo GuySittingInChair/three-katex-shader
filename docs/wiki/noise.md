@@ -1,3 +1,7 @@
+---
+summary: Smooth randomness: hills and clouds, not TV static.
+---
+
 # Noise: randomness that looks natural
 
 **In one sentence:** *noise* is a recipe for smooth, wobbly randomness: bumpy but never jumpy, which is what

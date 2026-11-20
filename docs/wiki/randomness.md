@@ -1,3 +1,7 @@
+---
+summary: Dice rolls in code. A seed makes the same rolls come out every time.
+---
+
 # Random numbers, and seeds that make them repeatable
 
 **In one sentence:** sketches roll dice with `Math.random()`, and when they need the *same* "random"

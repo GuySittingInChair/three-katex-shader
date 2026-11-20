@@ -1,3 +1,7 @@
+---
+summary: The start page of the beginner wiki: what to read first, and a list of every page.
+---
+
 # The beginner wiki
 
 This wiki explains the sketches on aiship.lol in plain English. You don't need to know any programming,

@@ -1,3 +1,7 @@
+---
+summary: A grid of cells living and dying by four rules, making endless creatures.
+---
+
 # Conway's Game of Life: in plain English
 
 File: `src/sketches/gameOfLife.js` · Mode: shader · Category: Cellular Automata

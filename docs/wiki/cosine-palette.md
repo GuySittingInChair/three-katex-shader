@@ -1,3 +1,7 @@
+---
+summary: A rainbow made from three cosine waves, one each for red, green and blue.
+---
+
 # Colour 3: the cosine palette (the rainbow trick)
 
 **In one sentence:** the cosine palette turns a single number into a smoothly changing colour, by letting

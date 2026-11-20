@@ -1,3 +1,7 @@
+---
+summary: A flowing rainbow made from one line of shader code.
+---
+
 # Gradient Plane: in plain English
 
 File: `src/sketches/gradientPlane.js` · Mode: shader · Category: Shaders

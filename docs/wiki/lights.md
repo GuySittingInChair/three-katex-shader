@@ -1,3 +1,7 @@
+---
+summary: A lamp in the 3D scene. Without one, lit materials look black.
+---
+
 # Drawing in 3D 4: lights
 
 **In one sentence:** lights make solid objects look solid, with bright sides facing the light and darker

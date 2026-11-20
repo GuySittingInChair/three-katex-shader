@@ -1,3 +1,7 @@
+---
+summary: A 3D sketch puts objects in a scene and photographs it with a camera, about 60 times a second.
+---
+
 # Drawing in 3D 1: the scene and the camera
 
 **In one sentence:** a 3D sketch puts objects into a *scene* and photographs it with a *camera*, about 60

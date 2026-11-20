@@ -1,3 +1,7 @@
+---
+summary: A lacy fractal whose shape follows the music.
+---
+
 # Audio-Reactive Julia Set: in plain English
 
 File: `src/sketches/audioReactiveJulia.js` · Mode: shader · Category: Audio-Reactive Fractal

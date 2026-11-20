@@ -1,3 +1,7 @@
+---
+summary: A drone attacks and an anti-aircraft gun defends, with real missile and gunnery physics.
+---
+
 # Intercept: in plain English
 
 File: `src/sketches/intercept.js` · Mode: 3d · Category: Physics

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import { editableToModule, parseHelperNames } from './tools/sketchFiles.js';
+import { readWikiMeta } from './tools/wikiMeta.js';
 
 // Dev-only persistence for the code panel. Without this, sketches you create
 // or edit in the browser live only in that browser's localStorage (per
@@ -149,6 +150,30 @@ function sketchPersist() {
   };
 }
 
+// `import wikiMeta from 'virtual:wiki-meta'`: every wiki page's title, one-line
+// summary, tags and git dates, without loading the pages themselves. Small
+// spaces (code cards, the astronomy hub, previews) use the summary.
+function wikiMetaModule() {
+  const id = 'virtual:wiki-meta';
+  const resolved = '\0' + id;
+  return {
+    name: 'wiki-meta',
+    resolveId: (s) => (s === id ? resolved : null),
+    load(s) {
+      if (s !== resolved) return null;
+      for (const f of fs.readdirSync(path.join(ROOT, 'docs/wiki'), { recursive: true })) {
+        if (String(f).endsWith('.md')) this.addWatchFile(path.join(ROOT, 'docs/wiki', String(f)));
+      }
+      return `export default ${JSON.stringify(readWikiMeta(ROOT))};`;
+    },
+    handleHotUpdate({ file, server }) {
+      if (!file.startsWith(path.join(ROOT, 'docs/wiki'))) return;
+      const mod = server.moduleGraph.getModuleById(resolved);
+      if (mod) server.moduleGraph.invalidateModule(mod);
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [sketchPersist()],
+  plugins: [sketchPersist(), wikiMetaModule()],
 });

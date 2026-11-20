@@ -1,3 +1,7 @@
+---
+summary: A picture (or a grid of numbers stored as one) that a shader can look things up in.
+---
+
 # Textures: pictures a shader can look things up in
 
 **In one sentence:** a *texture* is a picture handed to a [shader](shaders.md) (the small program on

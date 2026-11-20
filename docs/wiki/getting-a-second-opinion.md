@@ -1,3 +1,7 @@
+---
+summary: Using a local AI to find where a page loses a beginner, then having the fix checked.
+---
+
 # Getting a second opinion on an explanation
 
 **In one sentence:** when a page (or something Claude told you) doesn't make sense, you can have a

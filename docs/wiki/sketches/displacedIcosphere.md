@@ -1,3 +1,7 @@
+---
+summary: A little low-poly planet with oceans, hills and snowy peaks.
+---
+
 # Displaced Icosphere: in plain English
 
 File: `src/sketches/displacedIcosphere.js` · Mode: 3d · Category: Meshes

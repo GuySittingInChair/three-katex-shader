@@ -1,3 +1,7 @@
+---
+summary: Makes bright things bleed light into their surroundings, like a lamp in fog.
+---
+
 # Glow: making bright things shine
 
 **In one sentence:** the glow helper (a shared piece of code that any sketch can borrow), `src/lib/glow.js`, finds the brightest parts of a picture, blurs

@@ -1,3 +1,7 @@
+---
+summary: setup builds the scene once, update changes it about 60 times a second, dispose tidies up.
+---
+
 # The frame loop: setup, update, dispose
 
 **In one sentence:** a sketch builds its scene once (`setup`), changes it a little on every frame

@@ -1,3 +1,7 @@
+---
+summary: Which folder holds what: sketches, the app that runs them, shared helpers, and the science data.
+---
+
 # How the files fit together
 
 **In one sentence:** each sketch (one animated picture on the site, with its sliders and equation) is one file in `src/sketches/`, the app in `src/core/` and `src/ui/` runs

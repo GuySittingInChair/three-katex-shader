@@ -1,3 +1,7 @@
+---
+summary: A spiral staircase surface rolling into an hourglass without stretching.
+---
+
 # Helicoid ↔ Catenoid: in plain English
 
 File: `src/sketches/helicoidCatenoid.js` · Mode: 3d · Category: Surfaces

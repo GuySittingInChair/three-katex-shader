@@ -1,3 +1,7 @@
+---
+summary: Molten rock with glowing cracks, made from noise warping noise.
+---
+
 # Inferno Cape: in plain English
 
 File: `src/sketches/infernoCape.js` · Mode: shader · Category: Procedural Textures

@@ -1,3 +1,7 @@
+---
+summary: The wrinkling flame front, fed by a Game of Life board.
+---
+
 # Kuramoto–Sivashinsky — Life-Seeded: in plain English
 
 File: `src/sketches/kuramotoSivashinskyLife.js` · Mode: shader · Category: Chaos

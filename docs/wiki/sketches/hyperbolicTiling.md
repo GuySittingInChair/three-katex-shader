@@ -1,3 +1,7 @@
+---
+summary: Seven-sided tiles that only fit together in a stranger kind of space.
+---
+
 # Hyperbolic Tiling: in plain English
 
 File: `src/sketches/hyperbolicTiling.js` · Mode: shader · Category: Non-Euclidean

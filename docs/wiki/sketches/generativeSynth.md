@@ -1,3 +1,7 @@
+---
+summary: A melody that composes and plays itself.
+---
+
 # Generative Synth: in plain English
 
 File: `src/sketches/generativeSynth.js` · Mode: shader · Category: Synthesis

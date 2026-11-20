@@ -1,3 +1,7 @@
+---
+summary: A neon kaleidoscope made by twisting, folding and counting near-misses.
+---
+
 # Radian628 — Abyssal Bloom: in plain English
 
 File: `src/sketches/chatgpt-quantum.js` · Mode: shader · Category: Fractals

@@ -1,3 +1,7 @@
+---
+summary: How a smooth curve is built from a zig-zag, one layer of in-between points at a time.
+---
+
 # De Casteljau Bézier: in plain English
 
 File: `src/sketches/bezierDeCasteljau.js` · Mode: 3d · Category: Splines

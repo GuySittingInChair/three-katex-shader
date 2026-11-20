@@ -1,3 +1,7 @@
+---
+summary: Two calculations that turn a steadily growing number into a smooth wave between −1 and +1.
+---
+
 # Sine and cosine: the wave-makers
 
 **In one sentence:** `sin` and `cos` are two built-in calculations that turn a steadily growing number

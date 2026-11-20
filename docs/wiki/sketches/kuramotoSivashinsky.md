@@ -1,3 +1,7 @@
+---
+summary: A wrinkling flame front that never settles, drawn as a seething honeycomb.
+---
+
 # Kuramoto–Sivashinsky: in plain English
 
 File: `src/sketches/kuramotoSivashinsky.js` · Mode: shader · Category: Chaos

@@ -1,3 +1,7 @@
+---
+summary: Balls bouncing off pegs build a bell curve.
+---
+
 # Galton Board: in plain English
 
 File: `src/sketches/galtonBoard.js` · Mode: 3d · Category: Probability

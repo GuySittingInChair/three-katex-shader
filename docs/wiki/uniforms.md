@@ -1,3 +1,7 @@
+---
+summary: Values sent from JavaScript into a shader: the same for every pixel, changed each frame.
+---
+
 # Uniforms: knobs passed in from JavaScript
 
 **In one sentence:** a *uniform* is a number (or a few numbers) that JavaScript hands to a shader (a small program on

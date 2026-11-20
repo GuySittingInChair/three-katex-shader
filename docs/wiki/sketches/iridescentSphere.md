@@ -1,3 +1,7 @@
+---
+summary: A dark ball with a soap-bubble rainbow round its edge.
+---
+
 # Iridescent Sphere: in plain English
 
 File: `src/sketches/iridescentSphere.js` · Mode: 3d · Category: Materials

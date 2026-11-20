@@ -1,3 +1,7 @@
+---
+summary: A glowing ring that ripples to the bass, middle and treble of the sound.
+---
+
 # Audio Pulse: in plain English
 
 File: `src/sketches/audioPulse.js` · Mode: shader · Category: Audio-Reactive

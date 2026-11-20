@@ -1,3 +1,7 @@
+---
+summary: Two drawings of a surface that can't be built in our space, blending into each other.
+---
+
 # Boy's Surface: in plain English
 
 File: `src/sketches/boysSurface.js` · Mode: 3d · Category: Topology

@@ -1,3 +1,7 @@
+---
+summary: A giant sperm cell flies missile-style at an egg while a real anti-aircraft gun tracks it.
+---
+
 # Anti-Aircraft Contraception: in plain English
 
 File: `src/sketches/antiAircraftContraception.js` · Mode: 3d · Category: Physics

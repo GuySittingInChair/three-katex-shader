@@ -1,3 +1,7 @@
+---
+summary: "If this, do that", and "do this again for every item".
+---
+
 # Reading JavaScript 3: decisions (`if`) and loops (`for`)
 
 **In one sentence:** `if` lets the code choose what to do, and `for` makes it repeat something many times.

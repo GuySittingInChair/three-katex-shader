@@ -1,3 +1,7 @@
+---
+summary: A simple population rule tipping from steady, to repeating, to chaos.
+---
+
 # Bifurcation Diagram: in plain English
 
 File: `src/sketches/bifurcationDiagram.js` · Mode: shader · Category: Chaos

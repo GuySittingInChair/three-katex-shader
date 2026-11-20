@@ -1,3 +1,7 @@
+---
+summary: A 3D object is a shape (geometry) plus a skin (material), put together as a mesh.
+---
+
 # Drawing in 3D 2: mesh, geometry and material
 
 **In one sentence:** a *mesh* is a visible object, made of a *geometry* (its shape) and a *material*

@@ -1,3 +1,7 @@
+---
+summary: Draws thousands of copies of one shape in a single go, each with its own position.
+---
+
 # Drawing in 3D 6: many copies of one shape (instancing)
 
 **In one sentence:** *instancing* draws hundreds of copies of one shape in a single go, each copy with its

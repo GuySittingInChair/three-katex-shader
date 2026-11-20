@@ -1,3 +1,7 @@
+---
+summary: A twisted ribbon inflating into a bottle with only one side.
+---
+
 # Klein Bottle: in plain English
 
 File: `src/sketches/kleinBottle.js` · Mode: 3d · Category: Topology

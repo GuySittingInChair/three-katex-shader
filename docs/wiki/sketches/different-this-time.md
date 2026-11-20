@@ -1,3 +1,7 @@
+---
+summary: A rippling, folded-paper fractal pattern that slowly turns and breathes.
+---
+
 # Radian628 Integral-Warped GLSL Fractal: in plain English
 
 File: `src/sketches/different-this-time.js` · Mode: shader · Category: Fractals

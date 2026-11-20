@@ -1,3 +1,7 @@
+---
+summary: Why the Kuramoto–Sivashinsky sketch froze, and how a better solver fixed it.
+---
+
 # Kuramoto–Sivashinsky: the bug that froze the flame
 
 Before 2026-11-18, [this sketch](kuramotoSivashinsky.md)'s honeycomb churned, slowed, and by about 50

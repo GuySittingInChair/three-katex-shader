@@ -1,3 +1,7 @@
+---
+summary: A soap-film saddle that curls over and through itself.
+---
+
 # Enneper Surface: in plain English
 
 File: `src/sketches/enneperSurface.js` · Mode: 3d · Category: Surfaces

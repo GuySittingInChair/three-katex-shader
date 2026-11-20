@@ -1,3 +1,7 @@
+---
+summary: A tangled network that untangles itself with springs and pushes.
+---
+
 # Force-Directed Graph: in plain English
 
 File: `src/sketches/forceDirectedGraph.js` · Mode: 3d · Category: Graphs & Networks

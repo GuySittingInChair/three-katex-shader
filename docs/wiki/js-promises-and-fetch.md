@@ -1,3 +1,7 @@
+---
+summary: Asking for a file over the internet, and waiting for the answer without freezing.
+---
+
 # Reading JavaScript 5: loading data (`fetch`, `Promise`, `await`)
 
 **In one sentence:** `fetch` asks for a file, and a *Promise* is the ticket you hold while you wait for it

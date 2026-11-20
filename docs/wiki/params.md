@@ -1,3 +1,7 @@
+---
+summary: The sliders in the Params panel, and how code reads their values.
+---
+
 # Params: the sliders
 
 **In one sentence:** `params` lists the sliders a sketch offers, with where each one starts and how far

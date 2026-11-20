@@ -1,3 +1,7 @@
+---
+summary: Every technical word used on the site, explained in a line, with a link to the page that covers it.
+---
+
 # Glossary
 
 One line per word, in alphabetical order, with a link to the page that explains it. Pages marked

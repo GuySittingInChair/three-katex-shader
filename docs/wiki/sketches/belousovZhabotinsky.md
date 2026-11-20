@@ -1,3 +1,7 @@
+---
+summary: A real chemical reaction making spreading rings and spirals in a dish.
+---
+
 # Belousov–Zhabotinsky: in plain English
 
 File: `src/sketches/belousovZhabotinsky.js` · Mode: shader · Category: Reaction-Diffusion

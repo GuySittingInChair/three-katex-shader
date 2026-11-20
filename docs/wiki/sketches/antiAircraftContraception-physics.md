@@ -1,3 +1,7 @@
+---
+summary: The real physics behind Anti-Aircraft Contraception: homing, gunfire and swimming in air.
+---
+
 # Anti-Aircraft Contraception: the physics, in plain English
 
 Part of the [Anti-Aircraft Contraception walkthrough](antiAircraftContraception.md). File:

@@ -1,3 +1,7 @@
+---
+summary: A kaleidoscope bent by a hidden Game of Life.
+---
+
 # Life-Warped Fractal: in plain English
 
 File: `src/sketches/lifeWarpedFractal.js` · Mode: shader · Category: Fractals

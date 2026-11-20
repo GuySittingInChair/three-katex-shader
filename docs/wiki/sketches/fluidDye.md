@@ -1,3 +1,7 @@
+---
+summary: Swirling ink-in-water clouds, made from noise warping noise.
+---
+
 # Fluid Dye: in plain English
 
 File: `src/sketches/fluidDye.js` · Mode: shader · Category: Fluid Flow

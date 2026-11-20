@@ -1,3 +1,7 @@
+---
+summary: Every colour on screen is a mix of red, green and blue light.
+---
+
 # Colour 1: RGB, three numbers
 
 **In one sentence:** every colour on a screen is a mix of red, green and blue light, so a colour is three

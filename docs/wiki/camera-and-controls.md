@@ -1,3 +1,7 @@
+---
+summary: Where the camera sits and points, and how dragging and scrolling move it.
+---
+
 # Drawing in 3D 5: how the camera moves
 
 **In one sentence:** the camera either moves by itself, because the sketch moves it in `update`, or you

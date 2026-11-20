@@ -1,3 +1,7 @@
+---
+summary: The bright dancing net of light on the floor of a swimming pool.
+---
+
 # Caustics: in plain English
 
 File: `src/sketches/causticsLight.js` · Mode: shader · Category: Optics

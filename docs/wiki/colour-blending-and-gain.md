@@ -1,3 +1,7 @@
+---
+summary: Mixing two colours, adding light to light, and turning brightness up or down.
+---
+
 # Colour 2: blending, adding, dimming and gain
 
 **In one sentence:** colours are numbers, so sketches mix them by blending (part this, part that), adding

@@ -1,3 +1,7 @@
+---
+summary: One short animated picture on the site, written as a single file.
+---
+
 # What a sketch is
 
 **In one sentence:** a sketch is one short animated picture on the site, written as a single file in

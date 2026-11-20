@@ -1,3 +1,7 @@
+---
+summary: A named recipe: give it ingredients, it hands back a result.
+---
+
 # Reading JavaScript 2: functions and arrows (`=>`)
 
 **In one sentence:** a *function* is a named, reusable recipe: you give it some ingredients (its

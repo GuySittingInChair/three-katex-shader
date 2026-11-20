@@ -1,3 +1,7 @@
+---
+summary: Lists of things, and bundles of named values.
+---
+
 # Reading JavaScript 4: lists (arrays) and labelled boxes (objects)
 
 **In one sentence:** an *array* is a numbered list of values, `[ ]`, and an *object* is a set of labelled

@@ -21,12 +21,15 @@ are the expert field guide shown in the Explain panel: keep them, the wiki sits 
   on a page, even if another page already does.
 - Picture before detail: every concept opens with an everyday analogy.
 - Never show an equation without first saying what it means in words.
-- Quote 2 to 6 real lines from a named sketch file and explain them line by line. Never invent examples.
+- Quote real lines from a named sketch file (as many as the explanation needs) and explain them line by
+  line. Never invent examples.
 - Say what changing something would do ("change 0.9 to 0.5 and the map shrinks to half the screen
   width"). Check that claim against the code (arithmetic, units, which way a number works) before
   writing it.
 - Numbers people can picture ("about the width of the full Moon", not "0.52°" alone).
-- About 600 words at most per page; split longer ones.
+- No word limit. Length comes from substance, never padding. Small spaces (hover cards, search, previews,
+  RSS) use the page's `summary:` line, not the page itself.
+- Don't cap the length or number of anything (pages, quotes, batches, list items) without asking the owner.
 - Never write "simply", "just", "obviously" or "trivially".
 - Concept pages: `# Name`, **In one sentence**, **Picture it**, **Why sketches need it**, **Where you'll
   see it**, **What it looks like in the code**, **Try this**, **Related**.
@@ -40,5 +43,4 @@ are the expert field guide shown in the Explain panel: keep them, the wiki sits 
 
 **Still to write** (see the *(planned)* items in `README.md`): drawing in 2D, animation and timing, math,
 simulation, maps and the sky, science explainers, space and science data, equations and LaTeX, asking
-Claude for help, and the walkthroughs for the remaining sketches, in batches of about ten, oldest first,
-in the order of the table at the end of `_survey.md`.
+Claude for help, and the walkthroughs for the remaining sketches. The current plan and its order live in `ROADMAP.md`.

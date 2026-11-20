@@ -1,3 +1,7 @@
+---
+summary: The shader language's building blocks: numbers, arrows (vectors) and a few handy functions.
+---
+
 # GLSL basics: reading a shader
 
 **In one sentence:** GLSL is the language *shaders* are written in: the small programs the graphics chip

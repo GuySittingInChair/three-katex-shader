@@ -16,7 +16,7 @@ the new interaction has been clicked, and the page has been checked at phone wid
 
 | # | Item | Status | Done means |
 |---|------|--------|------------|
-| 0.1 | Write this roadmap and wait for go-ahead | doing | Owner has read it and said go |
+| 0.1 | Write this roadmap and wait for go-ahead | done (owner: "figure it out", 2026-11-20) | Owner has read it and said go |
 
 ---
 
@@ -30,7 +30,7 @@ From my own self-review on 2026-11-19 (8 points), plus the owner's reply (6 more
 |---|-------|-----------------|--------|------------|
 | 1.1 | Pages were patched with bracketed asides, so they read like stapled-on notes | Rewrite each page as a whole, in order, reading it start to finish; no inserted `(…)` asides | todo | Every page reread start to finish by me, with a log line per page in `docs/wiki/_audit.md` |
 | 1.2 | The same small code lessons (`&&`, `!`, `===`, `? :`, `const`) are repeated on many pages | Explain each once on its wiki page; on other pages, make the symbol clickable (Phase 2) instead of explaining it again in prose | todo | A grep finds no stock "`&&` means and" style sentence outside its home page |
-| 1.3 | The 600-word limit was broken, then kept as a rule | Remove the limit everywhere (see 1B) | todo | Nothing in the repo or memory mentions a word limit |
+| 1.3 | The 600-word limit was broken, then kept as a rule | Remove the limit everywhere (see 1B) | done (see 1.16–1.18) | Nothing in the repo or memory mentions a word limit |
 | 1.4 | Clumsy sentences ("so … so", `chatgpt-quantum.md:64`, `motion-and-latex.md:37`) | Fixed as part of the 1.1 reread | todo | Covered by the 1.1 log |
 | 1.5 | Messy line wrapping left by scripted edits | Rewrap every page to one width with a script, then reread; stop editing pages by regex | todo | A check reports no prose line over the width; diff reviewed |
 | 1.6 | "Words on this page" links all land on the top of the glossary | Give every glossary entry an id and link to it (`glossary.md#golden-angle`); add a test that each anchor exists | todo | A test fails on a missing anchor; clicking a word scrolls to its entry |
@@ -42,16 +42,16 @@ From my own self-review on 2026-11-19 (8 points), plus the owner's reply (6 more
 | 1.12 | Errors on every page | A full error audit of every page by me (not the local model). Each claim, number and quote is checked against the code or a source and logged in `_audit.md`. Owner's own sightings are taken first if they share them | todo | `_audit.md` lists every page with errors found and fixed; quote check (2.5) passes |
 | 1.13 | No way to go back and forth between a page and the code it discusses | Every code block in the wiki gets "Open at line N" (opens the sketch with the code panel scrolled to that line and highlighted). Lines in the code panel that a walkthrough discusses get "Explained in the walkthrough" linking back to that paragraph. Line numbers are worked out at build time from the quoted text, so they can't go stale | todo | Clicking each way lands on the right line or paragraph, checked on 3 pages in the browser and at phone width |
 | 1.14 | comedy-captions page not wanted | Deleted with all links to it (8a4309e, pushed) | done (build, 33/33 tests, link check 0 broken) | n/a |
-| 1.15 | The push of 8a4309e also put the 4 criticised commits live | Ask whether to keep them live while they're redone | blocked (question Q1) | Owner has decided |
+| 1.15 | The push of 8a4309e also put the 4 criticised commits live | Keep them live (Q1) | done (decision) | n/a |
 
 ### 1B. Remove the word limit everywhere
 
 | # | Item | Status | Done means |
 |---|------|--------|------------|
-| 1.16 | Remove "About 600 words at most per page; split longer ones" from `CLAUDE.md` | todo | Line gone |
-| 1.17 | Remove the other caps in `CLAUDE.md`: "Quote 2 to 6 real lines" and "in batches of about ten" | todo | Lines gone or replaced with no number |
-| 1.18 | Remove the batch-of-ten and length notes from my memory file | todo | Memory file has no cap |
-| 1.19 | Short summaries for small spaces: each wiki page gets a `summary:` line at the top. The code-panel cards use it, and so will search results, hover cards, previews and the RSS feed. This replaces the `blurb` text now hard-coded in `src/core/wiki.js` | todo | Every page has one (a test fails otherwise); the cards show it; the full page is unaffected |
+| 1.16 | Remove "About 600 words at most per page; split longer ones" from `CLAUDE.md` | done (removed; grep finds no limit) | Line gone |
+| 1.17 | Remove the other caps in `CLAUDE.md`: "Quote 2 to 6 real lines" and "in batches of about ten" | done (both replaced with no number) | Lines gone or replaced with no number |
+| 1.18 | Remove the batch-of-ten and length notes from my memory file | done (memory note updated) | Memory file has no cap |
+| 1.19 | Short summaries for small spaces: each wiki page gets a `summary:` line at the top. The code-panel cards use it, and so will search results, hover cards, previews and the RSS feed. This replaces the `blurb` text now hard-coded in `src/core/wiki.js` | done (69 pages have `summary:`; tests/wiki.test.mjs fails if one is missing; code cards show it, checked in Firefox at 1200 and 390 px; header hidden on the page) | Every page has one (a test fails otherwise); the cards show it; the full page is unaffected |
 
 ### 1C. Astronomy tab
 
@@ -76,6 +76,7 @@ From my own self-review on 2026-11-19 (8 points), plus the owner's reply (6 more
 
 | # | Item | Status | Done means |
 |---|------|--------|------------|
+| 1.30 | Find where "only 20 walkthroughs" shows up (live wiki index, sketch pages, explain panel) and fix it if it's a bug | todo | Cause found and recorded |
 | 1.29 | `/feed.xml` built at build time: new walkthroughs and wiki entries, each with its summary and the date it first appeared (from git) | todo | Passes a feed validator; opens in a feed reader; linked in `<head>` |
 
 ---
@@ -171,7 +172,7 @@ Total: 36 new, for 67 sketches walked through.
 
 | # | Item | Status | Done means |
 |---|------|--------|------------|
-| 2.10 | Once clickable code works: expand 3 wiki entries (proposed: cosine palette, shaders, sine and cosine; see Q5) | todo | Verified as above |
+| 2.10 | Once clickable code works: expand 3 wiki entries: cosine palette, shaders, and new parallax and distance (Q5) | todo | Verified as above |
 | 2.11 | Write the first 5 new walkthroughs (proposed: keplersPizza, sunCycle, exoplanets, fourierEpicycles, blackHoleLensing: four astronomy, one maths, from easy to hard) | todo | Verified as above |
 | 2.12 | Stop for owner review | todo | Owner's verdict recorded |
 | 2.13 | The remaining 31 walkthroughs and the rest of the wiki | todo | After B |
@@ -206,24 +207,25 @@ it.
 - The local AI critic (`wikicritic`) stays as an optional tool, but its scores are not used as evidence.
 - Wiki pages are rewrapped by a formatter, not by hand-edited regexes.
 
-## Questions for the owner
+## Questions for the owner (answered by Claude on 2026-11-20; the owner said to decide)
 
-- **Q1.** The 4 criticised commits are live since the last push. Keep them live while I redo the pages, or
-  revert the site to before them?
-- **Q2.** Clickable code scope: hand-written "why" explanations for every meaningful line of all 166
-  sketches is tens of thousands of lines. Proposal: full hand-written coverage for every sketch that has
-  (or gets) a walkthrough, plus every code block in the wiki. The other sketches get the existing concept
-  links until their walkthrough is written, with a coverage report so nothing is hidden. OK, or do you
-  want all 166 in this batch?
-- **Q3.** "Only 20 walkthroughs": nothing in the code limits walkthroughs to 20; there are 34 files
-  covering 31 sketches. Where did you see 20? If it's a page or list, that's a bug to fix.
-- **Q4.** Sketch backgrounds: I recommend they **don't** follow the site palette. The astronomy data and
-  the art were tuned on black, and tinting them changes what they show. Only the site's own interface
-  would change. OK?
-- **Q5.** For the quality check, should one of the 3 expanded entries be a new astronomy entry (e.g.
-  parallax and distance) instead of sine and cosine?
-- **Q6.** Phase 3 spends real money on an AI API. Which provider and key, and what monthly cap?
-- **Q7.** Phase 4: do you have creators in mind, or shall I propose a starter list?
+- **Q1. Criticised commits live?** Keep them live. They also contain real fixes (Displaced Icosphere
+  slider, Different This Time resize, corrected facts); rolling back would remove those. Pages are
+  improved in place by 1.1 and 1.12.
+- **Q2. Clickable-code scope:** full hand-written "why" coverage for every sketch with a walkthrough
+  (existing and new) and every code block in the wiki and guide. Other sketches keep concept links until
+  their walkthrough is written; a coverage report lists every sketch and its coverage, so nothing is
+  hidden. Recorded as a deferral, not a drop.
+- **Q3. "Only 20 walkthroughs":** no cap exists in the code. Where it shows up is item 1.30, still to
+  check. Target stays 67.
+- **Q4. Sketch backgrounds:** keep their own colours; only the interface follows the palette. Thumbnails
+  are not regenerated.
+- **Q5. Quality-check entries:** cosine palette, shaders, and a new astronomy entry, parallax and
+  distance (astronomy was the owner's stated favourite).
+- **Q6. AI provider for Phase 3:** Anthropic API through a Vercel function: Claude Haiku 5.5 for ghost
+  text, Claude Sonnet 5.5 for drafting code. Default spending cap $20 a month and per-user limits; the
+  owner adds the API key to Vercel when the prototype is ready. Detailed in the Phase 3 design.
+- **Q7. Creators:** Claude proposes a starter list in the Phase 4 design for the owner to edit.
 
 ## Things I think could be done better
 

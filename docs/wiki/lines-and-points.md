@@ -1,3 +1,7 @@
+---
+summary: Thin strokes and dots instead of solid surfaces: trails, threads, stars.
+---
+
 # Drawing in 3D 3: lines and points
 
 **In one sentence:** besides solid surfaces, a 3D sketch can draw lines (for curves, graphs and

@@ -1,3 +1,7 @@
+---
+summary: A map of the whole project: every sketch, the techniques they use, and where their data comes from.
+---
+
 # Survey of the project
 
 This is the map the wiki is built from. It lists what is actually in the project: the kinds of sketches,

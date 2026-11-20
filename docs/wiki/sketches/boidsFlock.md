@@ -1,3 +1,7 @@
+---
+summary: 120 birds forming flocks from three simple rules.
+---
+
 # Boids Flock: in plain English
 
 File: `src/sketches/boidsFlock.js` · Mode: 3d · Category: Emergence

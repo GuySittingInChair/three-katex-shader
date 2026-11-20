@@ -1,3 +1,7 @@
+---
+summary: How to run the site on your own computer, change one thing at a time, and always have a way back.
+---
+
 # Opening and changing a sketch safely
 
 **In one sentence:** run the site on your own computer, change one number at a time, watch what happens,

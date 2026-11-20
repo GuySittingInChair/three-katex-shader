@@ -1,3 +1,7 @@
+---
+summary: A real fly's brain wiring as glowing beads you can poke and damage.
+---
+
 # Fly Connectome: in plain English
 
 File: `src/sketches/flyConnectome.js` (plus `src/lib/flyConnectome.js` and `src/lib/flyLifWorker.js`) ·

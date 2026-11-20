@@ -1,3 +1,7 @@
+---
+summary: motion(t) works out the moving numbers; latex writes them into the equation on screen.
+---
+
 # Motion and the live equation
 
 **In one sentence:** `motion` turns the clock into a handful of numbers, and `latex` shows those same

@@ -1,3 +1,7 @@
+---
+summary: A spinning ball whose ridges bulge with the sound's frequencies.
+---
+
 # Audio-Reactive Mesh: in plain English
 
 File: `src/sketches/audioReactiveMesh.js` · Mode: 3d · Category: Visualization

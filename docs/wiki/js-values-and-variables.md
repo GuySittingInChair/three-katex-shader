@@ -1,3 +1,7 @@
+---
+summary: Giving a value a name so you can use it later.
+---
+
 # Reading JavaScript 1: values, names and comments
 
 **In one sentence:** a *variable* is a name stuck on a value, so the code can refer to "PERIOD" instead

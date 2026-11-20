@@ -1,3 +1,7 @@
+---
+summary: Circles from four dimensions, every pair linked, nested into doughnuts.
+---
+
 # Hopf Fibration: in plain English
 
 File: `src/sketches/hopfFibration.js` · Mode: 3d · Category: Topology

@@ -1,3 +1,7 @@
+---
+summary: Draws a picture off-screen so it can be reused, which lets a simulation run on the graphics chip.
+---
+
 # Simulating on the graphics chip: render targets and ping-pong
 
 **In one sentence:** some sketches draw into a hidden picture instead of the screen, then read that picture

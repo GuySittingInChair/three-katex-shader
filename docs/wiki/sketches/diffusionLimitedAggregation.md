@@ -1,3 +1,7 @@
+---
+summary: Randomly wandering squares stick together into a branching, frost-like cluster.
+---
+
 # Diffusion-Limited Aggregation: in plain English
 
 File: `src/sketches/diffusionLimitedAggregation.js` · Mode: shader · Category: Growth

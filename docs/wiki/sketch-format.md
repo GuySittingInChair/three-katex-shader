@@ -1,3 +1,7 @@
+---
+summary: The fields every sketch file fills in: its name, its mode, its sliders and so on.
+---
+
 # The sketch format: every field
 
 **In one sentence:** a sketch file is one big labelled list (an *object*, see

@@ -1,3 +1,7 @@
+---
+summary: A tiny program the graphics card runs once for every pixel, all at the same time.
+---
+
 # Shaders: two questions
 
 **In one sentence:** a *shader* is a small program that runs on the graphics chip, and it only ever
