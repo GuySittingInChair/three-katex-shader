@@ -72,6 +72,7 @@ Theory, Vector Fields and Voxels.
 | Live sound input (`ctx.audio`) | 8 | *(planned: audio)* |
 | Loading data files (`fetch`) | 16 | [Reading JavaScript 5: loading data (`fetch`, `Promise`, `await`)](js-promises-and-fetch.md) |
 | Map projections (Mollweide, gnomonic) | 2 | *(planned: maps and the sky)* |
+| Code notes: clickable lines, pieces and equation symbols (`docs/wiki/code/`) | 1 so far (Gradient Plane) | [Clickable code and symbols: how it works](clickable-code.md) |
 | Buttons on a sketch (`actions`) | 7 | [The sketch format: every field](sketch-format.md) |
 
 Techniques found in only one sketch (for example the 3D galaxy engine in `src/lib/galaxy/`, used by Messier in

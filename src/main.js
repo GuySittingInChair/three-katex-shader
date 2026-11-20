@@ -39,6 +39,7 @@ import { createRecorder } from './core/recorder.js';
 import { enableAudio, updateAudio, setSketchSound, setSoundOn, isSoundOn } from './core/audioEngine.js';
 import { soundUrl, uploadSound, deleteSound } from './core/sounds.js';
 import { initPalette, paletteSelect } from './ui/palette.js';
+import { stripSymbolMarks } from './core/codeNotes.js';
 
 // Colour palette first, before anything is drawn.
 initPalette();
@@ -111,7 +112,7 @@ const recorder = createRecorder({
   timeline,
   getName: () => manager.getCurrent().id,
   getTitle: () => manager.getCurrent().name,
-  getLatex: () => resolveLatex(manager.getCurrent(), manager.getParamValues(), manager.getMotion()),
+  getLatex: () => stripSymbolMarks(resolveLatex(manager.getCurrent(), manager.getParamValues(), manager.getMotion())),
 });
 if (import.meta.env.DEV) Object.assign(window, { __recorder: recorder, __manager: manager }); // for tools/ tests
 
@@ -132,12 +133,54 @@ function syncMath(force = false) {
   if (!force && now - lastMathRender < MATH_MIN_INTERVAL_MS) return;
   lastMathRender = now;
   lastLatex = tex;
-  explainApi?.setLatex(tex);
+  explainApi?.setLatex(stripSymbolMarks(tex));
   if (!mathTarget) return;
-  if (tex) katex.render(tex, mathTarget, { throwOnError: false, displayMode: false });
+  // \htmlData{sym=…}{…} marks a clickable symbol (see src/core/codeNotes.js); nothing else is trusted.
+  if (tex) katex.render(tex, mathTarget, { throwOnError: false, displayMode: false, trust: (c) => c.command === '\\htmlData', strict: 'ignore' });
   else mathTarget.innerHTML = '';
+  markSymbols();
   if (tex && mathTarget === mathOverlay && mobile.matches) fitMath();
 }
+// Clickable symbols: each one the equation marks gets keyboard focus, and the
+// one being explained (from the code panel, or clicked) stays lit up across
+// re-renders. see docs/wiki/clickable-code.md
+let litSymbol = null;
+function markSymbols(pulse = false) {
+  if (!mathTarget) return;
+  for (const el of mathTarget.querySelectorAll('[data-sym]')) {
+    el.tabIndex = 0;
+    el.setAttribute('role', 'button');
+    el.setAttribute('aria-label', 'What this symbol means');
+    el.classList.toggle('sym-lit', el.dataset.sym === litSymbol);
+    if (pulse && el.dataset.sym === litSymbol) {
+      el.classList.remove('sym-pulse');
+      void el.offsetWidth;
+      el.classList.add('sym-pulse');
+    }
+  }
+}
+function lightSymbol(id, { pulse = false } = {}) {
+  litSymbol = id;
+  markSymbols(pulse);
+}
+function symbolChosen(el) {
+  const id = el.dataset.sym;
+  lightSymbol(id, { pulse: true });
+  openPanel('code');
+  codePanelApi.showSymbol(id);
+}
+mathOverlay.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-sym]');
+  if (el) symbolChosen(el);
+});
+mathOverlay.addEventListener('keydown', (e) => {
+  const el = e.target.closest?.('[data-sym]');
+  if (el && (e.key === 'Enter' || e.key === ' ')) {
+    e.preventDefault();
+    symbolChosen(el);
+  }
+});
+
 // On a phone, shrink a wide equation to the screen's width instead of making
 // it scroll. Measured once per sketch so the live numbers don't make it jitter.
 let fittedFor = null;
@@ -237,6 +280,7 @@ function syncPanelState() {
 // --- Code panel ---
 const codePanelApi = createCodePanel($('code-panel'), manager, {
   onShared: () => community.reload(),
+  onShowSymbol: (id, opts) => lightSymbol(id, opts),
 });
 registerPanel('code', $('code-panel'), { button: $('code-toggle'), side: 'left' });
 
@@ -500,6 +544,13 @@ function applyRoute() {
     if (lines) {
       openPanel('code');
       codePanelApi.showLines(route.id, +lines[1], +(lines[2] || lines[1]));
+    }
+    // /s/<id>#sym=t: light up symbol t in the equation and explain it (links from the wiki).
+    const sym = /^#sym=([\w-]+)$/.exec(location.hash);
+    if (sym) {
+      lightSymbol(sym[1], { pulse: true });
+      openPanel('code');
+      codePanelApi.showSymbol(sym[1]);
     }
   } else if (route.page === 'profile') {
     showPage('profile');

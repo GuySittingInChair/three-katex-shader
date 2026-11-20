@@ -6,6 +6,8 @@
 import re, sys, glob
 W = 110
 BAD_START = re.compile(r'^(\d+[.)]\s|[-*+>#|]\s|[-*+]$|#)')
+# `symbol: t` lines in code notes (docs/wiki/code/) must stay on their own line.
+SYMBOL = re.compile(r'^symbol:\s*[\w-]+\s*$')
 LIST = re.compile(r'^(\s*)([-*+]|\d+[.)])\s+')
 
 def wrap(words, first_prefix, rest_prefix):
@@ -33,7 +35,7 @@ def rewrap(text):
         s = line.strip()
         if re.match(r'^\s*```', line):
             in_code = not in_code; out.append(line); i += 1; continue
-        if in_code or not s or s.startswith(('#', '|', '<!--', '<')) or line.endswith('  ') or line.endswith('\\'):
+        if in_code or not s or s.startswith(('#', '|', '<!--', '<')) or SYMBOL.match(s) or line.endswith('  ') or line.endswith('\\'):
             out.append(line); i += 1; continue
         m = LIST.match(line)
         if m:
@@ -48,7 +50,7 @@ def rewrap(text):
         # plain paragraph: until blank, list, heading, code, table
         indent = re.match(r'^\s*', line).group(0)
         body = [s]; i += 1
-        while i < len(L) and L[i].strip() and not LIST.match(L[i]) and not L[i].strip().startswith(('#', '|', '```', '<')):
+        while i < len(L) and L[i].strip() and not LIST.match(L[i]) and not SYMBOL.match(L[i].strip()) and not L[i].strip().startswith(('#', '|', '```', '<')):
             body.append(L[i].strip()); i += 1
         out += wrap(' '.join(body).split(), indent, indent)
     return '\n'.join(out)

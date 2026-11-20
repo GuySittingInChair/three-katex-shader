@@ -52,6 +52,8 @@ don't exist yet; until then the link goes to the closest page that does.
   shader](glsl-basics.md)
 - **Clifford torus**: the perfectly balanced doughnut in the Hopf fibration, where every pair of its circles
   links once. → [Hopf Fibration: in plain English](sketches/hopfFibration.md)
+- **code notes**: the hand-written explanations, line by line, that make a sketch's code and equation
+  clickable. → [Clickable code and symbols: how it works](clickable-code.md)
 - **colour scale**: a rule turning a measured number into a colour you can read back. → [Colour 4: colour
   scales for data, and how they are chosen](colour-scales.md)
 - **comedy formula**: a true equation × an absurd noun, told deadpan (`src/lib/bit.js`).

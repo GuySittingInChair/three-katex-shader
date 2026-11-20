@@ -5,11 +5,14 @@ import { compileSketch } from '../core/sketchCompiler.js';
 import { getUser, shareSketch, updateSharedSketch } from '../core/community.js';
 import { shaderStarterSource, geometryStarterSource } from '../core/starterTemplates.js';
 import { getGroupForCategory, getAllCategories } from '../core/taxonomy.js';
-import { lineTerms, commentStart, similarLines, walkthroughSlug, wikiUrl, wikiMeta } from '../core/wiki.js';
+import katex from 'katex';
+import { lineTerms, commentStart, similarLines, walkthroughSlug, wikiUrl, wikiMeta, hasCodeNotes, loadCodeNotes } from '../core/wiki.js';
+import { placeCodeNotes } from '../core/codeNotes.js';
+import { cardHtml, noteHtml } from './noteCard.js';
 import { fileLineNumbers } from '../core/sourceStore.js';
 import { wikiRefsFor } from './wikiCode.js';
 
-export function createCodePanel(container, manager, { onShared } = {}) {
+export function createCodePanel(container, manager, { onShared, onShowSymbol = () => {} } = {}) {
   container.innerHTML = `
     <div class="code-panel-tabs"></div>
     <div class="code-panel-list"></div>
@@ -102,11 +105,50 @@ export function createCodePanel(container, manager, { onShared } = {}) {
   // plus the same kind of line in other sketches.
   const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
   let lineTermsCache = [];
+  // Code notes for the sketch on show (docs/wiki/code/<id>.md): line n -> { note, pieces }.
+  let notes = null;
+  let notesId = null;
+  let notesAt = new Map();
+  const symTex = (id) => notes?.symbols.find((x) => x.id === id)?.tex;
+  const texHtml = (tex) => {
+    try {
+      return katex.renderToString(tex, { throwOnError: true });
+    } catch {
+      return esc(tex);
+    }
+  };
+
+  // Which note card is open, so a re-render (notes arriving, the sketch
+  // reloading) can bring it back instead of silently dropping it.
+  let openState = null;
 
   function renderRead() {
-    closeCard();
+    const keep = openState;
+    hideCard();
+    if (notesId !== currentId) {
+      openState = null;
+      notesId = currentId;
+      notes = null;
+      notesAt = new Map();
+      if (hasCodeNotes(currentId)) {
+        const id = currentId;
+        loadCodeNotes(id).then((n) => {
+          if (id !== currentId || !n) return;
+          notes = n;
+          if (view === 'read') renderRead();
+        });
+      }
+    }
     const lines = editor.value.split('\n');
-    lineTermsCache = lines.map((l) => lineTerms(l));
+    notesAt = new Map();
+    if (notes) for (const pl of placeCodeNotes(notes, editor.value).placed) notesAt.set(pl.line, pl);
+    // Clickable pieces: noted pieces first, then concept words that don't overlap them.
+    lineTermsCache = lines.map((l, i) => {
+      const pl = notesAt.get(i + 1);
+      const pieces = (pl?.pieces || []).map((p) => ({ start: p.start, end: p.end, note: pl.note, piece: p.piece }));
+      const concepts = lineTerms(l).filter((t) => !pieces.some((p) => t.start < p.end && p.start < t.end));
+      return [...pieces, ...concepts].sort((a, b) => a.start - b.start);
+    });
     const fileNums = fileLineNumbers(currentId, editor.value);
     const wikiRefs = wikiRefsFor(currentId, editor.value);
     const explained = new Set(wikiRefs.flatMap((r) => r.lines));
@@ -126,7 +168,7 @@ export function createCodePanel(container, manager, { onShared } = {}) {
         };
         lineTermsCache[i].forEach((t, k) => {
           html += plain(at, t.start);
-          const cls = t.see ? 'code-term code-term-see' : 'code-term';
+          const cls = t.piece ? 'code-term code-note-piece' : t.see ? 'code-term code-term-see' : 'code-term';
           const inComment = t.start >= cut ? ' tok-comment' : '';
           html += `<button type="button" class="${cls}${inComment}" data-line="${i}" data-term="${k}">${esc(line.slice(t.start, t.end))}</button>`;
           at = t.end;
@@ -137,23 +179,101 @@ export function createCodePanel(container, manager, { onShared } = {}) {
         const refs = (refsAt.get(n) || [])
           .map((r) => `<a class="code-wiki-ref" data-link href="${esc(r.href)}">📖 Explained in “${esc(r.title)}” →</a>`)
           .join('');
-        const cls = explained.has(n) ? 'code-line code-line-wiki' : 'code-line';
+        const pl = notesAt.get(n);
+        const cls = `code-line${explained.has(n) ? ' code-line-wiki' : ''}${pl ? ' code-line-note' : ''}`;
         // data-n: position in the panel; data-ln: the file's own line number
         // (as on GitHub), shown in the margin. They differ by the hidden import lines.
         const ln = fileNums ? fileNums[i] : n;
-        return `${refs ? `<div class="code-wiki-refs">${refs}</div>` : ''}<div class="${cls}" data-n="${n}" data-ln="${ln}">${html || ' '}</div>`;
+        // A noted line is itself a button (keyboard: Tab to it, Enter to open).
+        // data-syms: the equation symbols this line (or a piece of it) works out.
+        const syms = pl ? [...new Set([pl.note.symbol, ...pl.note.pieces.map((p) => p.symbol)].filter(Boolean))] : [];
+        const noteAttrs = pl ? ` tabindex="0" role="button" aria-label="What line ${ln} does"${syms.length ? ` data-syms="${esc(syms.join(' '))}"` : ''}` : '';
+        return `${refs ? `<div class="code-wiki-refs">${refs}</div>` : ''}<div class="${cls}" data-n="${n}" data-ln="${ln}"${noteAttrs}>${html || ' '}</div>`;
       })
       .join('');
+    if (keep && notesId === currentId) {
+      if (keep.symbol) openSymbolCard(keep.symbol);
+      else if (keep.line) openLineCard(keep.line);
+    }
   }
 
-  function closeCard() {
+  // Hide the card without forgetting what was open (used while re-rendering).
+  function hideCard() {
     card.classList.add('hidden');
     readEl.querySelector('.code-term.open')?.classList.remove('open');
+    readEl.querySelectorAll('.note-open, .code-line-sym').forEach((x) => x.classList.remove('note-open', 'code-line-sym'));
+  }
+  // Close it for good (the × button, Esc, clicking the same thing again).
+  function closeCard() {
+    const wasOpen = !card.classList.contains('hidden');
+    hideCard();
+    openState = null;
+    if (wasOpen) onShowSymbol(null);
+  }
+
+  const lnOf = (n) => readEl.querySelector(`.code-line[data-n="${n}"]`)?.dataset.ln || n;
+  const allCode = () => ({ href: wikiUrl(`code/${currentId}`), text: "All of this sketch's code, explained" });
+
+  // The card for a noted line (n = the panel's line number).
+  function openLineCard(n) {
+    const pl = notesAt.get(n);
+    if (!pl) return;
+    openState = { line: n };
+    readEl.querySelectorAll('.note-open').forEach((x) => x.classList.remove('note-open'));
+    readEl.querySelector(`.code-line[data-n="${n}"]`)?.classList.add('note-open');
+    const sym = pl.note.symbol;
+    card.innerHTML = cardHtml({
+      kicker: `Line ${lnOf(n)}`,
+      code: pl.note.text,
+      html: noteHtml(pl.note.body, currentId),
+      symbol: sym ? { id: sym } : null,
+      more: [allCode()],
+    });
+    card.classList.remove('hidden');
+    card.scrollTop = 0;
+    if (sym) onShowSymbol(sym);
+  }
+
+  // The card for one of the equation's symbols, with its lines lit up.
+  function openSymbolCard(id) {
+    const s = notes?.symbols.find((x) => x.id === id);
+    openState = { symbol: id };
+    readEl.querySelectorAll('.code-line-sym').forEach((x) => x.classList.remove('code-line-sym'));
+    const lines = [...readEl.querySelectorAll(`.code-line[data-syms~="${CSS.escape(id)}"]`)];
+    lines.forEach((x) => x.classList.add('code-line-sym'));
+    if (!s) return;
+    const where = lines.map((x) => x.dataset.ln);
+    card.innerHTML = cardHtml({
+      kicker: 'Symbol',
+      tex: texHtml(s.tex),
+      html: noteHtml(s.body, currentId) + (where.length ? `<p class="note-where">Worked out in line${where.length > 1 ? 's' : ''} ${where.join(', ')} (lit up).</p>` : ''),
+      more: [allCode()],
+    });
+    card.classList.remove('hidden');
+    card.scrollTop = 0;
+    // Scroll once the card is showing (it takes room from the code view).
+    if (lines[0]) requestAnimationFrame(() => lines[0].scrollIntoView({ block: 'center' }));
   }
 
   function openCard(btn) {
     const term = lineTermsCache[+btn.dataset.line]?.[+btn.dataset.term];
     if (!term) return;
+    if (term.piece) {
+      openState = null;
+      readEl.querySelector('.code-term.open')?.classList.remove('open');
+      btn.classList.add('open');
+      card.innerHTML = cardHtml({
+        kicker: `In line ${lnOf(+btn.dataset.line + 1)}`,
+        code: term.piece.text,
+        html: noteHtml(term.piece.body, currentId),
+        symbol: term.piece.symbol || term.note.symbol ? { id: term.piece.symbol || term.note.symbol } : null,
+        more: [allCode()],
+      });
+      card.classList.remove('hidden');
+      card.scrollTop = 0;
+      if (term.piece.symbol || term.note.symbol) onShowSymbol(term.piece.symbol || term.note.symbol);
+      return;
+    }
     readEl.querySelector('.code-term.open')?.classList.remove('open');
     btn.classList.add('open');
     if (term.see) {
@@ -195,10 +315,30 @@ export function createCodePanel(container, manager, { onShared } = {}) {
     if (btn) {
       if (btn.classList.contains('open')) closeCard();
       else openCard(btn);
+      return;
+    }
+    if (e.target.closest('a')) return;
+    const line = e.target.closest('.code-line-note');
+    if (line) openLineCard(+line.dataset.n);
+  });
+  readEl.addEventListener('keydown', (e) => {
+    const line = e.target.closest?.('.code-line-note');
+    if (line && e.target === line && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      openLineCard(+line.dataset.n);
     }
   });
+  // Esc closes the card wherever keyboard focus is, while the panel is open.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !card.classList.contains('hidden') && !container.classList.contains('hidden')) {
+      e.stopPropagation();
+      closeCard();
+    }
+  }, true);
   card.addEventListener('click', (e) => {
     if (e.target.closest('.code-term-close')) return closeCard();
+    const symBtn = e.target.closest('.note-symbol');
+    if (symBtn) return onShowSymbol(symBtn.dataset.sym, { pulse: true });
     if (e.target.closest('.code-term-wiki')) return; // the page-wide router follows the link
     if (e.target.closest('.code-term-more')) {
       const btn = readEl.querySelector('.code-term.open');
@@ -493,6 +633,16 @@ export function createCodePanel(container, manager, { onShared } = {}) {
     refresh,
     // Shows sketch `id`'s lines start..end (the file's own numbering) in the
     // read view, highlighted. Used by "Open these lines in the code panel".
+    // Lights up the lines that work out equation symbol `id` and explains it.
+    async showSymbol(id) {
+      if (currentId !== manager.getCurrent().id) selectSketch(manager.getCurrent().id);
+      setView('read');
+      if (!notes && hasCodeNotes(currentId)) {
+        notes = await loadCodeNotes(currentId);
+        renderRead();
+      }
+      openSymbolCard(id);
+    },
     showLines(id, start, end = start) {
       if (currentId !== id) selectSketch(id);
       setView('read');

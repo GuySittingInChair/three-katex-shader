@@ -3873,3 +3873,64 @@ body.is-recording.rec-panel-open #rec-indicator {
   border-radius: 3px;
   border: 1px solid var(--border);
 }
+
+/* ---- Code notes: clickable lines and pieces (docs/wiki/code/*.md) ---- */
+.code-line-note { cursor: pointer; }
+.code-line-note:hover { background: rgb(var(--ink-rgb) / 0.04); }
+.code-line-note:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.code-line-note::before { color: var(--accent); }
+.code-note-piece { border-bottom: 1px solid rgb(var(--accent-rgb) / 0.75); }
+.code-line.note-open { background: rgb(var(--accent-rgb) / 0.14); }
+.code-line-sym { background: rgb(var(--live-rgb) / 0.16); box-shadow: inset 3px 0 0 var(--live); }
+.note-body { margin: 6px 0 8px; line-height: 1.5; }
+.note-body p { margin: 0 0 6px; color: var(--text); }
+.note-body a { color: var(--accent); }
+.note-where { color: var(--muted); font-size: 0.85em; }
+.note-symbol {
+  margin: 2px 0 8px;
+  padding: 5px 10px;
+  border: 1px solid rgb(var(--live-rgb) / 0.6);
+  border-radius: 999px;
+  background: rgb(var(--live-rgb) / 0.12);
+  color: var(--text);
+  font: 600 0.78rem var(--font);
+  cursor: pointer;
+}
+.note-links { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+
+/* The card floating beside a wiki code block or the equation; a bottom sheet on phones. */
+.note-float {
+  position: fixed;
+  z-index: 60;
+  max-height: min(60vh, 520px);
+  overflow: auto;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 10px 30px rgb(var(--shade-rgb) / 0.5);
+  font: 0.86rem/1.5 var(--font);
+}
+.note-float.hidden { display: none; }
+.note-float.note-sheet {
+  left: 0 !important;
+  right: 0;
+  bottom: 0;
+  top: auto !important;
+  width: auto !important;
+  border-radius: 14px 14px 0 0;
+  max-height: 55vh;
+  padding-bottom: calc(14px + env(safe-area-inset-bottom));
+}
+
+/* Clickable symbols in the live equation. */
+#math-overlay [data-sym] { cursor: pointer; border-radius: 3px; }
+#math-overlay [data-sym]:hover,
+#math-overlay [data-sym]:focus-visible { background: rgb(var(--live-rgb) / 0.22); outline: none; }
+#math-overlay [data-sym].sym-lit { background: rgb(var(--live-rgb) / 0.32); box-shadow: 0 0 0 2px rgb(var(--live-rgb) / 0.6); }
+#math-overlay [data-sym].sym-pulse { animation: sym-pulse 0.9s ease-out; }
+@keyframes sym-pulse {
+  from { box-shadow: 0 0 0 8px rgb(var(--live-rgb) / 0.55); }
+  to { box-shadow: 0 0 0 2px rgb(var(--live-rgb) / 0.6); }
+}

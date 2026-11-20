@@ -57,6 +57,7 @@ There's also an expert guide, `docs/guide.md`, written for programmers. It shows
 - [The frame loop: setup, update, dispose](frame-loop.md)
 - [How the files fit together](how-the-files-fit.md)
 - [Opening and changing a sketch safely](changing-a-sketch-safely.md)
+- [Clickable code and symbols: how it works](clickable-code.md)
 
 ## 2. This project's sketch format
 - [Every field](sketch-format.md)

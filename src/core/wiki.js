@@ -2,6 +2,7 @@ import { marked } from 'marked';
 import { sketches } from './registry.js';
 import { getEditableSource, fileLineNumbers } from './sourceStore.js';
 import wikiMeta from 'virtual:wiki-meta';
+import { parseCodeNotes } from './codeNotes.js';
 
 // The beginner wiki (docs/wiki), served on the site at /wiki/<page>, and the
 // table that makes lines in the code panel clickable: each concept names the
@@ -28,6 +29,18 @@ export async function loadWikiPage(slug) {
   return load ? stripHeader(await load()) : null;
 }
 export const stripHeader = (md) => md.replace(/^---\n[\s\S]*?\n---\n+/, '');
+
+// Code notes (docs/wiki/code/<sketchId>.md): the line-by-line explanations
+// that make a sketch's code clickable. Loaded once per sketch, on demand.
+const notesCache = new Map();
+export const hasCodeNotes = (sketchId) => loaders.has(`code/${sketchId}`);
+export function loadCodeNotes(sketchId) {
+  if (!hasCodeNotes(sketchId)) return Promise.resolve(null);
+  if (!notesCache.has(sketchId)) {
+    notesCache.set(sketchId, loaders.get(`code/${sketchId}`)().then((md) => parseCodeNotes(md)));
+  }
+  return notesCache.get(sketchId);
+}
 
 const headingId = (text) =>
   text.toLowerCase().trim().replace(/<[^>]+>/g, '').replace(/[^\p{L}\p{N}\- ]/gu, '').replace(/ /g, '-');

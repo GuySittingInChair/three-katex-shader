@@ -2,7 +2,8 @@ import { quotes } from 'virtual:wiki-meta';
 import wikiMeta from 'virtual:wiki-meta';
 import { locateQuote } from '../core/codeQuote.js';
 import { sketches } from '../core/registry.js';
-import { wikiUrl } from '../core/wiki.js';
+import { wikiUrl, hasCodeNotes, loadCodeNotes } from '../core/wiki.js';
+import { cardHtml, noteHtml, floatingCard } from './noteCard.js';
 
 // Going back and forth between the wiki and the code it talks about.
 //
@@ -45,6 +46,8 @@ export function decorateWikiCode(root, slug) {
     }
     const q = info[i];
     if (!q?.file) return;
+    const sketchId = sketchOf(q.file);
+    if (sketchId && hasCodeNotes(sketchId)) loadCodeNotes(sketchId).then((n) => n && clickableLines(pre, n, sketchId));
     const bar = document.createElement('div');
     bar.className = 'wiki-code-src';
     const id = sketchOf(q.file);
@@ -73,4 +76,57 @@ export function wikiRefsFor(id, text) {
     }
   }
   return refs.sort((a, b) => a.start - b.start);
+}
+
+// Lines and pieces of a wiki code block that the sketch's code notes explain
+// become clickable, opening the same card as in the code panel.
+function clickableLines(pre, notes, sketchId) {
+  for (const span of pre.querySelectorAll('.wl[data-n]')) {
+    const text = span.textContent;
+    const note = notes.lines.find((l) => locateQuote(l.text, text));
+    if (!note) continue;
+    span.classList.add('code-line-note');
+    span.tabIndex = 0;
+    span.setAttribute('role', 'button');
+    span.setAttribute('aria-label', `What line ${span.dataset.n} does`);
+    span._note = note;
+    // Pieces: wrap each one's first appearance in the line.
+    let html = esc(text);
+    for (const piece of note.pieces) {
+      const at = html.indexOf(esc(piece.text));
+      if (at === -1) continue;
+      const k = note.pieces.indexOf(piece);
+      html = `${html.slice(0, at)}<button type="button" class="code-term code-note-piece" data-piece="${k}">${esc(piece.text)}</button>${html.slice(at + esc(piece.text).length)}`;
+    }
+    span.innerHTML = html;
+  }
+  const open = (anchor, note, piece) => {
+    const sym = piece?.symbol || note.symbol;
+    floatingCard().show(
+      anchor,
+      cardHtml({
+        kicker: piece ? `In line ${anchor.closest('.wl')?.dataset.n}` : `Line ${anchor.dataset.n}`,
+        code: piece ? piece.text : note.text,
+        html: noteHtml((piece || note).body, sketchId),
+        more: [
+          ...(sym ? [{ href: `/s/${sketchId}#sym=${sym}`, text: 'See it in the equation, in the sketch' }] : []),
+          { href: wikiUrl(`code/${sketchId}`), text: "All of this sketch's code, explained" },
+        ],
+      })
+    );
+  };
+  pre.addEventListener('click', (e) => {
+    const btn = e.target.closest('.code-note-piece');
+    const line = e.target.closest('.code-line-note');
+    if (!line) return;
+    if (btn) open(btn, line._note, line._note.pieces[+btn.dataset.piece]);
+    else open(line, line._note, null);
+  });
+  pre.addEventListener('keydown', (e) => {
+    const line = e.target.closest?.('.code-line-note');
+    if (line && e.target === line && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      open(line, line._note, null);
+    }
+  });
 }

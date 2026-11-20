@@ -7,7 +7,8 @@ export default {
   category: 'Shaders',
   mode: 'shader',
   shaderLang: 'glsl',
-  latex: 'c(t) = \\tfrac12 + \\tfrac12\\cos(2\\pi(t + \\phi))',
+  // The equation; \htmlData{sym=…} marks each symbol so it can be clicked. see docs/wiki/clickable-code.md
+  latex: '\\htmlData{sym=c}{c}(\\htmlData{sym=t}{t}) = \\tfrac12 + \\tfrac12\\cos(2\\pi(\\htmlData{sym=t}{t} + \\htmlData{sym=phi}{\\phi}))',
 
   params: {
     speed: { value: 1.0, min: 0, max: 5 },
