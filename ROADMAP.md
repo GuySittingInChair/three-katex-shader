@@ -114,12 +114,12 @@ shared card component, so they look and behave the same.
 
 | # | Item | Status | Done means |
 |---|------|--------|------------|
-| 2.1 | Explanations per sketch in `docs/wiki/code/<id>.md`: each one is anchored to a quoted piece of code (a line, or a call, constant or operator inside it), says what it does and why it's here, and links wiki entries | todo | Loaded by the code panel and by wiki code blocks |
-| 2.2 | Clicking a line or piece opens the card; equation ↔ code highlighting both ways when a piece computes an equation symbol | todo | Clicked both ways in the browser on 3 sketches |
-| 2.3 | Keyboard (Tab and arrows move, Enter opens, Esc closes) and mobile (tap; the card becomes a bottom sheet) | todo | Checked by keyboard only, and at 390 px |
-| 2.4 | One card component shared by equation symbols and code | todo | Old duplicate code removed |
-| 2.5 | Drift check: a test fails if an explanation's anchor text, or a code block quoted in a wiki page, no longer appears in its file | doing (wiki half done: tests/wiki.test.mjs fails if any of the 162 quoted wiki code blocks stops matching its file, shown by changing one line of gameOfLife.js; the code-explanation half comes with 2.1) | Changing a quoted line in a sketch makes `npm test` fail |
-| 2.6 | Backfill: every place on the site that shows code (code panel, walkthrough code blocks, guide code blocks) | todo | Coverage report per sketch (see Q2 on scope) |
+| 2.1 | Explanations per sketch in `docs/wiki/code/<id>.md`: each one is anchored to a quoted piece of code (a line, or a call, constant or operator inside it), says what it does and why it's here, and links wiki entries | done (format and loader built: docs/wiki/code/<id>.md; Gradient Plane 25 of 25 lines and 10 pieces explained, each saying why it is in this sketch) | Loaded by the code panel and by wiki code blocks |
+| 2.2 | Clicking a line or piece opens the card; equation ↔ code highlighting both ways when a piece computes an equation symbol | done (equation symbols marked with \htmlData{sym=…} are clickable; clicking lights the code lines in yellow and opens the symbol card; a line or piece card lights its symbol in the equation; /s/<id>#sym=x links. Clicked both ways in Firefox) | Clicked both ways in the browser on 3 sketches |
+| 2.3 | Keyboard (Tab and arrows move, Enter opens, Esc closes) and mobile (tap; the card becomes a bottom sheet) | done (lines are buttons: Tab, Enter or Space, Esc closes and returns focus; wiki cards become a bottom sheet under 720 px; checked at 1280 and 390 px. Known limit: an equation whose numbers change re-draws up to 15 times a second, which can move keyboard focus off a symbol; the code panel and the symbol list in Explain stay reachable by keyboard) | Checked by keyboard only, and at 390 px |
+| 2.4 | One card component shared by equation symbols and code | done (one card: noteCard.js, used by the code panel, wiki code blocks and the equation) | Old duplicate code removed |
+| 2.5 | Drift check: a test fails if an explanation's anchor text, or a code block quoted in a wiki page, no longer appears in its file | done (tests/codeNotes.test.mjs fails if a noted line or piece is gone, a symbol isn't marked in the equation, or a symbol isn't linked to code; shown failing on a changed line and on a missing link) | Changing a quoted line in a sketch makes `npm test` fail |
+| 2.6 | Backfill: every place on the site that shows code (code panel, walkthrough code blocks, guide code blocks) | doing (Gradient Plane done. Decision: the other 31 walkthrough sketches, about 4,000 lines, are explained after the owner reviews the style at check-in B, so a style change doesn't mean redoing 4,000 notes. The 5 new walkthroughs get full notes now. Coverage: node tools/code-notes-coverage.mjs) | Coverage report per sketch (see Q2 on scope) |
 
 ### 2B. A much deeper wiki
 
@@ -224,6 +224,10 @@ it.
 ---
 
 ## Decisions (made by Claude, recorded here)
+
+- **Correction to the brief:** the equation's symbols were not clickable before Phase 2; they were listed, with
+  general definitions from the expert guide, in the Explain panel. The new card makes them clickable for the
+  first time, with sketch-specific explanations, and reuses the code panel's card look.
 
 - "Line N" on a wiki page means the line numbered N beside the code block. Numbers count code lines only:
   "..." (skipped code) and blank lines get no number.

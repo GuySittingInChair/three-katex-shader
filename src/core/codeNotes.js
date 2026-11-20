@@ -105,7 +105,8 @@ export function placeCodeNotes(notes, source) {
   const placed = [];
   const missing = [];
   for (const note of notes.lines) {
-    const hit = locateQuote(note.text, source);
+    // The code panel shows `export default {` as `return {` (see toEditable in sourceStore.js).
+    const hit = locateQuote(note.text, source) || (/^export default\b/.test(note.text) && locateQuote(note.text.replace(/^export default/, 'return'), source));
     if (!hit) {
       missing.push(note.text);
       continue;
