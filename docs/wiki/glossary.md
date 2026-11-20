@@ -120,6 +120,7 @@ don't exist yet; until then the link goes to the closest page that does.
   [Black Hole Lensing: in plain English](sketches/blackHoleLensing.md)
 - **excitable**: quiet until sparked, then it fires a wave and needs time to recover. → [Belousov–Zhabotinsky:
   in plain English](sketches/belousovZhabotinsky.md)
+- **exoplanet**: a planet orbiting a star other than the Sun. The first were confirmed in 1992; over 6,000 are known now. → [Six Thousand Worlds: in plain English](sketches/exoplanets.md)
 - **fbm**: noise stacked in layers, each twice as detailed and half as strong. → [Noise: randomness that looks
   natural](noise.md)
 - **fetch**: ask for a file over the network. → [Reading JavaScript 5: loading data (`fetch`, `Promise`,
@@ -162,6 +163,7 @@ don't exist yet; until then the link goes to the closest page that does.
   [Belousov–Zhabotinsky: in plain English](sketches/belousovZhabotinsky.md)
 - **graph (network)**: dots joined by links, like a metro map. → [Force-Directed Graph: in plain
   English](sketches/forceDirectedGraph.md)
+- **habitable zone**: the band round a star where a planet like Earth could keep liquid water on its surface. → [Six Thousand Worlds: in plain English](sketches/exoplanets.md)
 - **hash**: a scrambler that turns a position into a random-looking but repeatable number. → [Noise:
   randomness that looks natural](noise.md)
 - **helicoid**: the spiral-staircase soap film you'd get on a twisted wire. → [Helicoid ↔ Catenoid: in plain
@@ -216,6 +218,7 @@ don't exist yet; until then the link goes to the closest page that does.
   hemisphere (sky and ground). → [Drawing in 3D 4: lights](lights.md)
 - **lines (fat lines)**: lines with a fixed width in pixels, from `src/lib/fatLines.js`. → [Drawing in 3D 3:
   lines and points](lines-and-points.md)
+- **logarithmic scale**: an axis or distance where each equal step means ten times more (1, 10, 100, 1,000), so tiny and huge things fit on one chart. → [Six Thousand Worlds: in plain English](sketches/exoplanets.md)
 - **logarithmic spiral**: a spiral that looks the same at every size, like a snail shell. → [Radian628 —
   Abyssal Bloom: in plain English](sketches/chatgpt-quantum.md)
 - **logistic map**: the simplest rule for a population that grows but crowds itself. → [Bifurcation Diagram:
@@ -228,6 +231,7 @@ don't exist yet; until then the link goes to the closest page that does.
   in 3D 6: many copies of one shape (instancing)](instancing.md)
 - **mesh**: a visible solid object: geometry plus material. → [Drawing in 3D 2: mesh, geometry and
   material](mesh-geometry-material.md)
+- **microlensing**: a star's gravity (and its planet's) bending and briefly brightening the light of a more distant star behind it. → [Six Thousand Worlds: in plain English](sketches/exoplanets.md)
 - **minimal surface**: a surface as small as possible for its edges, like a soap film. → [Enneper Surface: in
   plain English](sketches/enneperSurface.md)
 - **Möbius strip**: a strip with a half-twist taped into a loop: it has only one side. → [Klein Bottle: in
@@ -301,8 +305,10 @@ don't exist yet; until then the link goes to the closest page that does.
   [Anti-Aircraft Contraception: in plain English](sketches/antiAircraftContraception.md)
 - **quaternion**: how 3D programs store which way something faces. → [Drawing in 3D 6: many copies of one
   shape (instancing)](instancing.md)
+- **radial velocity**: a star's speed towards or away from us, seen as a tiny shift in its light's colour; a planet makes it wobble back and forth. → [Six Thousand Worlds: in plain English](sketches/exoplanets.md)
 - **radians**: a way of measuring angles; a full turn is about 6.28 (2π), a quarter turn about 1.57. → [Sine
   and cosine: the wave-makers](sine-and-cosine.md)
+- **radius valley**: the gap in exoplanet sizes near 1.6 Earth radii, between rocky cores and planets wrapped in gas. → [Six Thousand Worlds: in plain English](sketches/exoplanets.md)
 - **random**: see *seed*. `Math.random()` gives a fresh number between 0 and 1 each time. → [Random numbers,
   and seeds that make them repeatable](randomness.md)
 - **random walk**: moving by random steps, like a stumbling drunk. → [Diffusion-Limited Aggregation: in plain
@@ -375,6 +381,7 @@ don't exist yet; until then the link goes to the closest page that does.
   [Radian628 — Abyssal Bloom: in plain English](sketches/chatgpt-quantum.md)
 - **topology**: the study of shapes that only cares about what's joined to what, not about size or angles. →
   [Boy's Surface: in plain English](sketches/boysSurface.md)
+- **transit**: a planet passing in front of its star as seen from Earth, dimming it slightly; the most common way exoplanets are found. → [Six Thousand Worlds: in plain English](sketches/exoplanets.md)
 - **typed array (`Float32Array`)**: a long list holding only numbers, packed for speed. → [Reading JavaScript
   4: lists (arrays) and labelled boxes (objects)](js-arrays-and-objects.md)
 - **uniform**: a number handed from JavaScript to a shader, the same for every pixel. → [Uniforms: knobs

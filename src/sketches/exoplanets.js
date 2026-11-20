@@ -28,7 +28,7 @@ const SOLAR = [
   ['Mars', 687, 1.524, 0.532, 0.107, 0.431], ['Jupiter', 4333, 5.203, 11.21, 317.8, 0.037], ['Saturn', 10759, 9.537, 9.45, 95.2, 0.011],
   ['Uranus', 30687, 19.19, 4.01, 14.5, 0.0027], ['Neptune', 60190, 30.07, 3.88, 17.1, 0.0011],
 ];
-const METHOD_COL = [0x5cd2ff, 0xff9a3c, 0xf06ae6, 0x6dff8a, 0x5cd2ff];   // transit, wobble (RV), microlensing, imaging, other
+const METHOD_COL = [0x5cd2ff, 0xff9a3c, 0xf06ae6, 0x6dff8a, 0xb4bccc];   // transit (and transit timing), wobble (RV), microlensing, imaging, other
 const LIVE = { d: null, year: Y0 };
 
 const VERT = /* glsl */ `
@@ -86,7 +86,7 @@ export default {
   name: 'Six Thousand Worlds',
   description:
     'Every confirmed planet around another star — 6,412 of them — appearing in the sky in the year it was found, coloured by how it was found ' +
-    '(blue: it crossed its star; orange: it made its star wobble; pink: it bent a background star\'s light; green: photographed). Then the dots ' +
+    '(blue: it crossed its star; orange: it made its star wobble; pink: it bent a background star\'s light; green: photographed; grey: other ways). Then the dots ' +
     'become four charts measured from the same table: a gap in planet sizes near 1.6 Earth radii, how radius grows with mass, which planets ' +
     'get Earth-like sunlight, and what each method can and cannot see. Data: NASA Exoplanet Archive (NASA/Caltech-IPAC).',
   tags: ['exoplanets', 'radius valley', 'habitable zone', 'mass-radius', 'kepler', 'tess', 'real data'],
@@ -103,6 +103,7 @@ export default {
     return { T, phase: 'census', u: 0, len: PHASES[0][1] };
   },
 
+  // \htmlData{sym=…} marks each symbol so it can be clicked. see docs/wiki/clickable-code.md
   latex: (params, hl, m) => {
     const d = LIVE.d;
     if (!d) return '\\text{loading the Exoplanet Archive…}';
@@ -110,20 +111,20 @@ export default {
     if (m.phase === 'census') {
       const y = Math.min(2026, Math.max(1992, Math.floor(LIVE.year)));
       const c = d.countBy(LIVE.year);
-      return `\\begin{aligned}&${hl(y, 0)}:\\ ${hl(c.all, 0)}\\ \\text{planets known} \\\\ &\\textcolor{#5cd2ff}{\\text{transit}}\\ ${c[0]}\\quad \\textcolor{#ff9a3c}{\\text{wobble}}\\ ${c[1]} \\\\ &\\textcolor{#f06ae6}{\\text{lensing}}\\ ${c[2]}\\quad \\textcolor{#6dff8a}{\\text{imaged}}\\ ${c[3]} \\\\ &\\text{distance from the Sun: } \\log_{10} d_{\\rm pc}\\end{aligned}`;
+      return `\\begin{aligned}&${hl(y, 0)}:\\ ${hl(c.all, 0)}\\ \\text{planets known} \\\\ &\\textcolor{#5cd2ff}{\\text{transit}}\\ ${c[0]}\\quad \\textcolor{#ff9a3c}{\\text{wobble}}\\ ${c[1]} \\\\ &\\textcolor{#f06ae6}{\\text{lensing}}\\ ${c[2]}\\quad \\textcolor{#6dff8a}{\\text{imaged}}\\ ${c[3]}\\quad \\textcolor{#b4bccc}{\\text{other}}\\ ${c.all - c[0] - c[1] - c[2] - c[3]} \\\\ &\\text{distance from the Sun: } \\log_{10} \\htmlData{sym=d}{d_{\\rm pc}}\\end{aligned}`;
     }
     if (m.phase === 'valley') {
       const V = M.valley;
       if (k < 8) return `\\begin{aligned}&\\text{size vs. orbit, } ${hl(V.n, 0)}\\ \\text{radii known to 10\\%} \\\\ &\\text{almost none: big planets very close in} \\\\ &\\text{(the hot-Neptune desert)} \\\\ &\\text{and a gap between two sizes} \\\\ &\\rightarrow \\text{orbit period (log)}\\quad \\uparrow \\text{radius}\\end{aligned}`;
-      return `\\begin{aligned}&R_{\\rm gap} \\propto P^{\\,m},\\quad m = ${hl(V.m, 3)} \\\\ &\\text{peaks } ${hl(V.peak1, 2)}\\ \\&\\ ${hl(V.peak2, 2)}\\,R_\\oplus,\\ \\text{gap } ${hl(V.valley, 2)}\\,R_\\oplus \\\\ &\\text{bare rock below, gas envelopes above} \\\\ &\\text{Fulton 2017: 1.3, 2.4;\\ Van Eylen 2018: } m = -0.09\\end{aligned}`;
+      return `\\begin{aligned}&\\htmlData{sym=Rgap}{R_{\\rm gap}} \\propto \\htmlData{sym=P}{P}^{\\,\\htmlData{sym=m}{m}},\\quad \\htmlData{sym=m}{m} = ${hl(V.m, 3)} \\\\ &\\text{peaks } ${hl(V.peak1, 2)}\\ \\&\\ ${hl(V.peak2, 2)}\\,R_\\oplus,\\ \\text{gap } ${hl(V.valley, 2)}\\,R_\\oplus \\\\ &\\text{bare rock below, gas envelopes above} \\\\ &\\text{Fulton 2017: 1.3, 2.4;\\ Van Eylen 2018: } m = -0.09\\end{aligned}`;
     }
     if (m.phase === 'massRadius') {
       const R = M.mr;
-      return `\\begin{aligned}&R \\propto M^{s}\\text{, ${R.n} measured masses:} \\\\ &s = ${hl(R.s[0], 2)} \\to ${hl(R.s[1], 2)} \\to ${hl(R.s[2], 2)} \\\\ &\\text{breaks at } ${hl(R.breaks[0], 0)}\\ \\&\\ ${hl(R.breaks[1], 0)}\\,M_\\oplus\\text{, scatter } ${hl(R.scatter, 2)}\\ \\text{dex} \\\\ &\\text{Chen \\& Kipping 2017: } 0.28,\\ 0.59,\\ {-0.04} \\\\ &\\rightarrow \\text{mass (log)}\\quad \\uparrow \\text{radius}\\end{aligned}`;
+      return `\\begin{aligned}&\\htmlData{sym=R}{R} \\propto \\htmlData{sym=M}{M}^{\\htmlData{sym=s}{s}}\\text{, ${R.n} measured masses:} \\\\ &\\htmlData{sym=s}{s} = ${hl(R.s[0], 2)} \\to ${hl(R.s[1], 2)} \\to ${hl(R.s[2], 2)} \\\\ &\\text{breaks at } ${hl(R.breaks[0], 0)}\\ \\&\\ ${hl(R.breaks[1], 0)}\\,M_\\oplus\\text{, scatter } ${hl(R.scatter, 2)}\\ \\text{dex} \\\\ &\\text{Chen \\& Kipping 2017: } 0.28,\\ 0.59,\\ {-0.04} \\\\ &\\rightarrow \\text{mass (log)}\\quad \\uparrow \\text{radius}\\end{aligned}`;
     }
     if (m.phase === 'hz') {
       const H = M.hz;
-      if (k < 6) return `\\begin{aligned}&\\text{starlight } S \\text{ vs. star temperature} \\\\ &S_{\\rm edge} = S_0 + aT + bT^2 + cT^3 + dT^4 \\\\ &T = T_\\star - 5780\\,\\text{K}\\quad\\text{(Kopparapu 2014)} \\\\ &\\text{Earth: } S = 1,\\ T_\\star = 5772\\,\\text{K} \\\\ &\\rightarrow \\text{less starlight}\\quad \\uparrow \\text{hotter star}\\end{aligned}`;
+      if (k < 6) return `\\begin{aligned}&\\text{starlight } \\htmlData{sym=S}{S} \\text{ vs. star temperature} \\\\ &\\htmlData{sym=Sedge}{S_{\\rm edge}} = S_0 + a\\htmlData{sym=T}{T} + b\\htmlData{sym=T}{T}^2 + c\\htmlData{sym=T}{T}^3 + d\\htmlData{sym=T}{T}^4 \\\\ &\\htmlData{sym=T}{T} = \\htmlData{sym=Tstar}{T_\\star} - 5780\\,\\text{K}\\quad\\text{(Kopparapu 2014)} \\\\ &\\text{Earth: } S = 1,\\ T_\\star = 5772\\,\\text{K} \\\\ &\\rightarrow \\text{less starlight}\\quad \\uparrow \\text{hotter star}\\end{aligned}`;
       return `\\begin{aligned}&${hl(H.cons, 0)}\\ \\text{planets in the conservative zone} \\\\ &\\textcolor{#ffd166}{${H.consSmall}\\ \\text{smaller than } 1.6\\,R_\\oplus} \\\\ &\\text{TRAPPIST-1 e, f, g;\\ Proxima b;\\ TOI-700 d} \\\\ &\\text{(${H.opt} in the wider, optimistic zone)}\\end{aligned}`;
     }
     if (k < 8) return `\\begin{aligned}&\\text{mass vs. orbit size: each method} \\\\ &\\textcolor{#5cd2ff}{\\text{transit}}\\text{: close in}\\quad \\textcolor{#ff9a3c}{\\text{wobble}}\\text{: heavy} \\\\ &\\textcolor{#f06ae6}{\\text{lensing}}\\text{: cold, thousands of pc} \\\\ &\\textcolor{#6dff8a}{\\text{imaging}}\\text{: young, hot, far out} \\\\ &\\rightarrow \\text{orbit size (log)}\\quad \\uparrow \\text{mass}\\end{aligned}`;
@@ -175,7 +176,7 @@ export default {
         const spread = ((i * 0.6180339887) % 1) * 0.999;
         years[i] = yr + spread; method[i] = mth;
         info.set([mth, yr + spread, Number.isFinite(lR) ? Math.min(1.6, Math.max(0, lR + 0.2)) : 0.5, (inHz ? 4 : 0) + (inHz && small ? 4 : 0)], i * 4);
-        cc.set(METHOD_COL[Math.min(4, mth)]);
+        cc.set(METHOD_COL[mth === 4 ? 0 : Math.min(4, mth)]);      // transit timing counts as transit, as in the census
         colA.set([cc.r, cc.g, cc.b], i * 3);
       }
       const g = new THREE.BufferGeometry();

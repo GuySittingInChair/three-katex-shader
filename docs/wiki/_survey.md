@@ -335,6 +335,6 @@ day. "Walkthrough" links to the plain-English page where one exists.
 | 2026-11-10 | `voyagerTour.js` | The Grand Tour | 3d | Astronomy |  |
 | 2026-11-10 | `webbDeepField.js` | Webb Deep Field in Depth | 3d | Astronomy |  |
 | 2026-11-10 | `whereOrbitingStops.js` | Where Orbiting Stops | 3d | Physics |  |
-| 2026-11-12 | `exoplanets.js` | Six Thousand Worlds | 3d | Astronomy |  |
+| 2026-11-12 | `exoplanets.js` | Six Thousand Worlds | 3d | Astronomy | [walkthrough](sketches/exoplanets.md) |
 | 2026-11-12 | `messierInDepth.js` | Messier's Sky, in Depth | 3d | Astronomy |  |
 | 2026-11-18 | `antiAircraftContraception.js` | Anti-Aircraft Contraception | 3d | Physics | [walkthrough](sketches/antiAircraftContraception.md) |
