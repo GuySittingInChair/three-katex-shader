@@ -82,8 +82,10 @@ channel's rings are slightly offset, so they cross in rainbow fringes.
 - **About 2 minutes** for one full slow turn, at the default speed of 0.05 radians a second.
 - **67**: the stripe density. It's a "looks good" number, not a physical one.
 
-**Try this (funky):** change `67.0` to `6.0`. The razor stripes melt into broad, soft colour fields, like the
-same pattern painted with a fat brush. Then try `300.0` for a shimmering moiré that buzzes as it turns.
+**Try this (funky):** change `67.0` to `6.0`. The razor stripes melt into broad, soft bands of pale pastel
+(lemon, pink, sky blue), like the same pattern painted with a fat brush. Then try `300.0`: the stripes get
+finer than the pixels can show, and the picture turns into fine colour speckle, like an untuned TV, that
+fizzes as it turns.
 
 **Fixed on 2026-11-19:** the sketch used to read the window's size only once, at the start, so after you
 resized the window the pattern sat off-centre until you left and came back. It now re-reads the size every

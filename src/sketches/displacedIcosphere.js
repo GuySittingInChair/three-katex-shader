@@ -12,7 +12,7 @@ function fbmDir(nx, ny, nz) {
     freq *= 2.0;
     amp *= 0.5;
   }
-  return value; // roughly in [-0.94, 0.94]
+  return value; // at most ±0.94 in theory; about ±0.6 over the whole sphere in practice
 }
 
 function buildGeometry(strength) {
@@ -26,13 +26,30 @@ function buildGeometry(strength) {
   const highColor = new THREE.Color(0x8a6a3f);
   const peakColor = new THREE.Color(0xf0f0f0);
 
+  // Pass 1: the height of the ground in every corner's direction. see docs/wiki/noise.md
+  const heights = new Float32Array(pos.count);
   for (let i = 0; i < pos.count; i++) {
     v.fromBufferAttribute(pos, i).normalize();
-    const height = fbmDir(v.x, v.y, v.z);
+    heights[i] = fbmDir(v.x, v.y, v.z);
+  }
+  // The real lowest and highest ground. The noise only reaches about ±0.56 here, so measuring
+  // colour from −1 to +1 never got to the navy deeps or the white peaks.
+  // see docs/wiki/colour-scales.md
+  let lowest = Infinity;
+  let highest = -Infinity;
+  for (const h of heights) {
+    lowest = Math.min(lowest, h);
+    highest = Math.max(highest, h);
+  }
+
+  // Pass 2: push each corner out or in, and paint it by height.
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i).normalize();
+    const height = heights[i];
     const scale = 1 + height * strength;
     pos.setXYZ(i, v.x * scale, v.y * scale, v.z * scale);
 
-    const t = (height + 1) * 0.5;
+    const t = (height - lowest) / (highest - lowest); // 0 at the deepest ocean, 1 at the highest peak
     let color;
     if (t < 0.35) color = deepColor.clone().lerp(midColor, t / 0.35);
     else if (t < 0.65) color = midColor.clone().lerp(highColor, (t - 0.35) / 0.3);

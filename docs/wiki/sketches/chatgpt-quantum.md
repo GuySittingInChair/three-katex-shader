@@ -14,8 +14,9 @@ around a glowing blue-white centre. They are laced with fine magenta and cyan th
 cream-white highlights. The number of arms gently changes, and the whole pattern breathes in and out. The
 edges are slightly darker.
 
-**The idea behind it:** this is art, not physics. It is one of a family of sketches named after Radian628, an
-artist known for fractal shaders. All of them bend space over and over. The recipe has four ideas:
+**The idea behind it:** this is art, not physics. It is one of the site's family of sketches named after
+Radian628 (a shader author whose style they follow). All of them bend space over and over. The recipe has four
+ideas:
 1. **Spiral warping.** Space is twisted along a *logarithmic spiral*, the curve of a snail shell or a galaxy
    arm, which looks the same at every size: each time round, it gets the same number of times wider (that
    steady "times wider" growth is what *logarithmic* means). The equation on screen is this twist. It mixes
@@ -65,7 +66,8 @@ angle = mod(angle + PI / sectors, TAU / sectors) - PI / sectors;
   number of arms seems to change.
 - `PI` is half a turn and `TAU` a full turn, so `TAU / sectors` is one wedge's width. `mod` means "the
   remainder after dividing", which wraps any angle round into one wedge's width.
-- So the second line moves every angle into the first wedge, so all wedges look the same: the kaleidoscope.
+- Together, the second line moves every angle into the first wedge. Every wedge then shows the same picture:
+  that's the kaleidoscope.
 
 The colour:
 

@@ -8,8 +8,8 @@ added: 2026-11-18
 File: `src/sketches/displacedIcosphere.js` · Mode: 3d · Category: Meshes
 
 **What you see:** a little low-poly planet slowly spinning in space, all flat triangular facets like a cut
-gem. Deep blue oceans in the low parts, green lowlands, brown hills, and white snowy peaks on the highest
-points. You can drag it around.
+gem, lit from one side so the far side sits in shadow. Deep blue oceans in the low parts, green lowlands,
+brown hills, and pale snowy peaks on the highest points. You can drag it around.
 
 **The idea behind it:** start with a smooth ball. For every corner on its surface, ask a [noise](../noise.md)
 recipe "how high is the ground here?" and push the corner out (mountain) or in (ocean) by that much. Then
@@ -51,16 +51,21 @@ Pushing the surface:
 
 ```js
 v.fromBufferAttribute(pos, i).normalize();
-const height = fbmDir(v.x, v.y, v.z);
+heights[i] = fbmDir(v.x, v.y, v.z);
+...
+const height = heights[i];
 const scale = 1 + height * strength;
 pos.setXYZ(i, v.x * scale, v.y * scale, v.z * scale);
 ```
 
 - `pos` is the list of every corner of the ball's surface. `v.fromBufferAttribute(pos, i)` reads corner `i`;
   `.normalize()` keeps only its direction from the centre (length 1).
-- Ask the noise for the height there, between about −0.94 and +0.94.
-- Turn that into a distance from the centre: 1, plus or minus up to a quarter.
-- Move the corner there.
+- Line 2, in a first pass over every corner: ask the noise for the height there and keep it in a list,
+  `heights`. On this ball the heights come out between −0.56 and +0.56 (worked out over all its corners; the
+  noise could in theory reach ±0.94, but its layers never all peak at once).
+- The sketch then notes the lowest and highest of them (left out, `...`).
+- Lines 3–5, in a second pass: turn the height into a distance from the centre (1, plus or minus up to 0.14 at
+  the default strength), and move the corner there.
 
 Painting by height:
 
@@ -70,9 +75,15 @@ else if (t < 0.65) color = midColor.clone().lerp(highColor, (t - 0.35) / 0.3);
 else color = highColor.clone().lerp(peakColor, (t - 0.65) / 0.35);
 ```
 
-`t` is the height, from 0 (lowest) to 1 (highest). `.lerp(a, x)` blends towards colour `a` by `x`, and
-`.clone()` makes a copy first so the original colour isn't changed. This is a little [colour
-scale](../colour-scales.md): navy → green → brown → white, as `t` goes from lowest to highest ground.
+`t` is the height, from 0 (the lowest ground on this planet) to 1 (the highest): `(height - lowest) / (highest -
+lowest)`. `.lerp(a, x)` blends towards colour `a` by `x`, and `.clone()` makes a copy first so the original
+colour isn't changed. This is a little [colour scale](../colour-scales.md): navy → green → brown → white, as
+`t` goes from lowest to highest ground.
+
+**Fixed on 2026-11-20:** the colours used to measure height on a scale from −1 to +1, but the ground only ever
+reaches about ±0.56, so `t` stayed between 0.22 and 0.78: the planet never showed its navy deeps or its white
+peaks, only greens and browns. It now measures from the real lowest to the real highest ground, so the whole
+colour scale is used.
 
 **Fixed on 2026-11-19:** the **Displacement** slider used to do nothing until you left the sketch and came
 back, because the planet is built once, in `setup`. It now has `rebuild: true` (see [Params: the
@@ -80,8 +91,9 @@ sliders](../params.md)): let go of the slider and the planet is rebuilt with tal
 
 **Numbers worth knowing:**
 - **500 triangles** (detail level 4), which is what keeps it gem-like.
-- **0.25**: default mountain strength. The tallest peaks stand about 23% above "sea level", and the deepest
-  trenches sit 23% below. On a real Earth that would make mountains around 1,500 km tall.
+- **0.25**: default mountain strength. The tallest peaks stand 0.56 × 0.25 = 14% above "sea level", and the
+  deepest trenches sit 14% below. On a real Earth that would make mountains about 890 km tall, a hundred times
+  Everest.
 - **About 42 seconds** per full turn at the default spin of 0.15 radians a second.
 
 **Try this (funky):** change `IcosahedronGeometry(1, 4)` to `(1, 1)`. Now there are only 80 big triangles, and

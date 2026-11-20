@@ -9,8 +9,8 @@ File: `src/sketches/diffusionLimitedAggregation.js` · Mode: shader · Category:
 
 **What you see:** a dark screen with one coloured square in the middle. More squares stick to it, one at a
 time, and it grows a spindly, branching cluster in rainbow colours, like frost creeping across a window. After
-about two minutes the cluster fills its patch of the grid, holds still for 4 seconds so you can admire it,
-then vanishes and starts again from one square.
+about a minute and a half the cluster fills its patch of the grid, holds still for 4 seconds so you can admire
+it, then vanishes and starts again from one square.
 
 **The idea behind it:** picture a crowd of drunk people stumbling randomly around a dark room. In the middle
 stands one person who is covered in glue. Anyone who bumps into the glue person gets stuck to them, and then
@@ -78,7 +78,8 @@ Rings of colour spread outward, and the whole palette slowly drifts.
 - **72 × 72 = 5,184** squares in the grid. Growth stops at 55% full, about 2,850 squares.
 - **40**: the most walkers allowed at once.
 - **240 steps a second** at default speed (30 to 600 on the slider).
-- **About 400 squares after one minute,** full after about two (in a test run of the sketch's rules).
+- **A few hundred squares after one minute** (230 to 580 in five test runs of the sketch's own rules), then
+  growth speeds up sharply, because a bigger cluster catches more walkers: full at 73 to 87 seconds.
 
 **Try this (funky):** drag **speed** to its maximum, 20. Now it's 600 steps a second, and the tree shoots out
 its branches in well under a minute. Then drag it to 1 to watch single squares arrive one by one.
