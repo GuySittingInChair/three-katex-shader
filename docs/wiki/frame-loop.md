@@ -16,7 +16,7 @@ a clear stage. That is `dispose`.
 **Why sketches need it:** building objects is slow, and moving them is quick. So a sketch builds everything
 once and then only nudges it. If a sketch rebuilt its whole world on every frame, the animation would stutter.
 
-**Where you'll see it:** almost every sketch. 102 have a `setup`, all 166 have an `update`, and 96 have a
+**Where you'll see it:** almost every sketch. 102 have a `setup`, all 166 have an `update`, and 98 have a
 `dispose`. Flat `shader` sketches often skip `setup`, because the app builds their screen-filling picture for
 them.
 

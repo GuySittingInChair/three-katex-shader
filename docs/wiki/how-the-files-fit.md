@@ -22,9 +22,9 @@ plays borrow from. `tools/` is the workshop out the back where props are built f
 | `src/lib/` | Shared helpers: `motion.js` (timing), `fatLines.js` (lines), `morphSurface.js` (shapes that change), `environment.js` (realistic scenes), `bit.js` (comic timing) and more. | Rarely. A change here affects every sketch that borrows it. |
 | `src/core/` | The engine: finds the sketches (`registry.js`), runs them (`SketchRunner.js`), draws the equation (`latex.js`, `equationLayer.js`), sorts categories (`taxonomy.js`). | Almost never. |
 | `src/ui/` | The panels: Explain, Params (sliders), Code, Comments, the gallery. | Almost never. |
-| `tools/` | Python scripts that download and prepare science data, one folder per data set. | Only when changing a data set. |
+| `tools/` | Scripts, mostly Python, that download and prepare science data (one folder per data set), plus a few helpers for the site itself: thumbnail pictures, the wiki checks, the contrast check. | Only when changing a data set. |
 | `public/data/` | The prepared data files the sketches load. | No. The scripts in `tools/` make them. |
-| `docs/` | `guide.md` (the expert field guide in the Explain panel), and this wiki. | Yes. |
+| `docs/` | `guide.md` (the expert field guide in the Explain panel), `galaxy-engine.md` (programmer's notes on the galaxy explorer), and this wiki. | Yes. |
 
 **How a sketch reaches the screen:**
 
@@ -36,8 +36,8 @@ plays borrow from. `tools/` is the workshop out the back where props are built f
    dispose](frame-loop.md).
 3. If the sketch has a `latex` part (its equation, written in LaTeX, a standard way to type maths),
    `src/core/latex.js` draws it on screen. Numbers that change as the sketch moves are coloured yellow.
-4. If the sketch needs data (real measurements, like star positions or earthquake records), it loads it from
-   `public/data/...` while it starts up. See [Loading data (`fetch`, `Promise`,
+4. If the sketch needs data (real measurements, like star positions or 140 years of sunspot records), it loads
+   it from `public/data/...` while it starts up. See [Loading data (`fetch`, `Promise`,
    `await`)](js-promises-and-fetch.md).
 
 **What it looks like in the code:** the whole of "find every sketch" is this line from `src/core/registry.js`.

@@ -66,8 +66,10 @@ motion(t) {
 ```
 
 - `phaseOf(t, PERIOD)` runs first. It says how far through the 16-second loop we are.
-- Its answer is fed straight into `segments(..., 2, 0.4)`, which splits the loop into 2 halves, each pausing
-  for a moment before it changes. Both helpers are in `src/lib/motion.js`.
+- Its answer is fed straight into `segments(..., 2, 0.4)`, which splits the loop into 2 halves of 8 seconds.
+  In each half the shape holds still for 40% of the time (the `0.4`: 3.2 seconds, split between the start and
+  the end of the half) and changes smoothly during the rest, so you get a good look at each shape before it
+  turns into the other. Both helpers are in `src/lib/motion.js`.
 - `return { s: ... }` hands back one number, `s`. The `?` part is explained in [Decisions (`if`) and loops
   (`for`)](js-decisions-and-loops.md).
 

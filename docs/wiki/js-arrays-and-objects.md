@@ -75,7 +75,8 @@ const directions = new Float32Array(count * 3);
 ```
 (from `src/sketches/audioReactiveMesh.js`)
 
-- `Float32Array` is a list that holds only numbers, packed tightly so the graphics chip can read it fast.
+- `Float32Array` is a list that holds only numbers, packed tightly: it takes less memory and is quicker to
+  work through than an ordinary list, and it's the form the graphics chip takes its lists of numbers in.
 - `count * 3`: three numbers (x, y, z) for each corner of the ball.
 - Corner `i`'s x is at `directions[i * 3]`, its y at `i * 3 + 1`, and its z at `i * 3 + 2`.
 

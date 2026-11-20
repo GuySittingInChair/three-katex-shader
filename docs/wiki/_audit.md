@@ -29,3 +29,21 @@ How things are checked:
 | [Motion and the live equation](motion-and-latex.md) | 2026-11-20 | No errors found. Checked: 101 / 164 counts, PERIOD 18, KAPPA_MAX 0.9, phaseOf in src/lib/motion.js, ctx.motion set in SketchRunner. |
 | [Lines and points](lines-and-points.md) | 2026-11-20 | No errors found. Checked: 41 / 20 counts, CURVE_SAMPLES 128, width default 3, `tmp` colour, dot sizes. |
 | [Blending, adding, dimming and gain](colour-blending-and-gain.md) | 2026-11-20 | **Nonsense sentence** "the dots chain steps one after another" was still there (I had said it was fixed on 2026-11-19; it wasn't); rewritten. `caustic` range corrected (up to about 2, clamped at 2.2, a little more at fractal edges). Colour samples for both curve colours added. "Try this" now also says the curve is rubbed out as the dot slides back. |
+| [Textures](textures.md) | 2026-11-20 | "Pure black means as cold as it gets" mixed up three separate maps stored in the three colour channels; now per channel. Counts (15 DataTexture, 12 CanvasTexture, 5 GPU simulations), the colour-space line and the poop sketches' canvas faces checked. |
+| [GLSL basics](glsl-basics.md) | 2026-11-20 | 126 → 125 files. Missing nuance: this sketch doesn't correct for the wide screen, so its "ring" is really a wide oval (seen in the sketch); now explained, with a pointer to the line other sketches use. |
+| [Glow](glow.md) | 2026-11-20 | Said its tone map is "the same" as Abyssal Bloom's; both are ACES-style but different formulas (fitted vs one-line); corrected. Threshold made exact: halos fade in from 0.8 of white and are full from 1.33. 13 users, 3 blur levels, phone fov widening and the glow slider checked in code. |
+| [Lights](lights.md) | 2026-11-20 | No errors found. Checked: 13 sketches with lights, the named examples, lights removed in `dispose`. |
+| [Instancing](instancing.md) | 2026-11-20 | "Hue 0.6 is blue" → sky blue (as on the RGB page). Count 12 and cone sizes checked. |
+| [Render targets](render-targets.md) | 2026-11-20 | No errors found. Checked: the 5 sketches, 60-steps-per-frame cap, float fallback warning, RATE → loop length (100 ÷ 4 = 25 s). |
+| [Scene and camera](scene-and-camera.md) | 2026-11-20 | No errors found. Checked: camera (0, 0, 3), 75°, 0.01–1000, orthographic for shaders, orbit target in the Try-this. |
+| [How the camera moves](camera-and-controls.md) | 2026-11-20 | No errors found. Checked: 60 orbit sketches, Ctrl + wheel zoom (main.js), 105 s per look-around turn, 3.8 → 6 units. |
+| [The frame loop](frame-loop.md) | 2026-11-20 | 96 → 98 sketches with `dispose`. Runner's own clean-up checked. |
+| [Params](params.md) | 2026-11-20 | No errors found. Checked: 166 with params, SPECIES names, speed scales `motionTime`, zoom direction. |
+| [The sketch format](sketch-format.md) | 2026-11-20 | Left out the Experiments group of shelves; added. 7 sketches with actions, search reading tags checked. |
+| [What a sketch is](what-is-a-sketch.md) | 2026-11-20 | No errors found. Checked: 87 / 79, gradientPlane the shortest file (38 lines). |
+| [How the files fit together](how-the-files-fit.md) | 2026-11-20 | **Invented example:** "earthquake records"; the project has no earthquake data. Replaced with the real sunspot records. `tools/` isn't only Python; `docs/` also holds galaxy-engine.md; both added. A copied sketch does appear (new sketches are published unless marked otherwise), checked. |
+| [Values, names and comments](js-values-and-variables.md) | 2026-11-20 | No errors found. |
+| [Functions and arrows](js-functions.md) | 2026-11-20 | "Each half pausing for a moment" made exact from `segments`: 3.2 of each 8 seconds still. |
+| [Decisions and loops](js-decisions-and-loops.md) | 2026-11-20 | **Wrong "Try this":** said faint streaks appear; made the edit in the real sketch: the lines swell into bright wedges just before each fork (where settling is slowest), the rest barely changes. Rewritten. |
+| [Lists and objects](js-arrays-and-objects.md) | 2026-11-20 | Said `Float32Array` here is packed "so the graphics chip can read it fast"; this one is only read by JavaScript. Reworded. |
+| [Loading data](js-promises-and-fetch.md) | 2026-11-20 | No errors found. Checked: exactly these 16 sketches call `fetch`. |

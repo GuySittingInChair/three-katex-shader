@@ -61,16 +61,16 @@ have moved, send them to the graphics chip again". Without it, the birds would f
 
 ## Colour per copy
 
-Each bird's colour depends on its speed. Slow birds are blue, and fast ones shift towards green:
+Each bird's colour depends on its speed. Slow birds are sky blue, and fast ones shift towards lime green:
 
 ```js
 color.setHSL(0.6 - speed * 0.35, 0.75, 0.55).toArray(instanceColor.array, i * 3);
 ```
 
 `setHSL` picks a colour by hue (position around the colour wheel), saturation (how vivid) and lightness. Hue
-0.6 is blue, and lower values move towards green. `.toArray(instanceColor.array, i * 3)` writes the colour's
-three numbers into the list of all birds' colours, starting at place `i * 3`, because each bird takes three
-places (red, green, blue). See [RGB, three numbers](rgb.md).
+0.6 is a sky blue, and lower values move towards green. `.toArray(instanceColor.array, i * 3)` writes the
+colour's three numbers into the list of all birds' colours, starting at place `i * 3`, because each bird takes
+three places (red, green, blue). See [RGB, three numbers](rgb.md).
 
 **Try this:** in `boidsFlock.js`, change `ConeGeometry(0.05, 0.17, 6)` to `(0.1, 0.4, 6)`. Every bird becomes
 twice as wide and more than twice as long, because all 120 are stamped from the same cone.

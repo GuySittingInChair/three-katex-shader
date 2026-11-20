@@ -88,8 +88,9 @@ This repeats one formula 100 times, so the number `x` settles down before the sk
 [Shaders: two questions](shaders.md).
 
 **Try this:** in `bifurcationDiagram.js`, change `i < 100` to `i < 5`. The sketch no longer waits for `x` to
-settle, so its first wandering values get drawn too: faint extra streaks and smudges appear around the clean
-branches.
+settle, so its first wandering values get drawn too. Most of the picture barely changes, because there `x`
+settles within a few rounds anyway. But just before each fork, where `x` takes longest to settle, the thin
+lines swell into bright wedges: the trail of `x` still wandering on its way in.
 
 **Related:** [Values, names and comments](js-values-and-variables.md) · [Functions and arrows
 (`=>`)](js-functions.md) · [Lists (arrays) and labelled boxes (objects)](js-arrays-and-objects.md)

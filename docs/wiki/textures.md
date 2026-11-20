@@ -36,8 +36,8 @@ vec3 uk = t * uRange;
 - `texture2D(uSky, vUv)` puts the pin at this pixel's spot `vUv` and reads the picture.
 - `.rgb` takes its red, green and blue, each a number from 0 to 1.
 - `* 2.0 - 1.0` turns 0…1 into −1…+1, because the map stores how much *hotter or colder than average* each
-  spot is, which can go either way, but a picture can only hold 0 to 1. So pure black means "as cold as it
-  gets", and pure white "as hot".
+  spot is, which can go either way, but a picture can only hold 0 to 1. So in each of the three colour
+  channels, 0 means "as cold as this map gets" and 1 "as hot".
 - `t * uRange` turns that into real temperature differences, in millionths of a degree.
 
 ## A picture that is really data

@@ -17,7 +17,7 @@ using.
 **Why sketches need it:** the graphics chip only understands shader languages. Every pattern, fractal and
 fluid on the site is written in GLSL.
 
-**Where you'll see it:** inside the backtick blocks of 126 sketch files. See [Shaders: two
+**Where you'll see it:** inside the backtick blocks of 125 sketch files. See [Shaders: two
 questions](shaders.md).
 
 ## The bowls: types
@@ -69,7 +69,10 @@ float ring = smoothstep(0.02, 0.0, abs(ringPos));
 ```
 
 - Line 1: `vUv` is the pixel's position from 0 (left or bottom edge) to 1 (right or top). Subtracting 0.5 and
-  doubling moves the zero point to the middle of the screen. Now `uv` runs from −1 to +1.
+  doubling moves the zero point to the middle of the screen. Now `uv` runs from −1 to +1, both across and up.
+  The screen is wider than it is tall, so one step across covers more screen than one step up, and the "ring"
+  comes out as a wide oval. This sketch doesn't correct for that; [Uniforms](uniforms.md) shows the line other
+  sketches use to keep circles round.
 - Line 2: `r` is how far this pixel is from the centre.
 - Line 3: `a` is which direction the pixel is in, as an angle.
 - Line 4: `ringPos` is how far this pixel is from the ring. The ring sits 0.4 from the centre, pushed in and

@@ -29,8 +29,10 @@ stars look flat without help. A halo sells the brightness. 13 sketches use this 
    chip](render-targets.md).
 2. **Keep only the bright bits.** Everything dimmer than a *threshold* is thrown away.
 3. **Blur them, three times, at three sizes:** a tight halo, a medium one and a wide one.
-4. **Add the halos back and squash it all to fit the screen.** That last squash is a *tone map*, the same
-   film-style one described in [Abyssal Bloom](sketches/chatgpt-quantum.md).
+4. **Add the halos back and squash it all to fit the screen.** That last squash is a *tone map*: a film-style
+   curve called ACES that keeps very bright colours from all flattening into the same white. [Abyssal
+   Bloom](sketches/chatgpt-quantum.md) uses a shorter, one-line version of the same curve; this helper uses
+   the fuller one.
 
 **What it looks like in the code:** step 2, from `src/lib/glow.js`:
 
@@ -54,7 +56,8 @@ const glow = createGlow(ctx, { fov: 50, strength: 0.9, threshold: 0.8, exposure:
 
 - `ctx` is the bag of useful things the app hands every sketch (the scene, the camera, the sliders).
 - `strength: 0.9`: how strongly the halos are added back.
-- `threshold: 0.8`: only things brighter than 80% of white get a halo.
+- `threshold: 0.8`: halos start to fade in at 80% of white's brightness and are at full strength from 1.33
+  times white (0.8 × 1.6 + 0.05, the top of the ramp in line 3 above).
 - `exposure: 1.1`: brighten everything a touch, like opening a camera's aperture.
 - `vignette: 0.6`: darken the corners, like an old lens.
 - `fov: 50`: the camera's field of view, which the helper widens on tall phone screens so portrait mode still

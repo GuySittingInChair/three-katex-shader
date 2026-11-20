@@ -22,7 +22,7 @@ file and know which part does what.
 | `name` | The title, in quotes. | The title at the top and in the gallery. |
 | `description` | A sentence or two. | The text under the title. |
 | `tags` | A list of keywords, like `['chaos', 'logistic-map']`. | Nothing directly. The search box on the Sketches page (the gallery of all sketches) looks through them. |
-| `category` | One shelf name, like `'Chaos'`. | Which shelf of the gallery the sketch sits on. `src/core/taxonomy.js` groups shelves into Mathematics, Systems, Fields, Geometry, Rendering and Audio. |
+| `category` | One shelf name, like `'Chaos'`. | Which shelf of the gallery the sketch sits on. `src/core/taxonomy.js` groups shelves into Mathematics, Systems, Fields, Geometry, Rendering and Audio, plus Experiments for anything that fits none of them. |
 
 ## How it is drawn
 
