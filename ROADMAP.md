@@ -196,7 +196,7 @@ Total: 36 new, for 67 sketches walked through.
 | # | Item | Status | Done means |
 |---|------|--------|------------|
 | 2.10 | Once clickable code works: expand 3 wiki entries: cosine palette, shaders, and new parallax and distance (Q5) | done (cosine palette and shaders expanded; new parallax entry, tagged astronomy so it shows on /astronomy. All numbers worked out; see the audit log) | Verified as above |
-| 2.11 | Write the first 5 new walkthroughs (proposed: keplersPizza, sunCycle, exoplanets, fourierEpicycles, blackHoleLensing: four astronomy, one maths, from easy to hard) | doing (2 of 5 done: Black Hole Lensing, Fourier Epicycles, each with every line explained (105 and 141 lines) and clickable equation symbols. Next: Kepler's Pizza, Sun Cycle, Exoplanets) | Verified as above |
+| 2.11 | Write the first 5 new walkthroughs (proposed: keplersPizza, sunCycle, exoplanets, fourierEpicycles, blackHoleLensing: four astronomy, one maths, from easy to hard) | doing (3 of 5 done: Black Hole Lensing, Fourier Epicycles, Kepler's Pizza, each with every line explained (105, 141, 296 lines) and clickable equation symbols. Next: Sun Cycle, Exoplanets) | Verified as above |
 | 2.12 | Stop for owner review | todo | Owner's verdict recorded |
 | 2.13 | The remaining 31 walkthroughs and the rest of the wiki | todo | After B |
 

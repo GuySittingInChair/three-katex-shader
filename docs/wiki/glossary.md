@@ -96,8 +96,12 @@ don't exist yet; until then the link goes to the closest page that does.
   → [Fluid Dye: in plain English](sketches/fluidDye.md)
 - **Doppler effect**: a moving source looks bluer and brighter coming towards you and redder going away, like
   a passing siren's pitch. → [Black Hole Lensing: in plain English](sketches/blackHoleLensing.md)
+- **eccentricity**: how stretched an oval orbit is: 0 is a circle, near 1 a very long thin oval. → [Kepler's
+  Pizza: in plain English](sketches/keplersPizza.md)
 - **edge (graph)**: a link between two dots in a network. → [Force-Directed Graph: in plain
   English](sketches/forceDirectedGraph.md)
+- **ellipse**: an oval: the shape of every planet's orbit, with the star at one of two special points inside
+  it (a focus), not the centre. → [Kepler's Pizza: in plain English](sketches/keplersPizza.md)
 - **emergence**: order arising from simple local rules, with no leader. → [Boids Flock: in plain
   English](sketches/boidsFlock.md)
 - **epicycle**: a circle riding on the rim of another circle; Ptolemy used them for planets, Fourier showed
@@ -184,6 +188,9 @@ don't exist yet; until then the link goes to the closest page that does.
   plain English](sketches/audioReactiveJulia.md)
 - **kaleidoscope fold**: cutting the picture into wedges and folding them all onto one. → [Radian628 — Abyssal
   Bloom: in plain English](sketches/chatgpt-quantum.md)
+- **Kepler's laws**: three rules for orbits found by Johannes Kepler (1609, 1619): orbits are ellipses; equal
+  areas are swept in equal times; the time per orbit squared equals the size cubed (T² = a³, in years and AU).
+  → [Kepler's Pizza: in plain English](sketches/keplersPizza.md)
 - **Klein bottle**: a bottle whose inside is its outside; in three dimensions it must pass through itself. →
   [Klein Bottle: in plain English](sketches/kleinBottle.md)
 - **Kuramoto–Sivashinsky equation**: the classic equation for a wrinkling flame front that never settles. →
@@ -224,6 +231,9 @@ don't exist yet; until then the link goes to the closest page that does.
   and the live equation](motion-and-latex.md)
 - **neuron**: a nerve cell, which collects signals and fires when they add up past a threshold. → [Fly
   Connectome: in plain English](sketches/flyConnectome.md)
+- **Newton's method**: a way to solve an equation that can't be rearranged: guess, see how wrong the guess is,
+  correct it, repeat. Each round roughly doubles the correct digits. → [Kepler's Pizza: in plain
+  English](sketches/keplersPizza.md)
 - **node**: a dot in a network. → [Force-Directed Graph: in plain English](sketches/forceDirectedGraph.md)
 - **noise**: smooth, natural-looking randomness, like a rumpled bedsheet rather than TV static. → [Noise:
   randomness that looks natural](noise.md)
@@ -255,6 +265,8 @@ don't exist yet; until then the link goes to the closest page that does.
   measuring the distance to the stars](parallax-and-distance.md)
 - **pentatonic scale**: a five-note scale (C D E G A) in which no notes clash, like the piano's black keys. →
   [Generative Synth: in plain English](sketches/generativeSynth.md)
+- **perihelion**: an orbit's closest point to the Sun (or star). → [Kepler's Pizza: in plain
+  English](sketches/keplersPizza.md)
 - **perspective camera**: a camera where far things look smaller, like real life. → [Drawing in 3D 1: the
   scene and the camera](scene-and-camera.md)
 - **phase**: how far through a loop we are, from 0 to 1. → [Motion and the live equation](motion-and-latex.md)

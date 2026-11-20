@@ -199,10 +199,11 @@ export default {
             }, 1e-6);
     return (
       '\\begin{aligned}' +
-      `r &= \\frac{a(1-e^2)}{1+e\\cos\\nu} = \\frac{${hl(m.a, 2)}(1-${hl(m.e, 2)}^2)}{1+${hl(m.e, 2)}\\cos ${hl(m.nu, 0)}^\\circ} = ${hl(m.r, 2)}\\ \\text{AU} \\\\` +
-      `M &= E - e\\sin E:\\quad ${hl(m.M, 2)} = ${hl(m.E, 2)} - ${hl(m.e, 2)}\\sin ${hl(m.E, 2)},\\quad |v| = ${hl(m.speed, 1)}\\ \\text{km/s} \\\\` +
-      `T^2 &= a^3:\\quad ${hl(m.T, 2)}^2 = ${hl(m.a, 2)}^3\\ \\ (\\text{years, AU}),\\quad \\Delta v_{\\text{burn}} = ${hl(m.dv, 2)}\\ \\text{km/s} \\\\` +
-      `\\text{each slice} &= \\frac{\\pi a b}{${K}} = ${hl(area, 3)}\\ \\text{AU}^2 = ${hl(pizzas / 10 ** exp, 1)}\\times10^{${exp}}\\ \\text{large pizzas} \\\\` +
+      // \htmlData{sym=…} marks each symbol so it can be clicked. see docs/wiki/clickable-code.md
+      `\\htmlData{sym=r}{r} &= \\frac{\\htmlData{sym=a}{a}(1-\\htmlData{sym=e}{e}^2)}{1+\\htmlData{sym=e}{e}\\cos\\htmlData{sym=nu}{\\nu}} = \\frac{${hl(m.a, 2)}(1-${hl(m.e, 2)}^2)}{1+${hl(m.e, 2)}\\cos ${hl(m.nu, 0)}^\\circ} = ${hl(m.r, 2)}\\ \\text{AU} \\\\` +
+      `\\htmlData{sym=M}{M} &= \\htmlData{sym=E}{E} - \\htmlData{sym=e}{e}\\sin \\htmlData{sym=E}{E}:\\quad ${hl(m.M, 2)} = ${hl(m.E, 2)} - ${hl(m.e, 2)}\\sin ${hl(m.E, 2)},\\quad \\htmlData{sym=v}{|v|} = ${hl(m.speed, 1)}\\ \\text{km/s} \\\\` +
+      `\\htmlData{sym=T}{T}^2 &= \\htmlData{sym=a}{a}^3:\\quad ${hl(m.T, 2)}^2 = ${hl(m.a, 2)}^3\\ \\ (\\text{years, AU}),\\quad \\htmlData{sym=dv}{\\Delta v_{\\text{burn}}} = ${hl(m.dv, 2)}\\ \\text{km/s} \\\\` +
+      `\\text{each slice} &= \\frac{\\pi \\htmlData{sym=a}{a} \\htmlData{sym=b}{b}}{\\htmlData{sym=K}{${K}}} = ${hl(area, 3)}\\ \\text{AU}^2 = ${hl(pizzas / 10 ** exp, 1)}\\times10^{${exp}}\\ \\text{large pizzas} \\\\` +
       `& ${caption(line)}` +
       '\\end{aligned}'
     );

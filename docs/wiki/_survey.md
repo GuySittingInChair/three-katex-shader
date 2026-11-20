@@ -314,7 +314,7 @@ day. "Walkthrough" links to the plain-English page where one exists.
 | 2026-10-19 | `fractalLab.js` | Fractal Lab | shader | Fractals |  |
 | 2026-10-19 | `hybridFractal.js` | Hybrid Fractal | shader | Fractals |  |
 | 2026-10-19 | `kaleidoscopicIfs.js` | Kaleidoscopic IFS | shader | Fractals |  |
-| 2026-10-19 | `keplersPizza.js` | Kepler's Pizza | 3d | Physics |  |
+| 2026-10-19 | `keplersPizza.js` | Kepler's Pizza | 3d | Physics | [walkthrough](sketches/keplersPizza.md) |
 | 2026-10-19 | `kleinianNecklace.js` | Kleinian Necklace | 3d | Fractals |  |
 | 2026-10-19 | `mandelbox.js` | Mandelbox | shader | Fractals |  |
 | 2026-10-19 | `perturbationDive.js` | Perturbation Dive | shader | Fractals |  |
