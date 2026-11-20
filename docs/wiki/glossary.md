@@ -28,6 +28,8 @@ don't exist yet; until then the link goes to the closest page that does.
   geometry and material](mesh-geometry-material.md)
 - **bell curve**: the hill shape of heights, exam marks and errors: most near the middle, few at the edges. →
   [Galton Board: in plain English](sketches/galtonBoard.md)
+- **black hole shadow**: the dark disc where light aimed too close to a black hole falls in, about 5.2 of its
+  mass units across. → [Black Hole Lensing: in plain English](sketches/blackHoleLensing.md)
 - **Bézier curve**: a smooth curve pulled towards a few control points, as in drawing programs. → [De
   Casteljau Bézier: in plain English](sketches/bezierDeCasteljau.md)
 - **bifurcation**: the moment one steady behaviour splits into two, like a population starting to boom and
@@ -92,6 +94,8 @@ don't exist yet; until then the link goes to the closest page that does.
   → [Colour 4: colour scales for data, and how they are chosen](colour-scales.md)
 - **domain warping**: looking up noise at a position that has itself been pushed by noise; makes fake fluids.
   → [Fluid Dye: in plain English](sketches/fluidDye.md)
+- **Doppler effect**: a moving source looks bluer and brighter coming towards you and redder going away, like
+  a passing siren's pitch. → [Black Hole Lensing: in plain English](sketches/blackHoleLensing.md)
 - **edge (graph)**: a link between two dots in a network. → [Force-Directed Graph: in plain
   English](sketches/forceDirectedGraph.md)
 - **emergence**: order arising from simple local rules, with no leader. → [Boids Flock: in plain
@@ -100,6 +104,8 @@ don't exist yet; until then the link goes to the closest page that does.
   [Audio-Reactive Julia Set: in plain English](sketches/audioReactiveJulia.md)
 - **Euler's method**: the simplest way to step a simulation forward: new value = old value + speed × time
   step. → [Kuramoto–Sivashinsky: in plain English](sketches/kuramotoSivashinsky.md)
+- **event horizon**: the point of no return round a black hole; nothing that crosses it comes back out. →
+  [Black Hole Lensing: in plain English](sketches/blackHoleLensing.md)
 - **excitable**: quiet until sparked, then it fires a wave and needs time to recover. → [Belousov–Zhabotinsky:
   in plain English](sketches/belousovZhabotinsky.md)
 - **fbm**: noise stacked in layers, each twice as detailed and half as strong. → [Noise: randomness that looks
@@ -129,6 +135,8 @@ don't exist yet; until then the link goes to the closest page that does.
   and gain](colour-blending-and-gain.md)
 - **Gaussian curvature**: how strongly a surface curves at a spot, in a way bending without stretching can't
   change. → [Helicoid ↔ Catenoid: in plain English](sketches/helicoidCatenoid.md)
+- **general relativity**: Einstein's theory of gravity, in which mass bends space and time, and so bends
+  light. → [Black Hole Lensing: in plain English](sketches/blackHoleLensing.md)
 - **geometry**: an object's shape, as corners and triangles. → [Drawing in 3D 2: mesh, geometry and
   material](mesh-geometry-material.md)
 - **glider**: a five-square pattern in the Game of Life that crawls diagonally forever. → [Conway's Game of
@@ -246,6 +254,8 @@ don't exist yet; until then the link goes to the closest page that does.
 - **perspective camera**: a camera where far things look smaller, like real life. → [Drawing in 3D 1: the
   scene and the camera](scene-and-camera.md)
 - **phase**: how far through a loop we are, from 0 to 1. → [Motion and the live equation](motion-and-latex.md)
+- **photon orbit**: the distance (3 mass units) at which light can circle a black hole. → [Black Hole Lensing:
+  in plain English](sketches/blackHoleLensing.md)
 - **pinch point**: a spot where a surface comes to a sharp crease. → [Boy's Surface: in plain
   English](sketches/boysSurface.md)
 - **ping-pong**: drawing back and forth between two hidden pictures, one simulation tick each time. →
@@ -284,6 +294,8 @@ don't exist yet; until then the link goes to the closest page that does.
 - **Reynolds number**: tells you whether a swimmer lives in "honey world" (under 1) or "splashy world"
   (large). → [Anti-Aircraft Contraception: in plain English](sketches/antiAircraftContraception.md)
 - **RGB**: a colour as three numbers: red, green and blue. → [Colour 1: RGB, three numbers](rgb.md)
+- **RK4 (Runge–Kutta)**: a careful way to step a simulation forward: four test measurements per step,
+  averaged. → [Black Hole Lensing: in plain English](sketches/blackHoleLensing.md)
 - **rounding error**: the tiny mistake (about 1 part in 10 million billion) a computer makes on every sum. →
   [Kuramoto–Sivashinsky: the bug that froze the flame](sketches/kuramotoSivashinsky-fix.md)
 - **saddle**: a surface curving up one way and down the other, like a pringle. → [Enneper Surface: in plain

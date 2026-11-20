@@ -166,6 +166,7 @@ sketches, with which ones are done, is at the end of [Survey of the project](_su
 | [Kuramoto–Sivashinsky](sketches/kuramotoSivashinsky.md) | a wrinkling flame front, as a honeycomb ([the bug that froze it](sketches/kuramotoSivashinsky-fix.md)) |
 | [Kuramoto–Sivashinsky — Life-Seeded](sketches/kuramotoSivashinskyLife.md) | the same flame, fed by a Game of Life board |
 | [Life-Warped Fractal](sketches/lifeWarpedFractal.md) | a kaleidoscope bent by a hidden Game of Life |
+| [Black Hole Lensing](sketches/blackHoleLensing.md) | light bent round a black hole: the shadow, the arch, the bright side |
 
 ## 16. [Glossary](glossary.md)
 

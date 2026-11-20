@@ -39,11 +39,12 @@ export default {
     return { deg, elev: (deg * Math.PI) / 180 };
   },
 
+  // The equation; \htmlData{sym=…} marks each symbol so it can be clicked. see docs/wiki/clickable-code.md
   latex: (params, hl, m) =>
     '\\begin{aligned}' +
-    '\\frac{d^2u}{d\\varphi^2} + u &= 3Mu^2,\\quad u = \\frac1r \\\\' +
-    'b_{\\text{shadow}} &= 3\\sqrt3\\,M \\approx 5.2M,\\quad \\text{photon orbit } r = 3M \\\\' +
-    `\\text{camera } r &= ${hl(params.distance, 0)}M,\\ ${hl(m.deg, 0)}^\\circ \\text{ above the disk}` +
+    '\\frac{d^2\\htmlData{sym=u}{u}}{d\\htmlData{sym=phi}{\\varphi}^2} + \\htmlData{sym=u}{u} &= 3\\htmlData{sym=M}{M}\\htmlData{sym=u}{u}^2,\\quad \\htmlData{sym=u}{u} = \\frac1{\\htmlData{sym=r}{r}} \\\\' +
+    '\\htmlData{sym=b}{b_{\\text{shadow}}} &= 3\\sqrt3\\,M \\approx 5.2M,\\quad \\text{photon orbit } r = 3M \\\\' +
+    `\\text{camera } r &= \\htmlData{sym=dist}{${hl(params.distance, 0)}}M,\\ \\htmlData{sym=deg}{${hl(m.deg, 0)}^\\circ} \\text{ above the disk}` +
     '\\end{aligned}',
 
   params: {

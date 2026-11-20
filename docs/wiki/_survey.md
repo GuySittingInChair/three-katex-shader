@@ -254,7 +254,7 @@ day. "Walkthrough" links to the plain-English page where one exists.
 | 2026-09-29 | `fourierEpicycles.js` | Fourier Epicycles | 3d | Waves |  |
 | 2026-09-29 | `pendulumWave.js` | Pendulum Wave | 3d | Physics |  |
 | 2026-09-29 | `poopRocket.js` | Poop → Robot Rocket | 3d | Particles |  |
-| 2026-09-30 | `blackHoleLensing.js` | Black Hole Lensing | shader | Physics |  |
+| 2026-09-30 | `blackHoleLensing.js` | Black Hole Lensing | shader | Physics | [walkthrough](sketches/blackHoleLensing.md) |
 | 2026-09-30 | `coherentState.js` | Coherent State | 3d | Functional Analysis |  |
 | 2026-09-30 | `einsteinRing.js` | Einstein Ring | shader | Physics |  |
 | 2026-09-30 | `fourierProjection.js` | Fourier Projection | 3d | Functional Analysis |  |

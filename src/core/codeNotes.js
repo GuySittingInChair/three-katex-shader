@@ -85,7 +85,8 @@ export function parseCodeNotes(md) {
         notes.problems.push(`piece heading is not a single code span: ${h4[1]}`);
         continue;
       }
-      if (!line.text.includes(m[1])) notes.problems.push(`piece \`${m[1]}\` is not inside \`${line.text}\``);
+      // A shortened line (with "...") is checked against the real line when it's placed instead.
+      if (!/\.\.\.|…/.test(line.text) && !line.text.includes(m[1])) notes.problems.push(`piece \`${m[1]}\` is not inside \`${line.text}\``);
       current = { text: m[1], bodyLines: [] };
       line.pieces.push(current);
     } else if (current) {
@@ -130,4 +131,20 @@ export function placeCodeNotes(notes, source) {
 // \htmlData{sym=kappa}{\kappa} marks a symbol in a sketch's equation so it can
 // be clicked. Recorded clips (MathJax) and the symbol list don't know the
 // command, so they get the plain symbol back.
-export const stripSymbolMarks = (tex) => (tex || '').replace(/\\htmlData\{sym=[\w-]+\}\{((?:[^{}]|\{[^{}]*\})*)\}/g, '$1');
+export function stripSymbolMarks(tex) {
+  let s = tex || '';
+  const mark = /\\htmlData\{sym=[\w-]+\}\{/g;
+  for (let m = mark.exec(s); m; m = mark.exec(s)) {
+    // Find the brace that closes the symbol (it may hold nested braces).
+    let depth = 1;
+    let i = m.index + m[0].length;
+    for (; i < s.length && depth; i++) {
+      if (s[i] === '\\') i++; // skip an escaped character
+      else if (s[i] === '{') depth++;
+      else if (s[i] === '}') depth--;
+    }
+    s = s.slice(0, m.index) + s.slice(m.index + m[0].length, i - 1) + s.slice(i);
+    mark.lastIndex = m.index;
+  }
+  return s;
+}

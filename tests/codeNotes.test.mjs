@@ -38,4 +38,7 @@ for (const f of files) {
 test('symbol marks are removed for clips and the symbol list', () => {
   assert.equal(stripSymbolMarks('\\htmlData{sym=c}{c}(\\htmlData{sym=t}{t}) + \\htmlData{sym=phi}{\\phi}'), 'c(t) + \\phi');
   assert.equal(stripSymbolMarks('\\htmlData{sym=k}{\\tfrac{1}{2}}'), '\\tfrac{1}{2}');
+  assert.equal(stripSymbolMarks('\\htmlData{sym=b}{b_{\\text{shadow}}} = 1'), 'b_{\\text{shadow}} = 1');
+  assert.equal(stripSymbolMarks('\\htmlData{sym=d}{\\textcolor{#ffd166}{18}}M'), '\\textcolor{#ffd166}{18}M');
+  assert.equal(stripSymbolMarks('\\htmlData{sym=x}{\\{a\\}} b'), '\\{a\\} b');
 });
