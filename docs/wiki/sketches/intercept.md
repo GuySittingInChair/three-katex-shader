@@ -33,7 +33,7 @@ about 200 kg), and the gun's rate of fire, round speed and drag are those of a t
 - Each attack has its own [seed](../randomness.md); `update` skips any seed that doesn't end in a
   shoot-down.
 - [Glow](../glow.md) for tracers and blasts, [lines](../lines-and-points.md) for trails.
-- Live equations with [captions](../comedy-captions.md), here played straight.
+- Live equations with captions, here played straight.
 
 **A tour of the file:** the homing, in the dive:
 

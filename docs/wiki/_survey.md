@@ -57,7 +57,7 @@ Ray Tracing, Spectra, 4D, Number Theory, Vector Fields and Voxels.
 | Stepping a simulation forward in time (Euler, Runge–Kutta, Verlet) | 20 | *(planned: simulation)* |
 | Loops that refine a guess (Newton's method) | 10 | *(planned: math)* |
 | Realistic scenes (`src/lib/environment.js`) | 9 | *(planned)*; also docs/guide.md §13 |
-| The comedy formula (`src/lib/bit.js`) | 33 | [comedy-captions.md](comedy-captions.md); also docs/guide.md §12 |
+| The comedy formula (`src/lib/bit.js`) | 33 | docs/guide.md §12 |
 | Soft glow (`src/lib/glow.js`) | 13 | [glow.md](glow.md) |
 | Noise and fbm (home-made smooth randomness) | 14 | [noise.md](noise.md) |
 | Random numbers and seeds (`Math.random`, seeded generators) | many | [randomness.md](randomness.md) |

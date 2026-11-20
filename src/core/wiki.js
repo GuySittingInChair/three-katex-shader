@@ -78,8 +78,6 @@ function resolvePath(dir, rel) {
 // --- Clickable code ---------------------------------------------------------
 // Order matters only for overlaps: earlier concepts win a tie at the same spot.
 export const CODE_CONCEPTS = [
-  { page: 'comedy-captions', label: 'Comedy captions', re: /\b(?:caption|mood|inUnits|beat)\(|lib\/bit\.js/g,
-    blurb: 'A deadpan line of text under the live equation: true numbers, absurd nouns.' },
   { page: 'glow', label: 'Glow', re: /\bcreateGlow\b|\bctx\.pipeline\b|\bbloom\w*/gi,
     blurb: 'Makes bright things bleed light into their surroundings, like a lamp in fog.' },
   { page: 'instancing', label: 'Instancing', re: /\bInstancedMesh\b|\bsetMatrixAt\b|\bsetColorAt\b|\binstanceMatrix\b/g,

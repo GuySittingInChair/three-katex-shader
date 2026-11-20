@@ -15,7 +15,7 @@ two endings:
 A tally counts the outcomes. Gun settings in Params apply from the next attempt.
 
 **The idea behind it:** this is a remake of the sketch [Intercept](../../../src/sketches/intercept.js) with
-the cast swapped, following the [comedy formula](../comedy-captions.md): every number is real physics,
+the cast swapped, following the comedy formula: every number is real physics,
 told deadpan. Three real ideas star:
 
 1. **The tail is useless.** Swimming strokes only work for tiny things in thick liquid. In air, at bus
@@ -37,7 +37,7 @@ All three are explained properly on [the physics page](antiAircraftContraception
   *seed* number, `2000 + n × 7919` for attempt n, so every attempt is different but replays the same
   for everyone.
 - [Glow](../glow.md) for the tracers and bursts, [lines](../lines-and-points.md) for the tracer trails,
-  and [captions](../comedy-captions.md) under the equation.
+  and captions under the equation.
 
 **A tour of the file:** the clock in `motion(t)`:
 

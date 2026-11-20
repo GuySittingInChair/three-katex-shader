@@ -27,7 +27,7 @@ One line per word, in alphabetical order, with a link to the page that explains 
 - **clamp**: keep a number between a lowest and highest value. → [glsl-basics.md](glsl-basics.md)
 - **Clifford torus**: the perfectly balanced doughnut in the Hopf fibration, where every pair of its circles links once. → [sketches/hopfFibration.md](sketches/hopfFibration.md)
 - **colour scale**: a rule turning a measured number into a colour you can read back. → [colour-scales.md](colour-scales.md)
-- **comedy formula**: a true equation × an absurd noun, told deadpan (`src/lib/bit.js`). → [comedy-captions.md](comedy-captions.md)
+- **comedy formula**: a true equation × an absurd noun, told deadpan (`src/lib/bit.js`).
 - **comment**: a note for people, after `//` or between `/*` and `*/`, ignored by the computer. → [js-values-and-variables.md](js-values-and-variables.md)
 - **complex number**: two numbers bundled together, like a position across and up, that can be multiplied. → [sketches/audioReactiveJulia.md](sketches/audioReactiveJulia.md) (math page *(planned)*)
 - **connectome**: a wiring diagram of a brain: every neuron and who it talks to. → [sketches/flyConnectome.md](sketches/flyConnectome.md)

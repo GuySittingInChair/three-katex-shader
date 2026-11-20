@@ -51,7 +51,6 @@ under "Expert notes". You never need it: this wiki covers the same ground in eve
 - [Every field](sketch-format.md)
 - [Params: the sliders](params.md)
 - [Motion and the live equation](motion-and-latex.md)
-- [The comedy formula: true equations, absurd nouns](comedy-captions.md)
 
 ## 3. Reading JavaScript
 - [1. Values, names and comments](js-values-and-variables.md)

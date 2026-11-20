@@ -6,7 +6,7 @@ Part of the [Anti-Aircraft Contraception walkthrough](antiAircraftContraception.
 **In one sentence:** behind the joke sit three real pieces of physics, and one real piece of biology.
 
 **Picture it:** a wildlife documentary narrated by a ballistics engineer. Everything said is true; it's
-only the cast that's absurd. See [the comedy formula](../comedy-captions.md).
+only the cast that's absurd.
 
 ## The four ideas
 
@@ -57,5 +57,5 @@ front is the flip.)
 The joke now has a second layer, in the house style: the equation on screen says "homing", and the
 homing quietly works against it.
 
-**Related:** [Anti-Aircraft Contraception](antiAircraftContraception.md) · [The comedy formula: true equations, absurd nouns](../comedy-captions.md)
+**Related:** [Anti-Aircraft Contraception](antiAircraftContraception.md)
 · [Random numbers, and seeds that make them repeatable](../randomness.md) · [Glow: making bright things shine](../glow.md)
