@@ -105,8 +105,8 @@ line multiplied by 8 instead of 255, which left every live square nearly the sam
 **Try this (funky):** in `step()`, change the birth rule `(!alive && n === 3)` to `(!alive && (n === 3 || n
 === 6))`. That's a famous variant called *HighLife*, where a special pattern can copy itself. One extra
 number, and the soup behaves differently: in the same 8 test runs it settled *sooner* (362 to 1,313
-generations) and left fewer survivors (71 to 108). Its self-copying pattern exists, but it almost never forms
-by chance from a random soup, so don't expect to see it.
+generations) and left fewer survivors (71 to 108). The self-copying pattern needs a particular starting shape;
+none of the 8 test runs settled with one on the board.
 
 **Words on this page:** [cellular automaton](../glossary.md#cellular-automaton),
 [glider](../glossary.md#glider), [DataTexture](../glossary.md#datatexture), [shader](../glossary.md#shader),
