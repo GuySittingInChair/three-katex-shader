@@ -1,4 +1,5 @@
-import { loadWikiPage, renderWiki, wikiUrl } from '../core/wiki.js';
+import { loadWikiPage, renderWiki, wikiUrl, wikiMeta } from '../core/wiki.js';
+import { mountEmbeds, disposeEmbeds } from './sketchEmbed.js';
 import { sketches } from '../core/registry.js';
 import { attachWikiFeedback } from './wikiFeedback.js';
 import { decorateWikiCode } from './wikiCode.js';
@@ -30,6 +31,7 @@ export function createWikiPage(el) {
     const md = await loadWikiPage(slug);
     if (mine !== token) return;
     feedback.close();
+    disposeEmbeds();
     current = slug || 'README';
     if (md == null) {
       doc.innerHTML = `<h1>Page not found</h1><p>There's no wiki page called <code></code>. <a href="/wiki" data-link>Back to the wiki home</a>.</p>`;
@@ -40,6 +42,9 @@ export function createWikiPage(el) {
     }
     doc.innerHTML = renderWiki(md, slug || 'README');
     decorateWikiCode(doc, slug || 'README');
+    addContents(doc);
+    addAppearsIn(doc, slug || 'README');
+    mountEmbeds(doc);
     doc.appendChild(feedback.footer());
     const title = doc.querySelector('h1')?.textContent || 'Wiki';
     document.title = `${title} · aiship wiki`;
@@ -65,4 +70,52 @@ export function createWikiPage(el) {
   }
 
   return { show, url: wikiUrl };
+}
+
+// Long pages get an "On this page" list of their sections, under the title.
+function addContents(doc) {
+  const hs = [...doc.querySelectorAll('h2')];
+  if (hs.length < 4) return;
+  const nav = document.createElement('nav');
+  nav.className = 'wiki-toc';
+  nav.setAttribute('aria-label', 'On this page');
+  nav.innerHTML = '<strong>On this page</strong><ol></ol>';
+  for (const h of hs) {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = `#${h.id}`;
+    a.textContent = h.textContent;
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      h.scrollIntoView({ block: 'start' });
+      history.replaceState(null, '', `#${h.id}`);
+    });
+    li.append(a);
+    nav.querySelector('ol').append(li);
+  }
+  const h1 = doc.querySelector('h1');
+  (h1 || doc.firstChild)?.after(nav);
+}
+
+// Topic pages list the walkthroughs that link to them, worked out when the site
+// is built, so the list stays complete as walkthroughs are added.
+function addAppearsIn(doc, slug) {
+  if (slug.startsWith('sketches/') || slug.startsWith('code/') || slug.startsWith('_') || slug === 'README' || slug === 'glossary') return;
+  const walks = (wikiMeta[slug]?.linkedFrom || []).filter((s) => s.startsWith('sketches/')).sort();
+  if (!walks.length) return;
+  const sec = document.createElement('section');
+  sec.className = 'wiki-appears';
+  sec.innerHTML = `<h2 id="appears-in">Appears in these walkthroughs</h2><ul></ul>`;
+  for (const w of walks) {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = wikiUrl(w);
+    a.setAttribute('data-link', '');
+    a.textContent = (wikiMeta[w]?.title || w).replace(/: in plain English$/, '');
+    li.append(a);
+    sec.querySelector('ul').append(li);
+  }
+  const related = [...doc.querySelectorAll('p')].find((p) => /^Related:/.test(p.textContent.trim()));
+  if (related) related.before(sec);
+  else doc.append(sec);
 }

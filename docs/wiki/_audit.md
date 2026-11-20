@@ -89,3 +89,4 @@ How things are checked:
 
 **Done 2026-11-20: all 70 pages checked.** Errors found and fixed are listed above; pages marked "No errors
 found" were checked against the code as described.
+| [Colour 3: the cosine palette](cosine-palette.md) (expanded) | 2026-11-20 | New sections checked by calculation: the three-spoke proof (sum of cosines ≤ 2 × 10⁻¹⁵ over 1,000 values; the sketches' 0.33/0.67 keep the average within 0.006), Rec. 709 brightness for five colours (0.21 to 0.79), 0.33 rad ≈ 1/19 turn. Sources named: Quilez's "Palettes", ITU-R BT.709. |

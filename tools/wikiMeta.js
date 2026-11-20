@@ -57,9 +57,26 @@ export function readWikiMeta(root, { dates = true } = {}) {
     // every page would otherwise look new.
     const git = dates ? gitDates(root, file) : {};
     const added = meta.added ? `${meta.added}T12:00:00Z` : git.added || null;
-    out[slug] = { title, summary: meta.summary || '', tags: meta.tags || [], added, updated: git.updated || null };
+    out[slug] = { title, summary: meta.summary || '', tags: meta.tags || [], added, updated: git.updated || null, links: linksIn(body, slug) };
+  }
+  // Backlinks: which pages link to each page ("Appears in these walkthroughs").
+  for (const slug of Object.keys(out)) out[slug].linkedFrom = [];
+  for (const [from, m] of Object.entries(out)) {
+    for (const to of m.links) if (out[to] && to !== from && !out[to].linkedFrom.includes(from)) out[to].linkedFrom.push(from);
+    delete m.links;
   }
   return out;
+}
+
+// The wiki pages a page links to, as slugs.
+function linksIn(body, slug) {
+  const dir = path.posix.dirname(slug);
+  const found = new Set();
+  for (const [, href] of body.matchAll(/\]\(([^)\s#]+?\.md)(?:#[^)]*)?\)/g)) {
+    if (/^[a-z]+:/i.test(href)) continue;
+    found.add(path.posix.normalize(path.posix.join(dir, href)).replace(/\.md$/, ''));
+  }
+  return [...found];
 }
 
 // Where every wiki code block comes from: { slug: [{ index, file, start, end } | { index, file: null }] }.
