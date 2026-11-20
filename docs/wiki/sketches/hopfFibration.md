@@ -56,9 +56,11 @@ const th = Math.min(Math.PI - 0.05, Math.max(THETA_MIN, lerp(fib[i].theta, theta
   `r`, one of 5, dealt out like cards.
 - Line 2: that line's latitude: the middle latitude `theta`, plus or minus a little for the others.
 - Line 3: `lerp` slides from where the dot started (`fib`, the even spread) to its line, by the fraction `s`
-  (0 = start, 1 = on its line). `Math.max(THETA_MIN, ...)` means "no smaller than `THETA_MIN`": it keeps the
-  dot away from the north pole, whose rings would be infinitely big. `Math.min(Math.PI - 0.05, ...)` likewise
-  keeps it a whisker off the south pole.
+  (0 = start, 1 = on its line). `Math.max(THETA_MIN, ...)` means "no smaller than `THETA_MIN`" (0.75, about
+  43° from the north pole). Rings from dots near the north pole come out enormous (from the pole itself,
+  infinitely big), so this keeps every ring small enough to stay on screen: measured in the code's notes, a
+  ring at 0.75 reaches 5.3 units from the centre, but one at 0.45 would reach 8.9. `Math.min(Math.PI - 0.05,
+  ...)` likewise keeps it a whisker off the south pole.
 
 Turning a dot into a ring, in the shader:
 

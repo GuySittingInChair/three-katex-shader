@@ -8,8 +8,13 @@ added: 2026-11-18
 File: `src/sketches/generativeSynth.js` · Mode: shader · Category: Synthesis
 
 **What you see (and hear):** soft glowing rings ripple out from the centre of a dark screen, one for each
-note, like raindrops on a pond at night. Each ring's colour comes from its pitch: the lowest notes are a warm
-red, middle notes cyan and blue, and the very highest swing round again towards orange. With sound on (press
+note, like raindrops on a pond at night. Each ring's colour comes from its pitch, going round the [cosine
+palette](../cosine-palette.md) as the notes rise. Worked out for all ten notes: C4 <span class="swatch"
+style="background:#ff4242"></span> red, D4 <span class="swatch" style="background:#e70c8f"></span> pink, E4
+<span class="swatch" style="background:#a702d7"></span> purple, G4 <span class="swatch"
+style="background:#5828fd"></span> blue, A4 <span class="swatch" style="background:#1870f3"></span> azure, C5
+<span class="swatch" style="background:#00bdbd"></span> teal, D5 <span class="swatch" style="background:#18f370"></span> green, E5 <span class="swatch" style="background:#58fd28"></span> lime, G5 <span class="swatch" style="background:#a7d702"></span> yellow-green and A5
+<span class="swatch" style="background:#e78f0c"></span> orange. With sound on (press
 **Space**), a gentle electronic tone plays a wandering, music-box melody that never repeats and never sounds
 wrong.
 
@@ -79,12 +84,13 @@ float fade = exp(-age * 1.1);
   circle.
 - `ring` is bright right on the circle and fades softly either side: a glowing line.
 - `fade` dims it as it ages: `exp(-age * 1.1)` shrinks by the same fraction every moment, like a cooling cup
-  of tea. After a second it's down to a third; after 3 seconds it's gone.
+  of tea. After a second it's down to a third; after 3 seconds, to 4%: almost gone.
 
 **Numbers worth knowing:**
 - **10 notes**, C4 to A5: about two octaves, the range of a comfortable singing voice.
 - **2.5 notes a second** at the default 0.4-second gap (0.15 to 1.2 on the slider).
-- **8 rings** at most on screen, but at the default pace only 7 or 8 are ever alive at once anyway.
+- **8 rings** at most on screen. At the default pace a ring's slot is reused after 3.2 seconds (8 × 0.4), by
+  which time it has faded to 3%, so you never see one vanish suddenly.
 
 **Try this (funky):** in `setup`, change `type: 'sine'` to `type: 'square'`. The soft flute-like tone turns
 into a buzzy retro video-game chip sound. Then drag **noteInterval** down to 0.15 for a frantic arcade
