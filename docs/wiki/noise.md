@@ -13,7 +13,8 @@ screaming fizz. Noise is a rumpled bedsheet: random, yes, but each bit of sheet 
 bit next to it. Nature is almost always bedsheet, almost never static.
 
 **Why sketches need it:** anything that should look organic, like dye swirling in water or the mountains of a
-little planet, needs randomness with *smoothness*. 14 sketches build their own noise recipe.
+little planet, needs randomness with *smoothness*. 14 sketches build their own noise recipe, and Displaced
+Icosphere fakes one by stacking sine waves.
 
 **Where you'll see it:** `fluidDye.js`, `displacedIcosphere.js`, `marbleTexture.js`, `infernoCape.js`,
 `supernovaRemnant.js`, `sunCycle.js`, `bristolSpecimen.js` and most of the `kali*` sketches.
@@ -78,7 +79,8 @@ twice. Straight lines turn into curls and eddies, and you get something that loo
 That is the whole of [Fluid Dye](sketches/fluidDye.md).
 
 **Try this:** in `fluidDye.js`, change `i < 5` to `i < 1`. Only the first, broadest layer is left. The dye
-turns into smooth, rubbery blobs with no fine wisps at all, like a lava lamp.
+turns into smooth, rubbery blobs with no fine wisps at all, like a lava lamp. It also goes much darker: one
+layer adds up to about half of what five do, so it rarely reaches the pale aqua end of the colours.
 
 **Related:** [Random numbers, and seeds that make them repeatable](randomness.md) · [Fluid
 Dye](sketches/fluidDye.md) · [Displaced Icosphere](sketches/displacedIcosphere.md) · [GLSL basics: reading a

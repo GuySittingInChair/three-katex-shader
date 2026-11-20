@@ -17,8 +17,8 @@ graphics chip hands it to millions of tiny workers at once, one per pixel.
 Working each one out in turn, in JavaScript, would be far too slow. The graphics chip does them all at once.
 That is why the fractals and fluids on this site can move smoothly.
 
-**Where you'll see it:** all 87 `shader` sketches are a single shader. About 40 `3d` sketches use shaders too,
-as custom paint (`ShaderMaterial`).
+**Where you'll see it:** all 87 `shader` sketches are a single shader. 38 of the 79 `3d` sketches use shaders
+too, as custom paint (`ShaderMaterial`).
 
 ## The two kinds
 
@@ -67,9 +67,12 @@ A shader can't see the sliders or the clock directly. JavaScript passes numbers 
 are the same for every pixel, like the slider settings or the time), and pictures as *textures*. See
 [Uniforms: knobs passed in from JavaScript](uniforms.md) and [Textures](textures.md).
 
-**Try this:** in `gradientPlane.js`, change `vec3(0.0, 2.0, 4.0)` to `vec3(0.0, 0.5, 1.0)`. The rainbow loses
-its variety: red, green and blue now rise and fall nearly together, so you mostly see pale, washed-out tints
-fading to dark and back.
+**Try this:** in `gradientPlane.js`, change `vec3(0.0, 2.0, 4.0)` to `vec3(0.0, 0.5, 1.0)`. Those three
+numbers are the head starts for red, green and blue, measured in radians (a full turn is 6.28, so 2 and 4 are
+about a third and two thirds of a turn). Shrinking them makes the colours keep step more closely. The rainbow
+changes character: a dark patch and pale, nearly white patches appear along the diagonal where across equals
+up (there all three colours rise and fall almost together), with bright green on one side and magenta on the
+other.
 
 **Related:** [GLSL basics: reading a shader](glsl-basics.md) · [Uniforms: knobs passed in from
 JavaScript](uniforms.md) · [Textures](textures.md) · [Simulating on the graphics chip](render-targets.md) ·

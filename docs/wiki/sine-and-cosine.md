@@ -11,7 +11,8 @@ smooth up-and-down wave, between −1 and +1, forever.
 **Picture it:** a Ferris wheel seen from the side. As the wheel turns at a steady speed, your seat rises to
 the top, sinks to the bottom, and rises again, smoothly, never stopping. Write down your seat's height every
 second and you get a wave. That height is the *sine* of how far the wheel has turned. Your seat's position
-left-to-right makes the same wave, but a quarter-turn behind: that's the *cosine*.
+left-to-right makes the same wave, but a quarter-turn ahead (it reaches its furthest point a quarter of a turn
+before the height reaches its highest): that's the *cosine*.
 
 Put them together and you have a point going round a circle: cosine says how far across, sine says how far up.
 

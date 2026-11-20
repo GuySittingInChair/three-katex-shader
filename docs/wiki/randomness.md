@@ -60,6 +60,8 @@ is wired the same way on every visit.
 
 ## Bell curves from flat dice
 
+The dice-roller in `antiAircraftContraception.js` (and the same one in `intercept.js`) has one more trick:
+
 ```js
 r.n = () => Math.sqrt(-2 * Math.log(r() + 1e-12)) * Math.cos(6.283185 * r());
 ```
@@ -70,9 +72,10 @@ one bell-curve roll. You don't need to follow the math. It's a well-known recipe
 (Two small details: `6.283185` is one full turn, 2π, and `1e-12`, a millionth of a millionth, is added so the
 recipe never takes the logarithm of exactly zero, which has no answer.)
 
-**Try this:** in `gameOfLife.js`, change `Math.random() < 0.35` to `< 0.05`. Only 1 cell in 20 starts alive.
-Most die at once of loneliness (fewer than 2 neighbours), and the board goes nearly dark within a second or
-two.
+**Try this:** in `gameOfLife.js`, change `Math.random() < 0.35` to `< 0.05`. Only 1 cell in 20 starts alive,
+about 200 of the 4,096. Most die at once of loneliness (fewer than 2 neighbours): after the first tick, a
+tenth of a second at the normal speed, only a few dozen are left, and the board settles into a handful of
+small still blocks and blinkers.
 
 **Related:** [Noise: randomness that looks natural](noise.md) · [Galton Board](sketches/galtonBoard.md) ·
 [Anti-Aircraft Contraception](sketches/antiAircraftContraception.md)

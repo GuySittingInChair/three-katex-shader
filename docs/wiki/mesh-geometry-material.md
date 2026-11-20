@@ -30,14 +30,19 @@ const posAttr = geometry.attributes.position;
 const count = posAttr.count;
 ```
 
-- Line 1 builds a ball 1 unit in radius out of triangles. The `3` says how many times to split each triangle
-  into smaller ones. Higher numbers make it rounder but slower.
+- Line 1 builds a ball 1 unit in radius out of triangles: 320 of them. The `3` says how finely to split the 20
+  triangles of the starting shape (an icosahedron, a 20-sided dice). Higher numbers make it rounder but
+  slower.
 - Line 2 gets the list of every corner's position. An *attribute* is a list holding one value per corner.
-- Line 3 counts the corners.
+- Line 3 counts the corners: 960. That is three per triangle, because this shape stores each triangle's
+  corners separately. Where five or six triangles
+meet at one point, that point is stored five or six times, so moving one copy without the others would tear
+the surface open. The sketch avoids that by working out each corner's new place from its direction alone, so
+all copies of a point move together.
 
 Three.js has ready-made shapes: `PlaneGeometry` (a flat rectangle), `ConeGeometry` (the birds in Boids Flock),
 `IcosahedronGeometry` (a ball) and more. Sketches can also build their own shape point by point, with
-`BufferGeometry` (37 sketches).
+`BufferGeometry` (33 sketches).
 
 ## Material: the surface
 
@@ -87,7 +92,7 @@ on a surface, on every frame. This is far faster than moving corners in JavaScri
 shape smoothly.
 
 **Try this:** in `audioReactiveMesh.js`, change `IcosahedronGeometry(1, 3)` to `(1, 1)`. The ball turns into a
-rough, gem-like shape with big flat faces, because it now has far fewer triangles.
+rough, gem-like shape with big flat faces, because it now has 80 triangles instead of 320.
 
 **Related:** [The scene and the camera](scene-and-camera.md) · [Lights](lights.md) · [Shaders: two
 questions](shaders.md) · [Many copies of one shape (instancing)](instancing.md)

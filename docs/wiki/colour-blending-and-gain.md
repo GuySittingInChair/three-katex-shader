@@ -28,10 +28,13 @@ From `src/sketches/bezierDeCasteljau.js`:
 tmp.copy(CURVE_A).lerp(CURVE_B, u).multiplyScalar(u <= s ? 1 : 0.4);
 ```
 
-- `tmp` is a scratch colour the sketch reuses, and the dots chain steps one after another.
-- `tmp.copy(CURVE_A)` starts with the first colour, a mid blue.
-- `.lerp(CURVE_B, u)` blends towards the second colour, a purple, by `u`. `u` runs from 0 at the start of the
-  curve to 1 at the end, so the curve shades from blue to purple along its length.
+- `tmp` is a spare colour the sketch reuses for every piece of the curve. Read the line left to right: each
+  `.something(…)` does one step to `tmp` and passes the result on to the next step.
+- `tmp.copy(CURVE_A)` starts with the first colour, a mid blue (0.25, 0.5, 0.8) <span class="swatch"
+  style="background:#4080cc"></span>.
+- `.lerp(CURVE_B, u)` blends towards the second colour, an orchid purple (0.68, 0.38, 0.72) <span
+  class="swatch" style="background:#ad61b8"></span>, by `u`. `u` runs from 0 at the start of the curve to 1 at
+  the end, so the curve shades from blue to purple along its length.
 - `.multiplyScalar(…)` multiplies all three colour numbers by one number. `u <= s ? 1 : 0.4` means "1 if `u`
   is at most `s` (how far the dot has got), otherwise 0.4". So it's a dimmer: the part of the curve the dot
   has already passed keeps full brightness (×1), and the rest is dimmed to 40%.
@@ -48,8 +51,9 @@ vec3 color = deepWater + brightWater * caustic;
 
 - `vec3` is a colour: three numbers, red, green, blue.
 - Start from dark water (`deepWater`).
-- Add the bright aqua, as much as the caustic pattern says (`caustic` is 0 where it's dark and 2 or more where
-  the ripples focus the light).
+- Add the bright aqua, as much as the caustic pattern says (`caustic` is 0 where it's dark, up to about 2
+  where the ripples focus the light, and a little more at the edges of the fractal pattern the sketch mixes
+  in).
 
 Light adds up: two lamps on the same wall make it brighter than either alone. Colour numbers are amounts of
 light, so adding them only ever makes things brighter, like extra lamps. That's different from `mix`, which
@@ -82,7 +86,8 @@ detail up there is lost. `clamp(x, 0.0, 1.0)` keeps a number between 0 and 1 on 
 range don't cause surprises later in the sums. Bifurcation Diagram does this with its point density.
 
 **Try this:** in `bezierDeCasteljau.js`, change `0.4` to `0.0`. The part of the curve ahead of the moving dot
-disappears entirely, so you watch the curve being drawn as the dot moves along it.
+disappears entirely, so you watch the curve being drawn as the dot moves along it, and rubbed out again as the
+dot slides back (it sweeps there and back three times per loop).
 
 **Related:** [RGB, three numbers](rgb.md) · [Colour scales for data, and how they are
 chosen](colour-scales.md) · [GLSL basics: reading a shader](glsl-basics.md)

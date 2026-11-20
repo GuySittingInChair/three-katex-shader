@@ -57,7 +57,7 @@ state.uniforms.uBass.value = ctx.audio.bass;
 - Line 2 copies the live bass loudness from the microphone into `uBass`.
 
 The names must match exactly in all three places. If the shader says `uZoom` and JavaScript says `uzoom`, the
-knob is never turned and the shader keeps the default value.
+shader's knob is never set at all, and it reads 0.
 
 ## Two knobs you get for free
 
