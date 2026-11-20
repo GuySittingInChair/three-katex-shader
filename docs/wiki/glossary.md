@@ -63,8 +63,9 @@ don't exist yet; until then the link goes to the closest page that does.
   English](sketches/flyConnectome.md)
 - **const / let**: make a named value; `const` never changes, `let` can. → [Reading JavaScript 1: values,
   names and comments](js-values-and-variables.md)
-- **control point**: a point that pulls a curve towards it without the curve passing through it. → [De
-  Casteljau Bézier: in plain English](sketches/bezierDeCasteljau.md)
+- **control point**: a point that pulls a curve towards it. A Bézier curve starts on the first control point
+  and ends on the last, but usually misses the ones in between. → [De Casteljau Bézier: in plain
+  English](sketches/bezierDeCasteljau.md)
 - **cosine palette**: the one-line rainbow recipe: red, green and blue each rise and fall, out of step. →
   [Colour 3: the cosine palette (the rainbow trick)](cosine-palette.md)
 - **ctx**: the bag of useful things the app hands a sketch: camera, scene, sliders, time. → [The frame loop:
@@ -139,8 +140,9 @@ don't exist yet; until then the link goes to the closest page that does.
   English](sketches/helicoidCatenoid.md)
 - **histogram**: a bar chart counting how often each result happened. → [Galton Board: in plain
   English](sketches/galtonBoard.md)
-- **Hopf fibration**: the four-dimensional sphere split into circles, every pair of them linked like chain
-  links. → [Hopf Fibration: in plain English](sketches/hopfFibration.md)
+- **Hopf fibration**: the "3-sphere" (the three-dimensional surface of a ball in four dimensions) split into
+  circles, every pair of them linked like chain links. → [Hopf Fibration: in plain
+  English](sketches/hopfFibration.md)
 - **HSL**: a colour as hue (place on the colour wheel), saturation (vividness) and lightness. → [Colour 1:
   RGB, three numbers](rgb.md)
 - **hyperbolic geometry**: a world with more room the further out you go, like a crinkly lettuce leaf. →
@@ -159,8 +161,9 @@ don't exist yet; until then the link goes to the closest page that does.
   Catenoid: in plain English](sketches/helicoidCatenoid.md)
 - **JSON**: a text format of labelled values, used for `meta.json` files. → [Reading JavaScript 5: loading
   data (`fetch`, `Promise`, `await`)](js-promises-and-fetch.md)
-- **Julia set**: the shape of points that never fly off under the rule "square it, add c". → [Audio-Reactive
-  Julia Set: in plain English](sketches/audioReactiveJulia.md)
+- **Julia set**: under the rule "square it, add c", the points that never fly off fill a shape (the *filled*
+  Julia set); the Julia set is that shape's edge, where the fine lace is. → [Audio-Reactive Julia Set: in
+  plain English](sketches/audioReactiveJulia.md)
 - **kaleidoscope fold**: cutting the picture into wedges and folding them all onto one. → [Radian628 — Abyssal
   Bloom: in plain English](sketches/chatgpt-quantum.md)
 - **Klein bottle**: a bottle whose inside is its outside; in three dimensions it must pass through itself. →
@@ -285,7 +288,7 @@ don't exist yet; until then the link goes to the closest page that does.
 - **shader**: a small program on the graphics chip that answers "where does this corner go?" or "what colour
   is this pixel?". → [Shaders: two questions](shaders.md)
 - **sine (`sin`)**: a calculation that turns a steadily growing number into a smooth wave between −1 and +1;
-  cosine (`cos`) is the same wave a quarter-turn behind. → [Sine and cosine: the
+  cosine (`cos`) is the same wave a quarter-turn ahead. → [Sine and cosine: the
   wave-makers](sine-and-cosine.md)
 - **simulation step**: moving a simulation forward by one small slice of time. → [Boids Flock: in plain
   English](sketches/boidsFlock.md) (simulation page *(planned)*)
