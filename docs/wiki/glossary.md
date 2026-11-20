@@ -100,6 +100,8 @@ don't exist yet; until then the link goes to the closest page that does.
   English](sketches/forceDirectedGraph.md)
 - **emergence**: order arising from simple local rules, with no leader. → [Boids Flock: in plain
   English](sketches/boidsFlock.md)
+- **epicycle**: a circle riding on the rim of another circle; Ptolemy used them for planets, Fourier showed
+  any closed drawing is made of them. → [Fourier Epicycles: in plain English](sketches/fourierEpicycles.md)
 - **escape time**: how many rounds of a rule a point survives before flying off; it colours most fractals. →
   [Audio-Reactive Julia Set: in plain English](sketches/audioReactiveJulia.md)
 - **Euler's method**: the simplest way to step a simulation forward: new value = old value + speed × time
@@ -120,6 +122,8 @@ don't exist yet; until then the link goes to the closest page that does.
   shader](glsl-basics.md)
 - **force-directed layout**: drawing a network by letting dots repel and links pull like springs. →
   [Force-Directed Graph: in plain English](sketches/forceDirectedGraph.md)
+- **Fourier coefficient**: the size and starting angle of one circle (one wave) in a Fourier sum. → [Fourier
+  Epicycles: in plain English](sketches/fourierEpicycles.md)
 - **Fourier transform**: splitting a pattern into a mix of plain waves, like an equaliser splits music into
   bass and treble. → [Kuramoto–Sivashinsky: the bug that froze the flame](sketches/kuramotoSivashinsky-fix.md)
 - **fractal**: a shape with detail at every zoom level, often made by repeating one simple step many times. →

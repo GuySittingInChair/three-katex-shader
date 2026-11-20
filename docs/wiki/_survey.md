@@ -251,7 +251,7 @@ day. "Walkthrough" links to the plain-English page where one exists.
 | 2026-09-29 | `brachistochrone.js` | Brachistochrone Race | 3d | Physics |  |
 | 2026-09-29 | `chladniPlate.js` | Chladni Plate | shader | Waves |  |
 | 2026-09-29 | `dragonCurve.js` | Dragon Curve Unfolding | 3d | Fractals |  |
-| 2026-09-29 | `fourierEpicycles.js` | Fourier Epicycles | 3d | Waves |  |
+| 2026-09-29 | `fourierEpicycles.js` | Fourier Epicycles | 3d | Waves | [walkthrough](sketches/fourierEpicycles.md) |
 | 2026-09-29 | `pendulumWave.js` | Pendulum Wave | 3d | Physics |  |
 | 2026-09-29 | `poopRocket.js` | Poop → Robot Rocket | 3d | Particles |  |
 | 2026-09-30 | `blackHoleLensing.js` | Black Hole Lensing | shader | Physics | [walkthrough](sketches/blackHoleLensing.md) |

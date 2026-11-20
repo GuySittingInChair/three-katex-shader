@@ -108,14 +108,33 @@ export function placeCodeNotes(notes, source) {
   const lines = source.split('\n');
   const placed = [];
   const missing = [];
+  // A line of code can appear more than once (`prev = next;`): the first note with
+  // that text explains the first such line, the second note the second, and so on.
+  const seen = new Map();
+  const occurrences = (text) => {
+    const found = [];
+    lines.forEach((l, i) => {
+      if (l.trim() && locateQuote(text, l)) found.push(i + 1);
+    });
+    return found;
+  };
   for (const note of notes.lines) {
     // The code panel shows `export default {` as `return {` (see toEditable in sourceStore.js).
-    const hit = locateQuote(note.text, source) || (/^export default\b/.test(note.text) && locateQuote(note.text.replace(/^export default/, 'return'), source));
-    if (!hit) {
-      missing.push(note.text);
+    let found = note.text;
+    let at = occurrences(found);
+    if (!at.length && /^export default\b/.test(found)) {
+      found = found.replace(/^export default/, 'return');
+      at = occurrences(found);
+    }
+    // Counted by the text actually found, so `export default {` shown as `return {`
+    // uses up the first `return {` and a later `return {` note gets the next one.
+    const nth = seen.get(found) || 0;
+    seen.set(found, nth + 1);
+    if (nth >= at.length) {
+      missing.push(nth ? `${note.text} (copy ${nth + 1})` : note.text);
       continue;
     }
-    const n = hit.start;
+    const n = at[nth];
     const text = lines[n - 1];
     const pieces = [];
     for (const piece of note.pieces) {

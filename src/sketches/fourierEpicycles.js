@@ -9,7 +9,8 @@ import { createFatLines, createDots } from '../lib/fatLines.js';
 //
 // c_k are the discrete Fourier coefficients of a heart (a_k) and a five-point
 // star (b_k), 512 samples each; with |k| ≤ 24 the heart is exact and the
-// star's corners round off by about 1% (checked numerically). The loop blends
+// star's tips round off by about 3% (they come out at 0.973 of the way: checked
+// numerically). Only 8 heart and 10 star circles have any size; see docs/wiki/code/fourierEpicycles.md. The loop blends
 // the coefficients, c_k = (1 − s) a_k + s b_k, so the same 49 circles
 // smoothly change what they draw. Circles are chained slowest first.
 //
@@ -97,8 +98,9 @@ export default {
 
   latex: (params, hl, m) =>
     '\\begin{aligned}' +
-    'z(\\tau) &= \\sum_{k=-24}^{24} c_k\\,e^{ik\\tau},\\quad c_k = (1-s)\\,a_k + s\\,b_k \\\\' +
-    `\\tau &= ${hl(m.tau % TAU, 2)},\\quad s = ${hl(m.s, 2)}\\quad \\text{(}a_k\\text{: heart, } b_k\\text{: star)}` +
+    // \htmlData{sym=…} marks each symbol so it can be clicked. see docs/wiki/clickable-code.md
+    '\\htmlData{sym=z}{z}(\\htmlData{sym=tau}{\\tau}) &= \\sum_{\\htmlData{sym=k}{k}=-24}^{24} \\htmlData{sym=c}{c_k}\\,e^{i\\htmlData{sym=k}{k}\\htmlData{sym=tau}{\\tau}},\\quad \\htmlData{sym=c}{c_k} = (1-\\htmlData{sym=s}{s})\\,\\htmlData{sym=a}{a_k} + \\htmlData{sym=s}{s}\\,\\htmlData{sym=b}{b_k} \\\\' +
+    `\\htmlData{sym=tau}{\\tau} &= ${hl(m.tau % TAU, 2)},\\quad \\htmlData{sym=s}{s} = ${hl(m.s, 2)}\\quad \\text{(}a_k\\text{: heart, } b_k\\text{: star)}` +
     '\\end{aligned}',
 
   params: {
