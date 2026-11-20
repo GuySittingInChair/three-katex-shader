@@ -1,5 +1,6 @@
 ---
 summary: One short animated picture on the site, written as a single file.
+added: 2026-11-18
 ---
 
 # What a sketch is

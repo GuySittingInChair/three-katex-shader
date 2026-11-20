@@ -1,5 +1,6 @@
 ---
 summary: A glowing ring that ripples to the bass, middle and treble of the sound.
+added: 2026-11-18
 ---
 
 # Audio Pulse: in plain English

@@ -1,5 +1,6 @@
 ---
 summary: Values sent from JavaScript into a shader: the same for every pixel, changed each frame.
+added: 2026-11-18
 ---
 
 # Uniforms: knobs passed in from JavaScript

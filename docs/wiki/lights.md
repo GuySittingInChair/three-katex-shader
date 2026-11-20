@@ -1,5 +1,6 @@
 ---
 summary: A lamp in the 3D scene. Without one, lit materials look black.
+added: 2026-11-18
 ---
 
 # Drawing in 3D 4: lights

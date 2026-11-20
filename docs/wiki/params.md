@@ -1,5 +1,6 @@
 ---
 summary: The sliders in the Params panel, and how code reads their values.
+added: 2026-11-18
 ---
 
 # Params: the sliders

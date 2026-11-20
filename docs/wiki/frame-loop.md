@@ -1,5 +1,6 @@
 ---
 summary: setup builds the scene once, update changes it about 60 times a second, dispose tidies up.
+added: 2026-11-18
 ---
 
 # The frame loop: setup, update, dispose

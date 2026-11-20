@@ -95,7 +95,7 @@ Nothing limits walkthroughs to 20. These are all the caps I found; each has a de
 | 1.32 | Quotes made honest: 29 code blocks skipped lines without saying so; each gap now shows "...". 5 quotes had been reworded and now match the code exactly. 6 pages counted "..." as a numbered line; renumbered | done (all 162 quotes match, per the test above; every "Line N" checked against the numbered line by script and by reading) | n/a |
 | 1.33 | Every gallery thumbnail showed the "Show controls" button in its corner (since September). Thumbnail tool fixed; regenerating all 166 | doing | All thumbnails redone and checked on a contact sheet |
 | 1.30 | Find where "only 20 walkthroughs" shows up (live wiki index, sketch pages, explain panel) and fix it if it's a bug | todo | Cause found and recorded |
-| 1.29 | `/feed.xml` built at build time: new walkthroughs and wiki entries, each with its summary and the date it first appeared (from git) | todo | Passes a feed validator; opens in a feed reader; linked in `<head>` |
+| 1.29 | `/feed.xml` built at build time: new walkthroughs and wiki entries, each with its summary and the date it first appeared (from git) | done (66 items, newest first; each page header now stores its `added:` date because Vercel's shallow clone has no history; a test requires it. Checked: parses as XML, every item has title, link, guid, date and summary, dates parse, served at /feed.xml and linked in the page head and the sketches page footer. Not yet run through the W3C feed validator; that needs the live URL after the next push) | Passes a feed validator; opens in a feed reader; linked in `<head>` |
 
 ---
 

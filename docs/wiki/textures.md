@@ -1,5 +1,6 @@
 ---
 summary: A picture (or a grid of numbers stored as one) that a shader can look things up in.
+added: 2026-11-18
 ---
 
 # Textures: pictures a shader can look things up in

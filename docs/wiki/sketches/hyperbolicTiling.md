@@ -1,5 +1,6 @@
 ---
 summary: Seven-sided tiles that only fit together in a stranger kind of space.
+added: 2026-11-18
 ---
 
 # Hyperbolic Tiling: in plain English

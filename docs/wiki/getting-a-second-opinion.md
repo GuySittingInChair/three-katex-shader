@@ -1,5 +1,6 @@
 ---
 summary: Using a local AI to find where a page loses a beginner, then having the fix checked.
+added: 2026-11-19
 ---
 
 # Getting a second opinion on an explanation

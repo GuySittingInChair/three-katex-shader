@@ -1,5 +1,6 @@
 ---
 summary: A real fly's brain wiring as glowing beads you can poke and damage.
+added: 2026-11-18
 ---
 
 # Fly Connectome: in plain English

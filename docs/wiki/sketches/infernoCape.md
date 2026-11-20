@@ -1,5 +1,6 @@
 ---
 summary: Molten rock with glowing cracks, made from noise warping noise.
+added: 2026-11-18
 ---
 
 # Inferno Cape: in plain English

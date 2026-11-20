@@ -1,5 +1,6 @@
 ---
 summary: A real chemical reaction making spreading rings and spirals in a dish.
+added: 2026-11-18
 ---
 
 # Belousov–Zhabotinsky: in plain English

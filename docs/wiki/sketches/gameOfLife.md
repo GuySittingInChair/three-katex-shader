@@ -1,5 +1,6 @@
 ---
 summary: A grid of cells living and dying by four rules, making endless creatures.
+added: 2026-11-18
 ---
 
 # Conway's Game of Life: in plain English

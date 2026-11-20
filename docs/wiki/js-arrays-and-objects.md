@@ -1,5 +1,6 @@
 ---
 summary: Lists of things, and bundles of named values.
+added: 2026-11-18
 ---
 
 # Reading JavaScript 4: lists (arrays) and labelled boxes (objects)

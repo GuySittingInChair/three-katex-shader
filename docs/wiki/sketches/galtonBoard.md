@@ -1,5 +1,6 @@
 ---
 summary: Balls bouncing off pegs build a bell curve.
+added: 2026-11-18
 ---
 
 # Galton Board: in plain English

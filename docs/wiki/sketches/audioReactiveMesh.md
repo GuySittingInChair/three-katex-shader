@@ -1,5 +1,6 @@
 ---
 summary: A spinning ball whose ridges bulge with the sound's frequencies.
+added: 2026-11-18
 ---
 
 # Audio-Reactive Mesh: in plain English

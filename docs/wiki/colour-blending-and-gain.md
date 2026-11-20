@@ -1,5 +1,6 @@
 ---
 summary: Mixing two colours, adding light to light, and turning brightness up or down.
+added: 2026-11-18
 ---
 
 # Colour 2: blending, adding, dimming and gain

@@ -1,5 +1,6 @@
 ---
 summary: Smooth randomness: hills and clouds, not TV static.
+added: 2026-11-18
 ---
 
 # Noise: randomness that looks natural

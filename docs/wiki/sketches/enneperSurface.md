@@ -1,5 +1,6 @@
 ---
 summary: A soap-film saddle that curls over and through itself.
+added: 2026-11-18
 ---
 
 # Enneper Surface: in plain English

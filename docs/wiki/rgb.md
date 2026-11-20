@@ -1,5 +1,6 @@
 ---
 summary: Every colour on screen is a mix of red, green and blue light.
+added: 2026-11-18
 ---
 
 # Colour 1: RGB, three numbers

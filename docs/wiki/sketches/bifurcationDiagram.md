@@ -1,5 +1,6 @@
 ---
 summary: A simple population rule tipping from steady, to repeating, to chaos.
+added: 2026-11-18
 ---
 
 # Bifurcation Diagram: in plain English

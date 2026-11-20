@@ -11,6 +11,11 @@ const meta = readWikiMeta(ROOT, { dates: false });
 const slugs = Object.keys(meta);
 const read = (slug) => parseFrontmatter(fs.readFileSync(path.join(ROOT, 'docs/wiki', `${slug}.md`), 'utf8')).body;
 
+test('every wiki page has the date it was added (it dates the RSS feed)', () => {
+  const bad = slugs.filter((s) => !/^\d{4}-\d{2}-\d{2}T/.test(meta[s].added || ''));
+  assert.deepEqual(bad, []);
+});
+
 test('every wiki page has a one-line summary', () => {
   const missing = slugs.filter((s) => !meta[s].summary);
   assert.deepEqual(missing, []);

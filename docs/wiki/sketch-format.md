@@ -1,5 +1,6 @@
 ---
 summary: The fields every sketch file fills in: its name, its mode, its sliders and so on.
+added: 2026-11-18
 ---
 
 # The sketch format: every field

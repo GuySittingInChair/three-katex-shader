@@ -1,5 +1,6 @@
 ---
 summary: Randomly wandering squares stick together into a branching, frost-like cluster.
+added: 2026-11-18
 ---
 
 # Diffusion-Limited Aggregation: in plain English

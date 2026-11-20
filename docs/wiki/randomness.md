@@ -1,5 +1,6 @@
 ---
 summary: Dice rolls in code. A seed makes the same rolls come out every time.
+added: 2026-11-18
 ---
 
 # Random numbers, and seeds that make them repeatable

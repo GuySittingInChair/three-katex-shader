@@ -1,5 +1,6 @@
 ---
 summary: Makes bright things bleed light into their surroundings, like a lamp in fog.
+added: 2026-11-18
 ---
 
 # Glow: making bright things shine

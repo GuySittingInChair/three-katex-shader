@@ -1,5 +1,6 @@
 ---
 summary: The start page of the beginner wiki: what to read first, and a list of every page.
+added: 2026-11-18
 ---
 
 # The beginner wiki

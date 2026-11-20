@@ -1,5 +1,6 @@
 ---
 summary: A tiny program the graphics card runs once for every pixel, all at the same time.
+added: 2026-11-18
 ---
 
 # Shaders: two questions

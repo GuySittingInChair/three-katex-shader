@@ -1,5 +1,6 @@
 ---
 summary: Circles from four dimensions, every pair linked, nested into doughnuts.
+added: 2026-11-18
 ---
 
 # Hopf Fibration: in plain English

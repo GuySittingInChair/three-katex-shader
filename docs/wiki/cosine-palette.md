@@ -1,5 +1,6 @@
 ---
 summary: A rainbow made from three cosine waves, one each for red, green and blue.
+added: 2026-11-18
 ---
 
 # Colour 3: the cosine palette (the rainbow trick)

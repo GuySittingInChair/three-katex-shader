@@ -1,5 +1,6 @@
 ---
 summary: Every technical word used on the site, explained in a line, with a link to the page that covers it.
+added: 2026-11-18
 ---
 
 # Glossary

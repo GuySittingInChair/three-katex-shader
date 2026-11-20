@@ -1,5 +1,6 @@
 ---
 summary: Why the Kuramoto–Sivashinsky sketch froze, and how a better solver fixed it.
+added: 2026-11-19
 ---
 
 # Kuramoto–Sivashinsky: the bug that froze the flame

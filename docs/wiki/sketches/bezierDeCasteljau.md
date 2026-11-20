@@ -1,5 +1,6 @@
 ---
 summary: How a smooth curve is built from a zig-zag, one layer of in-between points at a time.
+added: 2026-11-18
 ---
 
 # De Casteljau Bézier: in plain English

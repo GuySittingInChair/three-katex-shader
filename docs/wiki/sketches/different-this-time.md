@@ -1,5 +1,6 @@
 ---
 summary: A rippling, folded-paper fractal pattern that slowly turns and breathes.
+added: 2026-11-18
 ---
 
 # Radian628 Integral-Warped GLSL Fractal: in plain English

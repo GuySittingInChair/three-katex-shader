@@ -1,5 +1,6 @@
 ---
 summary: Two drawings of a surface that can't be built in our space, blending into each other.
+added: 2026-11-18
 ---
 
 # Boy's Surface: in plain English

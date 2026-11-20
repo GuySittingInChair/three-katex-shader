@@ -1,5 +1,6 @@
 ---
 summary: A giant sperm cell flies missile-style at an egg while a real anti-aircraft gun tracks it.
+added: 2026-11-18
 ---
 
 # Anti-Aircraft Contraception: in plain English

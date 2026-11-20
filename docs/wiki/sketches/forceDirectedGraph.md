@@ -1,5 +1,6 @@
 ---
 summary: A tangled network that untangles itself with springs and pushes.
+added: 2026-11-18
 ---
 
 # Force-Directed Graph: in plain English

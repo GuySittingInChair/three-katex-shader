@@ -1,5 +1,6 @@
 ---
 summary: The wrinkling flame front, fed by a Game of Life board.
+added: 2026-11-18
 ---
 
 # Kuramoto–Sivashinsky — Life-Seeded: in plain English

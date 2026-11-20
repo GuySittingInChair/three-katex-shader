@@ -1,5 +1,6 @@
 ---
 summary: motion(t) works out the moving numbers; latex writes them into the equation on screen.
+added: 2026-11-18
 ---
 
 # Motion and the live equation

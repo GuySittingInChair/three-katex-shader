@@ -1,5 +1,6 @@
 ---
 summary: A flowing rainbow made from one line of shader code.
+added: 2026-11-18
 ---
 
 # Gradient Plane: in plain English

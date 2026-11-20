@@ -1,5 +1,6 @@
 ---
 summary: A drone attacks and an anti-aircraft gun defends, with real missile and gunnery physics.
+added: 2026-11-18
 ---
 
 # Intercept: in plain English

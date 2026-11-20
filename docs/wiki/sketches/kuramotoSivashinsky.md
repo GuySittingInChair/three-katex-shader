@@ -1,5 +1,6 @@
 ---
 summary: A wrinkling flame front that never settles, drawn as a seething honeycomb.
+added: 2026-11-18
 ---
 
 # Kuramoto–Sivashinsky: in plain English

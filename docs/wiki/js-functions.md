@@ -1,5 +1,6 @@
 ---
 summary: A named recipe: give it ingredients, it hands back a result.
+added: 2026-11-18
 ---
 
 # Reading JavaScript 2: functions and arrows (`=>`)

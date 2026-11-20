@@ -1,5 +1,6 @@
 ---
 summary: The shader language's building blocks: numbers, arrows (vectors) and a few handy functions.
+added: 2026-11-18
 ---
 
 # GLSL basics: reading a shader

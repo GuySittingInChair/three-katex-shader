@@ -1,5 +1,6 @@
 ---
 summary: A kaleidoscope bent by a hidden Game of Life.
+added: 2026-11-18
 ---
 
 # Life-Warped Fractal: in plain English

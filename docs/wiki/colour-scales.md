@@ -1,5 +1,6 @@
 ---
 summary: Rules that turn a measured number into a colour, so you can read the number back from the colour.
+added: 2026-11-18
 ---
 
 # Colour 4: colour scales for data, and how they are chosen

@@ -1,5 +1,6 @@
 ---
 summary: A dark ball with a soap-bubble rainbow round its edge.
+added: 2026-11-18
 ---
 
 # Iridescent Sphere: in plain English

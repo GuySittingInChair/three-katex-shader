@@ -1,5 +1,6 @@
 ---
 summary: A map of the whole project: every sketch, the techniques they use, and where their data comes from.
+added: 2026-11-18
 ---
 
 # Survey of the project

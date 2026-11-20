@@ -1,5 +1,6 @@
 ---
 summary: Giving a value a name so you can use it later.
+added: 2026-11-18
 ---
 
 # Reading JavaScript 1: values, names and comments

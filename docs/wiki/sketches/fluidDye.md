@@ -1,5 +1,6 @@
 ---
 summary: Swirling ink-in-water clouds, made from noise warping noise.
+added: 2026-11-18
 ---
 
 # Fluid Dye: in plain English

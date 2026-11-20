@@ -1,5 +1,6 @@
 ---
 summary: Thin strokes and dots instead of solid surfaces: trails, threads, stars.
+added: 2026-11-18
 ---
 
 # Drawing in 3D 3: lines and points

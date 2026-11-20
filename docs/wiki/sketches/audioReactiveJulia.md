@@ -1,5 +1,6 @@
 ---
 summary: A lacy fractal whose shape follows the music.
+added: 2026-11-18
 ---
 
 # Audio-Reactive Julia Set: in plain English

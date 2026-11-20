@@ -1,5 +1,6 @@
 ---
 summary: "If this, do that", and "do this again for every item".
+added: 2026-11-18
 ---
 
 # Reading JavaScript 3: decisions (`if`) and loops (`for`)

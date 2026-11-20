@@ -1,5 +1,6 @@
 ---
 summary: A neon kaleidoscope made by twisting, folding and counting near-misses.
+added: 2026-11-18
 ---
 
 # Radian628 — Abyssal Bloom: in plain English

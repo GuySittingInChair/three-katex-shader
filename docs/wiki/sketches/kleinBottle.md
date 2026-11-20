@@ -1,5 +1,6 @@
 ---
 summary: A twisted ribbon inflating into a bottle with only one side.
+added: 2026-11-18
 ---
 
 # Klein Bottle: in plain English

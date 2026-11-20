@@ -2,6 +2,7 @@
 //
 //   ---
 //   summary: One line for small spaces (hover cards, search, previews, RSS).
+//   added: 2026-11-20   (the day the page first appeared; dates the RSS feed)
 //   tags: astronomy, data
 //   ---
 //
@@ -52,7 +53,11 @@ export function readWikiMeta(root, { dates = true } = {}) {
     const slug = path.relative(wikiDir, file).replace(/\\/g, '/').replace(/\.md$/, '');
     const { meta, body } = parseFrontmatter(fs.readFileSync(file, 'utf8'));
     const title = (/^# (.+)$/m.exec(body)?.[1] || slug).trim();
-    out[slug] = { title, summary: meta.summary || '', tags: meta.tags || [], ...(dates ? gitDates(root, file) : {}) };
+    // `added:` in the header wins: Vercel builds from a shallow git clone, where
+    // every page would otherwise look new.
+    const git = dates ? gitDates(root, file) : {};
+    const added = meta.added ? `${meta.added}T12:00:00Z` : git.added || null;
+    out[slug] = { title, summary: meta.summary || '', tags: meta.tags || [], added, updated: git.updated || null };
   }
   return out;
 }
@@ -81,4 +86,41 @@ export function readWikiQuotes(root) {
     });
   }
   return out;
+}
+
+// RSS 2.0 feed of new wiki content (walkthroughs and wiki entries), newest
+// first, dated by when each page first appeared in git. Built into the site
+// as /feed.xml (vite.config.js).
+const SITE = 'https://aiship.lol';
+const xml = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[c]);
+const NOT_IN_FEED = new Set(['README', 'glossary', '_survey']);
+
+export function buildFeed(meta) {
+  const items = Object.entries(meta)
+    .filter(([slug, m]) => !NOT_IN_FEED.has(slug) && m.added)
+    .sort((a, b) => b[1].added.localeCompare(a[1].added) || a[0].localeCompare(b[0]));
+  const link = (slug) => `${SITE}/wiki/${slug}`;
+  const kind = (slug) => (slug.startsWith('sketches/') ? 'Walkthrough' : 'Wiki');
+  const newest = items.length ? new Date(items[0][1].added) : new Date(0);
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>aiship: new walkthroughs and wiki pages</title>
+    <link>${SITE}/wiki</link>
+    <atom:link href="${SITE}/feed.xml" rel="self" type="application/rss+xml"/>
+    <description>Plain-English explanations of the animated maths, physics and astronomy on aiship, as they are written.</description>
+    <language>en</language>
+    <lastBuildDate>${newest.toUTCString()}</lastBuildDate>
+${items
+  .map(([slug, m]) => `    <item>
+      <title>${xml(`${kind(slug)}: ${m.title.replace(/: in plain English$/, '')}`)}</title>
+      <link>${link(slug)}</link>
+      <guid isPermaLink="true">${link(slug)}</guid>
+      <pubDate>${new Date(m.added).toUTCString()}</pubDate>
+      <description>${xml(m.summary)}</description>
+${m.tags.map((t) => `      <category>${xml(t)}</category>\n`).join('')}    </item>`)
+  .join('\n')}
+  </channel>
+</rss>
+`;
 }

@@ -1,5 +1,6 @@
 ---
 summary: Where the camera sits and points, and how dragging and scrolling move it.
+added: 2026-11-18
 ---
 
 # Drawing in 3D 5: how the camera moves

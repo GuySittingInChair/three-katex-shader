@@ -1,5 +1,6 @@
 ---
 summary: The bright dancing net of light on the floor of a swimming pool.
+added: 2026-11-18
 ---
 
 # Caustics: in plain English

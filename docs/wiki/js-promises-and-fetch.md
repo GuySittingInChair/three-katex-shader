@@ -1,5 +1,6 @@
 ---
 summary: Asking for a file over the internet, and waiting for the answer without freezing.
+added: 2026-11-18
 ---
 
 # Reading JavaScript 5: loading data (`fetch`, `Promise`, `await`)

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import { editableToModule, parseHelperNames } from './tools/sketchFiles.js';
-import { readWikiMeta, readWikiQuotes } from './tools/wikiMeta.js';
+import { readWikiMeta, readWikiQuotes, buildFeed } from './tools/wikiMeta.js';
 
 // Dev-only persistence for the code panel. Without this, sketches you create
 // or edit in the browser live only in that browser's localStorage (per
@@ -166,6 +166,10 @@ function wikiMetaModule() {
       }
       // quotes: which file and lines each wiki code block quotes (see codeQuote.js).
       return `export default ${JSON.stringify(readWikiMeta(ROOT))};\nexport const quotes = ${JSON.stringify(readWikiQuotes(ROOT))};`;
+    },
+    // /feed.xml: RSS of new walkthroughs and wiki pages (built, not served in dev).
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'feed.xml', source: buildFeed(readWikiMeta(ROOT)) });
     },
     handleHotUpdate({ file, server }) {
       if (!file.startsWith(path.join(ROOT, 'docs/wiki'))) return;

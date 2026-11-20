@@ -1,5 +1,6 @@
 ---
 summary: A spiral staircase surface rolling into an hourglass without stretching.
+added: 2026-11-18
 ---
 
 # Helicoid ↔ Catenoid: in plain English

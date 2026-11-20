@@ -1,5 +1,6 @@
 ---
 summary: A melody that composes and plays itself.
+added: 2026-11-18
 ---
 
 # Generative Synth: in plain English

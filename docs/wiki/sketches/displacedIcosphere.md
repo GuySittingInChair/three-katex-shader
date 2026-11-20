@@ -1,5 +1,6 @@
 ---
 summary: A little low-poly planet with oceans, hills and snowy peaks.
+added: 2026-11-18
 ---
 
 # Displaced Icosphere: in plain English

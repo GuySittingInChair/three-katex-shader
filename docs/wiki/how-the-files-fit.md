@@ -1,5 +1,6 @@
 ---
 summary: Which folder holds what: sketches, the app that runs them, shared helpers, and the science data.
+added: 2026-11-18
 ---
 
 # How the files fit together

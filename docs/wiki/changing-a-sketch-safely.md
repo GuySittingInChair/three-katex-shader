@@ -1,5 +1,6 @@
 ---
 summary: How to run the site on your own computer, change one thing at a time, and always have a way back.
+added: 2026-11-18
 ---
 
 # Opening and changing a sketch safely

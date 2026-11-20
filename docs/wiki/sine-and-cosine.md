@@ -1,5 +1,6 @@
 ---
 summary: Two calculations that turn a steadily growing number into a smooth wave between −1 and +1.
+added: 2026-11-19
 ---
 
 # Sine and cosine: the wave-makers

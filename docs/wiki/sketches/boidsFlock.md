@@ -1,5 +1,6 @@
 ---
 summary: 120 birds forming flocks from three simple rules.
+added: 2026-11-18
 ---
 
 # Boids Flock: in plain English

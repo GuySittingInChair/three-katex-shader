@@ -1,5 +1,6 @@
 ---
 summary: Draws a picture off-screen so it can be reused, which lets a simulation run on the graphics chip.
+added: 2026-11-18
 ---
 
 # Simulating on the graphics chip: render targets and ping-pong
