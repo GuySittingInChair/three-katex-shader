@@ -331,7 +331,7 @@ day. "Walkthrough" links to the plain-English page where one exists.
 | 2026-11-10 | `sdssCosmicWeb.js` | The Cosmic Web, Measured | 3d | Astronomy |  |
 | 2026-11-10 | `skyZoom.js` | From the Whole Sky to One Galaxy | 3d | Astronomy |  |
 | 2026-11-10 | `snAcceleration.js` | The Universe Is Speeding Up | 3d | Astronomy |  |
-| 2026-11-10 | `sunCycle.js` | The Sun's Eleven-Year Heartbeat | 3d | Astronomy |  |
+| 2026-11-10 | `sunCycle.js` | The Sun's Eleven-Year Heartbeat | 3d | Astronomy | [walkthrough](sketches/sunCycle.md) |
 | 2026-11-10 | `voyagerTour.js` | The Grand Tour | 3d | Astronomy |  |
 | 2026-11-10 | `webbDeepField.js` | Webb Deep Field in Depth | 3d | Astronomy |  |
 | 2026-11-10 | `whereOrbitingStops.js` | Where Orbiting Stops | 3d | Physics |  |

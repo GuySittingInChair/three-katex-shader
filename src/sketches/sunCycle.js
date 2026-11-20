@@ -123,6 +123,7 @@ export default {
     return { T, phase: 'sun', u: 0, len: PHASES[0][1] };
   },
 
+  // \htmlData{sym=…} marks each symbol so it can be clicked. see docs/wiki/clickable-code.md
   latex: (params, hl, m) => {
     const d = LIVE.d;
     if (!d) return '\\text{loading 142 years of sunspots…}';
@@ -135,9 +136,9 @@ export default {
     }
     if (m.phase === 'record') {
       const last = M.maxima[M.maxima.length - 1];
-      return `\\begin{aligned}&R = 10g + s\\quad \\text{(groups, spots: Wolf's count)} \\\\ &${M.minima.length - 1}\\ \\text{cycles since } ${Math.round(M.minima[0])}:\\ \\bar T = ${hl(M.meanLength, 2)} \\pm ${hl(M.sdLength, 2)}\\ \\text{yr} \\\\ &\\text{strongest periodogram peak: } ${hl(M.periodogram.best, 2)}\\ \\text{yr} \\\\ &\\text{latest maximum } ${hl(last[0], 1)},\\ \\text{smoothed } R = ${hl(last[1], 0)}\\end{aligned}`;
+      return `\\begin{aligned}&\\htmlData{sym=R}{R} = 10\\htmlData{sym=g}{g} + \\htmlData{sym=s}{s}\\quad \\text{(groups, spots: Wolf's count)} \\\\ &${M.minima.length - 1}\\ \\text{cycles since } ${Math.round(M.minima[0])}:\\ \\htmlData{sym=Tbar}{\\bar T} = ${hl(M.meanLength, 2)} \\pm ${hl(M.sdLength, 2)}\\ \\text{yr} \\\\ &\\text{strongest periodogram peak: } ${hl(M.periodogram.best, 2)}\\ \\text{yr} \\\\ &\\text{latest maximum } ${hl(last[0], 1)},\\ \\text{smoothed } R = ${hl(last[1], 0)}\\end{aligned}`;
     }
-    return `\\begin{aligned}&\\text{Spörer's law: } |\\bar\\phi|(t) = \\phi_0 + k\\,t \\\\ &\\phi_0 = ${hl(M.sporer.lat0, 1)}^\\circ\\ \\text{at minimum},\\ k = ${hl(M.sporer.slope, 2)}^\\circ\\text{/yr} \\\\ &\\text{area-weighted, all cycles 1878–2009 stacked} \\\\ &\\text{the dynamo's band of field drifts towards the equator}\\end{aligned}`;
+    return `\\begin{aligned}&\\text{Spörer's law: } \\htmlData{sym=phi}{|\\bar\\phi|}(\\htmlData{sym=t}{t}) = \\htmlData{sym=phi0}{\\phi_0} + \\htmlData{sym=k}{k}\\,\\htmlData{sym=t}{t} \\\\ &\\phi_0 = ${hl(M.sporer.lat0, 1)}^\\circ\\ \\text{at minimum},\\ k = ${hl(M.sporer.slope, 2)}^\\circ\\text{/yr} \\\\ &\\text{area-weighted, all cycles 1878–2009 stacked} \\\\ &\\text{the dynamo's band of field drifts towards the equator}\\end{aligned}`;
   },
 
   params: {

@@ -169,6 +169,7 @@ sketches, with which ones are done, is at the end of [Survey of the project](_su
 | [Black Hole Lensing](sketches/blackHoleLensing.md) | light bent round a black hole: the shadow, the arch, the bright side |
 | [Fourier Epicycles](sketches/fourierEpicycles.md) | spinning circles drawing a heart, then a star |
 | [Kepler's Pizza](sketches/keplersPizza.md) | A planet's orbit cut into equal-time slices: every slice holds the same area (Kepler's laws) |
+| [The Sun's Eleven-Year Heartbeat](sketches/sunCycle.md) | 142 years of real sunspots on a turning Sun, the butterfly diagram, and the 11-year cycle measured |
 
 ## 16. [Glossary](glossary.md)
 

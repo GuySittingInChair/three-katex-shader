@@ -30,6 +30,9 @@ don't exist yet; until then the link goes to the closest page that does.
   [Galton Board: in plain English](sketches/galtonBoard.md)
 - **black hole shadow**: the dark disc where light aimed too close to a black hole falls in, about 5.2 of its
   mass units across. → [Black Hole Lensing: in plain English](sketches/blackHoleLensing.md)
+- **butterfly diagram**: a chart of where on the Sun the sunspots were, year by year; each 11-year cycle makes
+  a pair of wing shapes as spots start far from the equator and drift towards it. → [The Sun's Eleven-Year
+  Heartbeat: in plain English](sketches/sunCycle.md)
 - **Bézier curve**: a smooth curve pulled towards a few control points, as in drawing programs. → [De
   Casteljau Bézier: in plain English](sketches/bezierDeCasteljau.md)
 - **bifurcation**: the moment one steady behaviour splits into two, like a population starting to boom and
@@ -45,6 +48,9 @@ don't exist yet; until then the link goes to the closest page that does.
   camera](scene-and-camera.md)
 - **CanvasTexture**: a picture drawn on a hidden flat canvas, then used in the scene. → [Textures: pictures a
   shader can look things up in](textures.md)
+- **Carrington rotation**: one turn of the Sun as seen from the Earth, 27.3 days, numbered since 1853; also
+  the Sun's own map grid (Carrington longitude). → [The Sun's Eleven-Year Heartbeat: in plain
+  English](sketches/sunCycle.md)
 - **category**: the gallery shelf a sketch sits on. → [The sketch format: every field](sketch-format.md)
 - **catenoid**: the hourglass-shaped soap film stretched between two rings held apart. → [Helicoid ↔ Catenoid:
   in plain English](sketches/helicoidCatenoid.md)
@@ -267,6 +273,8 @@ don't exist yet; until then the link goes to the closest page that does.
   [Generative Synth: in plain English](sketches/generativeSynth.md)
 - **perihelion**: an orbit's closest point to the Sun (or star). → [Kepler's Pizza: in plain
   English](sketches/keplersPizza.md)
+- **periodogram**: a test of which rhythm fits a record best: try every possible period and score each one. →
+  [The Sun's Eleven-Year Heartbeat: in plain English](sketches/sunCycle.md)
 - **perspective camera**: a camera where far things look smaller, like real life. → [Drawing in 3D 1: the
   scene and the camera](scene-and-camera.md)
 - **phase**: how far through a loop we are, from 0 to 1. → [Motion and the live equation](motion-and-latex.md)
@@ -333,6 +341,8 @@ don't exist yet; until then the link goes to the closest page that does.
   English](sketches/boidsFlock.md) (simulation page *(planned)*)
 - **smoothstep**: a soft switch from 0 to 1 between two values. → [GLSL basics: reading a
   shader](glsl-basics.md)
+- **solar cycle**: the Sun's roughly 11-year rise and fall in sunspots, driven by its magnetic field. → [The
+  Sun's Eleven-Year Heartbeat: in plain English](sketches/sunCycle.md)
 - **spectrum**: how loud each pitch in a sound is, from low to high. → [Audio-Reactive Mesh: in plain
   English](sketches/audioReactiveMesh.md)
 - **state**: the things `setup` built, handed back to `update` on every frame. → [The frame loop: setup,
@@ -340,6 +350,10 @@ don't exist yet; until then the link goes to the closest page that does.
 - **stereographic projection**: a shadow map of a sphere, as if lit by a lamp at its pole; circles stay
   circles. → [Hopf Fibration: in plain English](sketches/hopfFibration.md)
 - **string**: text in quotes. → [Reading JavaScript 1: values, names and comments](js-values-and-variables.md)
+- **sunspot**: a dark patch on the Sun where a knot of magnetic field holds back heat, so it's cooler than the
+  surface round it. → [The Sun's Eleven-Year Heartbeat: in plain English](sketches/sunCycle.md)
+- **sunspot number**: the standard count of sunspots: 10 × groups + single spots (Wolf's count, 1848), kept
+  monthly since 1749. → [The Sun's Eleven-Year Heartbeat: in plain English](sketches/sunCycle.md)
 - **surface**: a shape with no thickness, like a soap film or a sheet. → [Boy's Surface: in plain
   English](sketches/boysSurface.md)
 - **swizzling**: picking parts of a GLSL value by letter: `.xy`, `.rgb`, `.xyx`. → [GLSL basics: reading a
