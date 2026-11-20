@@ -20,9 +20,10 @@ for (const f of files) {
   test(`code notes ${f} match the sketch`, () => {
     const notes = parseCodeNotes(fs.readFileSync(path.join(DIR, f), 'utf8'));
     assert.deepEqual(notes.problems, [], 'format problems');
-    assert.equal(notes.sketch, f.replace(/\.md$/, ''), 'the sketch: header must name this file’s sketch');
-    const srcPath = path.join(ROOT, 'src/sketches', `${notes.sketch}.js`);
-    assert.ok(fs.existsSync(srcPath), `no sketch file ${srcPath}`);
+    assert.ok(notes.file, 'the header needs sketch: <id> or file: <path>');
+    if (notes.sketch) assert.equal(notes.sketch, f.replace(/\.md$/, ''), 'a sketch’s notes file must be named after the sketch');
+    const srcPath = path.join(ROOT, notes.file);
+    assert.ok(fs.existsSync(srcPath), `no file ${notes.file}`);
     const src = fs.readFileSync(srcPath, 'utf8');
     const { missing } = placeCodeNotes(notes, src);
     assert.deepEqual(missing, [], 'notes pointing at code that is no longer there');

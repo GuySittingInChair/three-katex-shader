@@ -2,7 +2,7 @@ import { quotes } from 'virtual:wiki-meta';
 import wikiMeta from 'virtual:wiki-meta';
 import { locateQuote } from '../core/codeQuote.js';
 import { sketches } from '../core/registry.js';
-import { wikiUrl, hasCodeNotes, loadCodeNotes } from '../core/wiki.js';
+import { wikiUrl, loadCodeNotes, notesNameFor } from '../core/wiki.js';
 import { cardHtml, noteHtml, floatingCard } from './noteCard.js';
 
 // Going back and forth between the wiki and the code it talks about.
@@ -46,8 +46,8 @@ export function decorateWikiCode(root, slug) {
     }
     const q = info[i];
     if (!q?.file) return;
-    const sketchId = sketchOf(q.file);
-    if (sketchId && hasCodeNotes(sketchId)) loadCodeNotes(sketchId).then((n) => n && clickableLines(pre, n, sketchId));
+    const notesName = notesNameFor(q.file);
+    if (notesName) loadCodeNotes(notesName).then((n) => n && clickableLines(pre, n, notesName));
     const bar = document.createElement('div');
     bar.className = 'wiki-code-src';
     const id = sketchOf(q.file);
@@ -80,7 +80,8 @@ export function wikiRefsFor(id, text) {
 
 // Lines and pieces of a wiki code block that the sketch's code notes explain
 // become clickable, opening the same card as in the code panel.
-function clickableLines(pre, notes, sketchId) {
+function clickableLines(pre, notes, notesName) {
+  const sketchId = notes.sketch; // null when the notes explain a data script
   for (const span of pre.querySelectorAll('.wl[data-n]')) {
     const text = span.textContent;
     const note = notes.lines.find((l) => locateQuote(l.text, text));
@@ -107,10 +108,10 @@ function clickableLines(pre, notes, sketchId) {
       cardHtml({
         kicker: piece ? `In line ${anchor.closest('.wl')?.dataset.n}` : `Line ${anchor.dataset.n}`,
         code: piece ? piece.text : note.text,
-        html: noteHtml((piece || note).body, sketchId),
+        html: noteHtml((piece || note).body, notesName),
         more: [
-          ...(sym ? [{ href: `/s/${sketchId}#sym=${sym}`, text: 'See it in the equation, in the sketch' }] : []),
-          { href: wikiUrl(`code/${sketchId}`), text: "All of this sketch's code, explained" },
+          ...(sym && sketchId ? [{ href: `/s/${sketchId}#sym=${sym}`, text: 'See it in the equation, in the sketch' }] : []),
+          { href: wikiUrl(`code/${notesName}`), text: sketchId ? "All of this sketch's code, explained" : 'All of this file, explained' },
         ],
       })
     );

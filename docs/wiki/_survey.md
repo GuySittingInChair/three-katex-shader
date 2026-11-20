@@ -97,11 +97,12 @@ Depth and described in `docs/galaxy-engine.md`) are explained in that sketch's w
   (Lorentz boosts, the twin paradox, relativistic flight, the Terrell rotation), general relativity
   (black-hole lensing, Einstein rings, wormholes, Penrose diagrams, spaghettification), quantum mechanics
   (tunnelling, hydrogen orbitals, coherent states), Noether's theorem.
-- **Astronomy, with real data:** the cosmic microwave background and its power spectrum, spherical harmonics,
-  Cepheid variable stars and the distance ladder, Type Ia supernovae and the accelerating universe, galaxy
-  rotation curves and missing mass, the cosmic web of galaxies, exoplanets and the transit method, Kepler's
-  laws, pulsars, gravitational waves, the Sun's spot cycle, the asteroid belt, Gaia's map of nearby stars, the
-  Voyager flybys, the Messier catalogue, the JWST deep field.
+- **Astronomy, with real data** (explained so far: [parallax](parallax-and-distance.md)): the cosmic microwave
+  background and its power spectrum, spherical harmonics, Cepheid variable stars and the distance ladder, Type
+  Ia supernovae and the accelerating universe, galaxy rotation curves and missing mass, the cosmic web of
+  galaxies, exoplanets and the transit method, Kepler's laws, pulsars, gravitational waves, the Sun's spot
+  cycle, the asteroid belt, Gaia's map of nearby stars, the Voyager flybys, the Messier catalogue, the JWST
+  deep field.
 
 ## Data sources
 

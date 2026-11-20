@@ -41,6 +41,9 @@ export function loadCodeNotes(sketchId) {
   }
   return notesCache.get(sketchId);
 }
+// The notes page for any quoted file (a sketch or a data script), as its name under code/.
+export const notesNameFor = (file) =>
+  Object.entries(wikiMeta).find(([slug, m]) => slug.startsWith('code/') && m.codeFile === file)?.[0].slice(5) || null;
 
 const headingId = (text) =>
   text.toLowerCase().trim().replace(/<[^>]+>/g, '').replace(/[^\p{L}\p{N}\- ]/gu, '').replace(/ /g, '-');

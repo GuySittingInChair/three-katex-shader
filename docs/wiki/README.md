@@ -114,9 +114,11 @@ Forces, particles, and stepping forward in time.
 ## 11. Maps, the sky and coordinates *(planned)*
 Map projections (Mollweide, gnomonic), sky coordinates, degrees and ℓ.
 
-## 12. Science explainers *(planned)*
-One page per topic: the cosmic microwave background, spherical harmonics, power spectra, Cepheids, supernovae,
-rotation curves, exoplanets, gravitational waves and more. The full list is in [Survey of the
+## 12. Science explainers
+- [Parallax: measuring the distance to the stars](parallax-and-distance.md)
+
+Planned, one page per topic: the cosmic microwave background, spherical harmonics, power spectra, Cepheids,
+supernovae, rotation curves, exoplanets, gravitational waves and more. The full list is in [Survey of the
 project](_survey.md).
 
 ## 13. Space and science data *(planned)*

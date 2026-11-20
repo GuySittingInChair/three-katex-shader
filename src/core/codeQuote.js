@@ -83,7 +83,7 @@ export function locateQuote(quote, source) {
 // names. A file name is `src/.../x.js`, or a bare `x.js` (resolved by the
 // caller's `resolve`, which knows which files exist).
 // -> [{ index, lang, code, candidates: [path] }]
-const FILE_RE = /`((?:src\/(?:sketches|lib|core|ui)\/[\w/.-]+|tools\/[\w/.-]+|[\w-]+)\.m?js)`/g;
+const FILE_RE = /`((?:src\/(?:sketches|lib|core|ui)\/[\w/.-]+|tools\/[\w/.-]+|[\w-]+)\.(?:m?js|py))`/g;
 // Blocks that aren't quotes of our code: shell commands, maths, plain text.
 export const NOT_CODE = new Set(['', 'text', 'bash', 'sh', 'shell', 'latex', 'tex', 'math']);
 

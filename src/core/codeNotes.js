@@ -8,7 +8,7 @@
 //   ---
 //   summary: …
 //   added: 2026-11-20
-//   sketch: gradientPlane
+//   sketch: gradientPlane              (or, for any other file: file: tools/gaia/build_gaia.py)
 //   ---
 //   # Gradient Plane: the code, line by line
 //
@@ -37,9 +37,12 @@ const code = (s) => {
 };
 
 export function parseCodeNotes(md) {
-  const sketch = /^sketch:\s*([\w-]+)\s*$/m.exec((HEADER.exec(md) || [''])[0])?.[1] || null;
+  const head = (HEADER.exec(md) || [''])[0];
+  const sketch = /^sketch:\s*([\w-]+)\s*$/m.exec(head)?.[1] || null;
+  // Notes can also explain a file that isn't a sketch (a data script the wiki quotes): `file: tools/x.py`.
+  const file = /^file:\s*(\S+)\s*$/m.exec(head)?.[1] || (sketch ? `src/sketches/${sketch}.js` : null);
   const body = md.replace(HEADER, '');
-  const notes = { sketch, title: (/^# (.+)$/m.exec(body) || [])[1] || '', symbols: [], lines: [], problems: [] };
+  const notes = { sketch, file, title: (/^# (.+)$/m.exec(body) || [])[1] || '', symbols: [], lines: [], problems: [] };
   let section = null;
   let current = null; // the line or symbol or piece whose text we're collecting
   let line = null; // the latest line note, which pieces belong to

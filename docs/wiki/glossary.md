@@ -8,6 +8,8 @@ added: 2026-11-18
 One line per word, in alphabetical order, with a link to the page that explains it. Pages marked *(planned)*
 don't exist yet; until then the link goes to the closest page that does.
 
+- **absolute magnitude**: how bright a star would look from a standard 10 parsecs away, so stars can be
+  compared fairly. → [Parallax: measuring the distance to the stars](parallax-and-distance.md)
 - **actions**: extra buttons a sketch adds to the Params panel, like "Poke the dish". → [The sketch format:
   every field](sketch-format.md)
 - **additive blending**: overlapping light adds up and gets brighter, like overlapping torch beams. → [Colour
@@ -16,6 +18,8 @@ don't exist yet; until then the link goes to the closest page that does.
   English](sketches/diffusionLimitedAggregation.md)
 - **alpha**: a colour's fourth number, how solid it is: 1 solid, 0 invisible. → [Colour 1: RGB, three
   numbers](rgb.md)
+- **arcsecond**: a 3,600th of a degree; a milliarcsecond (mas) is a thousandth of that. → [Parallax: measuring
+  the distance to the stars](parallax-and-distance.md)
 - **array**: a numbered list of values, written `[ ]`, counting from 0. → [Reading JavaScript 4: lists
   (arrays) and labelled boxes (objects)](js-arrays-and-objects.md)
 - **async / await**: marks a recipe that can pause to wait for a download without freezing the page. →
@@ -229,9 +233,14 @@ don't exist yet; until then the link goes to the closest page that does.
   → [Radian628 — Abyssal Bloom: in plain English](sketches/chatgpt-quantum.md)
 - **orthographic camera**: a camera with no perspective; used by flat `shader` sketches. → [Drawing in 3D 1:
   the scene and the camera](scene-and-camera.md)
+- **parallax**: the small yearly shift of a nearby star against the far background, as the Earth goes round
+  the Sun; its size gives the distance. → [Parallax: measuring the distance to the
+  stars](parallax-and-distance.md)
 - **parametric surface**: a surface made by a formula that says where each point of a flat square goes. →
   [Enneper Surface: in plain English](sketches/enneperSurface.md)
 - **params**: a sketch's sliders. → [Params: the sliders](params.md)
+- **parsec**: the distance at which a star's parallax is one arcsecond: 3.26 light-years. → [Parallax:
+  measuring the distance to the stars](parallax-and-distance.md)
 - **pentatonic scale**: a five-note scale (C D E G A) in which no notes clash, like the piano's black keys. →
   [Generative Synth: in plain English](sketches/generativeSynth.md)
 - **perspective camera**: a camera where far things look smaller, like real life. → [Drawing in 3D 1: the
