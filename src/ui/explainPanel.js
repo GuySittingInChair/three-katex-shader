@@ -5,6 +5,7 @@ import { listNotes, addNote, deleteNote, onAuthChange, getUser, isAdmin } from '
 import { promptSignIn } from './signIn.js';
 import { walkthroughSlug, loadWikiPage, renderWiki, wikiUrl } from '../core/wiki.js';
 import { attachWikiFeedback } from './wikiFeedback.js';
+import { decorateWikiCode } from './wikiCode.js';
 import { soundUrl, uploadSound, MAX_SOUND_BYTES } from '../core/sounds.js';
 
 // Right-docked reading panel built entirely from docs/guide.md:
@@ -266,6 +267,7 @@ export function createExplainPanel(container, manager) {
           `<a href="/wiki" data-link>Wiki home</a></p>` +
           renderWiki(md, wikiSlug) +
           (section ? `<details class="explain-expert"><summary>Expert notes (field guide)</summary>${marked.parse(section.body)}</details>` : '');
+        decorateWikiCode(walk, wikiSlug);
         walk.appendChild(walkFeedback.footer());
         withHeadingIds(walk);
       });

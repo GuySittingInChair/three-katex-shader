@@ -64,7 +64,10 @@ Timing:
 
 ```js
 state.accum += ctx.delta * ctx.params.speed;
-while (state.accum >= 1) { state.accum -= 1; step(); ... }
+while (state.accum >= 1) {
+  state.accum -= 1;
+  step();
+  ...
 ```
 
 `ctx.delta` is the time since the last frame, and `+=` means "add to". A piggy bank of time: add a

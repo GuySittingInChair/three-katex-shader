@@ -39,8 +39,9 @@ site is built on. That one, from
 ## Form 2: a code like `0xffffff` (JavaScript)
 
 ```js
-new THREE.DirectionalLight(0xffffff, 2.0);
-new THREE.AmbientLight(0x404050, 1.2);
+const light = new THREE.DirectionalLight(0xffffff, 2.0);
+...
+const ambient = new THREE.AmbientLight(0x404050, 1.2);
 ```
 (from `src/sketches/audioReactiveMesh.js`: two lights, each given a colour and a brightness)
 

@@ -53,3 +53,28 @@ test('every link to a glossary word lands on that word', () => {
   }
   assert.deepEqual(bad, []);
 });
+
+// Every code block in the wiki quotes real code, exactly (see src/core/codeQuote.js
+// for what counts: "..." marks skipped lines, a trailing // comment may be left off).
+// Change a quoted line in a sketch and this fails until the page is updated.
+import { wikiCodeBlocks, findQuote } from '../src/core/codeQuote.js';
+
+const readSrc = (p) => (fs.existsSync(path.join(ROOT, p)) ? fs.readFileSync(path.join(ROOT, p), 'utf8') : null);
+const resolveName = (n) =>
+  n.startsWith('src/') || n.startsWith('tools/')
+    ? [n]
+    : ['sketches', 'lib', 'core', 'ui'].map((d) => `src/${d}/${n}`).filter((p) => readSrc(p) != null);
+
+test('every code block in the wiki matches the code it quotes', () => {
+  const stale = [];
+  let checked = 0;
+  for (const s of slugs) {
+    for (const b of wikiCodeBlocks(read(s), s, resolveName)) {
+      if (!b.quote) continue;
+      checked++;
+      if (!findQuote(b, readSrc)) stale.push(`${s}, block ${b.index + 1}: ${b.code.split('\n')[0].trim().slice(0, 80)}`);
+    }
+  }
+  assert.ok(checked > 100, `only ${checked} blocks checked`);
+  assert.deepEqual(stale, []);
+});

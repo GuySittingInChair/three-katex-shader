@@ -48,7 +48,7 @@ state.synth.triggerAttackRelease(note, '8n');
 - Line 2: take the step, but don't fall off either end of the ladder: `Math.max(0, …)` means "no lower
   than the bottom rung" and `Math.min(SCALE.length - 1, …)` "no higher than the top".
 - Line 3: look up the note's name, like `'E4'` (the E in the middle of a piano).
-- Line 5 (`...` marks lines left out): `triggerAttackRelease` presses the synthesiser's key and lets go
+- Line 4 (`...` marks lines left out): `triggerAttackRelease` presses the synthesiser's key and lets go
   after an eighth-note (`'8n'`).
 
 Starting a ring:
@@ -67,6 +67,7 @@ Drawing the rings, in the shader:
 
 ```glsl
 float radius = age * 0.9;
+...
 float ring = 0.02 / (0.02 + ringDist * ringDist * 30.0);
 float fade = exp(-age * 1.1);
 ```

@@ -61,6 +61,7 @@ From `src/sketches/audioPulse.js`, a ring that wobbles to music:
 vec2 uv = (vUv - 0.5) * 2.0;
 float r = length(uv);
 float a = atan(uv.y, uv.x);
+...
 float ringPos = r - 0.4 - 0.15 * wobble;
 float ring = smoothstep(0.02, 0.0, abs(ringPos));
 ```

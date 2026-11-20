@@ -38,6 +38,7 @@ inside):
 ```js
 uniforms() {
   return {
+    ...
     uZoom: { value: 1.4 },
     uBass: { value: 0 },
 ```
@@ -53,7 +54,7 @@ state.uniforms.uBass.value = ctx.audio.bass;
 - `state.uniforms` is where the sketch keeps the knobs it made in step 2; `ctx.params` holds the
   sliders' current settings, and `ctx.audio` the sound. (`...` marks lines left out.)
 - Line 1 copies the **Zoom** slider into the `uZoom` knob.
-- Line 3 copies the live bass loudness from the microphone into `uBass`.
+- Line 2 copies the live bass loudness from the microphone into `uBass`.
 
 The names must match exactly in all three places. If the shader says `uZoom` and JavaScript says
 `uzoom`, the knob is never turned and the shader keeps the default value.

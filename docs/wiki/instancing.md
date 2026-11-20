@@ -27,7 +27,7 @@ const mesh = new THREE.InstancedMesh(geometry, material, COUNT);
 
 - Line 1 carves the stamp: a small cone 0.1 units across (0.05 from centre to edge) and 0.17 tall, with 6 sides. Its tip points up,
   so it can point the way a bird flies.
-- Line 3 makes an *instanced mesh* (one shape that is drawn many times) that will draw that cone `COUNT`
+- Line 2 makes an *instanced mesh* (one shape that is drawn many times) that will draw that cone `COUNT`
   times. `COUNT` is set to 120 at the top of the file. `material` is the paint (see
   [Mesh, geometry and material](mesh-geometry-material.md)); `...` marks lines left out.
 
@@ -35,6 +35,7 @@ Then, on every frame in `update`, each copy is placed:
 
 ```js
 dummy.position.copy(b.pos);
+...
 dummy.quaternion.setFromUnitVectors(UP, dir);
 dummy.updateMatrix();
 mesh.setMatrixAt(i, dummy.matrix);

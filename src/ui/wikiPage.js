@@ -1,6 +1,7 @@
 import { loadWikiPage, renderWiki, wikiUrl } from '../core/wiki.js';
 import { sketches } from '../core/registry.js';
 import { attachWikiFeedback } from './wikiFeedback.js';
+import { decorateWikiCode } from './wikiCode.js';
 
 // /wiki and /wiki/<page>: the beginner wiki (docs/wiki), read on the site.
 export function createWikiPage(el) {
@@ -37,6 +38,7 @@ export function createWikiPage(el) {
       return;
     }
     doc.innerHTML = renderWiki(md, slug || 'README');
+    decorateWikiCode(doc, slug || 'README');
     doc.appendChild(feedback.footer());
     const title = doc.querySelector('h1')?.textContent || 'Wiki';
     document.title = `${title} · aiship wiki`;

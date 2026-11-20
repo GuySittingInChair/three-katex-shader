@@ -46,7 +46,9 @@ Where each dot heads, in `update`:
 
 ```js
 const r = i % RINGS;
+...
 const thetaRing = theta + RING_SPACING * (r - (RINGS - 1) / 2);
+...
 const th = Math.min(Math.PI - 0.05, Math.max(THETA_MIN, lerp(fib[i].theta, thetaRing, s)));
 ```
 

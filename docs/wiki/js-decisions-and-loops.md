@@ -19,8 +19,11 @@ From `src/sketches/audioPulse.js`:
 ```js
 if (ctx.audio?.enabled) {
   state.uniforms.uBass.value = ctx.audio.bass;
+...
 } else {
+  ...
   state.uniforms.uBass.value = 0.5 + 0.5 * Math.sin(ctx.time * 0.9);
+...
 }
 ```
 

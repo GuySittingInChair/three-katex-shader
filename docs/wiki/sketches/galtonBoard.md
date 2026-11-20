@@ -67,6 +67,7 @@ Landing:
 
 ```js
 let k = Math.round(ballState.xTarget[i] / PEG_SPACING + ROWS / 2);
+...
 histogram[k] += 1;
 ```
 

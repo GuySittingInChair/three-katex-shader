@@ -68,6 +68,7 @@ The same sketch moves every corner on every frame:
 posAttr.setXYZ(i, dx * scale, dy * scale, dz * scale);
 ...
 posAttr.needsUpdate = true;
+...
 geometry.computeVertexNormals();
 ```
 

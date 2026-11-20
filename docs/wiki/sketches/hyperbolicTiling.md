@@ -49,6 +49,7 @@ The fold, inside the loop:
 float a = atan(p.y, p.x);
 float k = floor(a / (2.0 * wedge));
 a -= k * 2.0 * wedge;
+...
 if (a > wedge) { a = 2.0 * wedge - a; flips += 1.0; }
 ```
 
@@ -62,6 +63,7 @@ The curved mirror:
 
 ```glsl
 if (d2 >= r * r) { done = true; break; }
+...
 p = C + d * (r * r / d2);
 rings += 1.0;
 ```

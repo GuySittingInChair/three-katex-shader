@@ -59,10 +59,10 @@ if (potential[i] > threshold) {
   its bucket is, `pendingInput` what arrived since the last tick, `activation` how brightly it glows,
   `refractory` how long it must rest. (`...` marks lines left out.)
 - Line 1: the bucket. Keep 85% of what was there (the "leak" slider), and add whatever arrived.
-- Line 3: overflow? Then fire!
-- Line 4: light up fully. The glow then fades by the "activationDecay" slider.
-- Line 5: empty the bucket, slightly below zero for good measure.
-- Line 6: rest for 5 ticks (the "refractoryTicks" slider) before firing again.
+- Line 2: overflow? Then fire!
+- Line 3: light up fully. The glow then fades by the "activationDecay" slider.
+- Line 4: empty the bucket, slightly below zero for good measure.
+- Line 5: rest for 5 ticks (the "refractoryTicks" slider) before firing again.
 
 After firing, the neuron adds its splash to every neuron it connects to, scaled by its region's health.
 

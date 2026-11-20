@@ -44,6 +44,7 @@ shortest sketch in the project.
 export default {
   name: 'Gradient Plane',
   description: 'Time-driven cosine palette across UV space.',
+  ...
   category: 'Shaders',
   mode: 'shader',
 ```

@@ -41,7 +41,7 @@ const v = new THREE.Vector3(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i)).n
 ```
 
 - Line 1: a ball of radius 1, made of 320 small triangles.
-- Line 3 runs for each corner (`...` marks lines left out). `posAttr` is the list of every corner's
+- Line 2 runs for each corner (`...` marks lines left out). `posAttr` is the list of every corner's
   position, and `getX(i)` reads corner `i`'s across position. `new THREE.Vector3(…)` makes an arrow from
   the three numbers. It takes this position and *normalises* it: shrinks or stretches it to
   length 1. What's left is pure direction. The sketch stores these so it can push each corner straight out

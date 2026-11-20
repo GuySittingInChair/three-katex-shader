@@ -37,8 +37,10 @@ From `src/sketches/boidsFlock.js`, where one bird is made:
 
 ```js
 boids.push({
-  pos: new THREE.Vector3(...),
-  vel: new THREE.Vector3(...),
+  pos: new THREE.Vector3(
+  ...
+  vel: new THREE.Vector3(
+  ...
 });
 ```
 

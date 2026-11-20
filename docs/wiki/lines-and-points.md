@@ -27,7 +27,9 @@ From `src/sketches/bezierDeCasteljau.js`:
 const curve = createFatLines({ maxSegments: CURVE_SAMPLES, width: ctx.params.width });
 ...
 curve.reset();
+...
 curve.push(prev, next, tmp.clone());
+...
 curve.commit();
 ```
 
@@ -49,6 +51,7 @@ From `src/sketches/particleFountain.js`:
 const material = new THREE.PointsMaterial({
   size: 0.06,
   vertexColors: true,
+  ...
   blending: THREE.AdditiveBlending,
   ...
 });

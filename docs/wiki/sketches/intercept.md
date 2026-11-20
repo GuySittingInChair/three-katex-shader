@@ -45,6 +45,7 @@ about 200 kg), and the gun's rate of fire, round speed and drag are those of a t
 const vr = mul(v, -1);
 const Om = mul(cross(los, vr), 1 / dot(los, los));
 Vc = -dot(norm(los), vr);
+...
 acc = mul(cross(Om, norm(v)), 3 * Vc);
 ```
 

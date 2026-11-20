@@ -43,6 +43,7 @@ The zig-zag's points:
 ```js
 const X = [-1.8, -0.9, 0, 0.9, 1.8];
 const Y = [-0.8, 1.1, -0.2, 1.1, -0.8];
+...
 const controlPoint = (i, kappa) => [X[i], Y[i] * Math.cos(i * kappa), Y[i] * Math.sin(i * kappa)];
 ```
 

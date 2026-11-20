@@ -11,6 +11,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { wikiCodeBlocks, findQuote } from '../src/core/codeQuote.js';
 
 export function parseFrontmatter(md) {
   const m = /^---\n([\s\S]*?)\n---\n?/.exec(md);
@@ -52,6 +53,32 @@ export function readWikiMeta(root, { dates = true } = {}) {
     const { meta, body } = parseFrontmatter(fs.readFileSync(file, 'utf8'));
     const title = (/^# (.+)$/m.exec(body)?.[1] || slug).trim();
     out[slug] = { title, summary: meta.summary || '', tags: meta.tags || [], ...(dates ? gitDates(root, file) : {}) };
+  }
+  return out;
+}
+
+// Where every wiki code block comes from: { slug: [{ index, file, start, end } | { index, file: null }] }.
+// Line numbers are the file's own (as on GitHub). Blocks that aren't quotes
+// (shell commands, maths, old code) are { index, file: null, quote: false }.
+export function readWikiQuotes(root) {
+  const readSrc = (p) => {
+    const f = path.join(root, p);
+    return fs.existsSync(f) && fs.statSync(f).isFile() ? fs.readFileSync(f, 'utf8') : null;
+  };
+  const resolve = (n) =>
+    n.startsWith('src/') || n.startsWith('tools/')
+      ? [n]
+      : ['sketches', 'lib', 'core', 'ui'].map((d) => `src/${d}/${n}`).filter((p) => readSrc(p) != null);
+  const wikiDir = path.join(root, 'docs/wiki');
+  const out = {};
+  for (const file of walk(wikiDir).sort()) {
+    const slug = path.relative(wikiDir, file).replace(/\\/g, '/').replace(/\.md$/, '');
+    const { body } = parseFrontmatter(fs.readFileSync(file, 'utf8'));
+    out[slug] = wikiCodeBlocks(body, slug, resolve).map((b) => {
+      if (!b.quote) return { index: b.index, file: null, quote: false };
+      const hit = findQuote(b, readSrc);
+      return hit ? { index: b.index, file: hit.file, start: hit.start, end: hit.end, code: b.code } : { index: b.index, file: null };
+    });
   }
   return out;
 }

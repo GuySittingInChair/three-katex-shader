@@ -55,6 +55,7 @@ The cell's homing, inside `simulate()`:
 
 ```js
 const vr = mul(v, -1), Om = mul(cross(los, vr), 1 / dot(los, los)), Vc = -dot(norm(los), vr);
+...
 acc = add(mul(cross(Om, norm(v)), -(terminal ? 4 : 3) * Vc), mul(norm(v), 2.0));
 ```
 

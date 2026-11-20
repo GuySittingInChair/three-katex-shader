@@ -33,7 +33,7 @@ landscape exactly. That splitting is called a *Fourier transform*.
 
 For a single wave, the first two pushes don't need a stride at all: each wave
 grows or shrinks by a fixed percentage per second, depending only on how fine it is. The new code works
-out that exact percentage for every wave, once:
+out that exact percentage for every wave, once (in `src/lib/ksSpectral.js`):
 
 ```js
 for (let i = 0; i < size; i++) { E[i] = Math.exp(dt * lin[i]); E2[i] = Math.exp(0.5 * dt * lin[i]); }
@@ -63,7 +63,7 @@ isn't part of the landscape at all. Now look at what each push works on:
   grows, like compound interest: about 2.7 times bigger every 4 units of time. From a whisker to a
   monster takes about 74 of those: 4 × 74 ≈ 300. That's the 300.
 
-**The fix:** after every step, make each pair agree again:
+**The fix:** after every step, make each pair agree again (also in `src/lib/ksSpectral.js`):
 
 ```js
 const r = 0.5 * (hRe[i] + hRe[j]), m = 0.5 * (hIm[i] - hIm[j]);

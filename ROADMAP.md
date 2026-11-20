@@ -40,7 +40,7 @@ From my own self-review on 2026-11-19 (8 points), plus the owner's reply (6 more
 | 1.10 | The colour wheel: pages don't show how the numbers land on a particular colour | Rewrite `rgb.md`, `cosine-palette.md` and `colour-scales.md` with worked examples that carry one real input through every step to the final colour (numbers computed by running the code), plus a live swatch | todo | Each step's number matches a run of the real code (script saved in `tools/`); swatch checked in the browser |
 | 1.11 | I said "66 pages" and it read as 66 sketches | The real numbers: 69 wiki pages; 34 are sketch walkthroughs covering **31 of 166** sketches; 35 are topic pages and the glossary | done (stated to owner 2026-11-19) | n/a |
 | 1.12 | Errors on every page | A full error audit of every page by me (not the local model). Each claim, number and quote is checked against the code or a source and logged in `_audit.md`. Owner's own sightings are taken first if they share them | todo | `_audit.md` lists every page with errors found and fixed; quote check (2.5) passes |
-| 1.13 | No way to go back and forth between a page and the code it discusses | Every code block in the wiki gets "Open at line N" (opens the sketch with the code panel scrolled to that line and highlighted). Lines in the code panel that a walkthrough discusses get "Explained in the walkthrough" linking back to that paragraph. Line numbers are worked out at build time from the quoted text, so they can't go stale | todo | Clicking each way lands on the right line or paragraph, checked on 3 pages in the browser and at phone width |
+| 1.13 | No way to go back and forth between a page and the code it discusses | Every code block in the wiki gets "Open at line N" (opens the sketch with the code panel scrolled to that line and highlighted). Lines in the code panel that a walkthrough discusses get "Explained in the walkthrough" linking back to that paragraph. Line numbers are worked out at build time from the quoted text, so they can't go stale | done (every quoted code block, 164 on 69 pages, has numbered lines and a bar: "Open these lines in the code panel" (sketch files) and "On GitHub"; the code panel marks explained lines and links back to the block. Clicked both ways in Firefox on Game of Life at 1200 and 390 px and from the Explain panel on Boids; all 69 pages loaded with no errors) | Clicking each way lands on the right line or paragraph, checked on 3 pages in the browser and at phone width |
 | 1.14 | comedy-captions page not wanted | Deleted with all links to it (8a4309e, pushed) | done (build, 33/33 tests, link check 0 broken) | n/a |
 | 1.15 | The push of 8a4309e also put the 4 criticised commits live | Keep them live (Q1) | done (decision) | n/a |
 
@@ -76,6 +76,8 @@ From my own self-review on 2026-11-19 (8 points), plus the owner's reply (6 more
 
 | # | Item | Status | Done means |
 |---|------|--------|------------|
+| 1.31 | The code panel hides `import` lines, so its line numbers can be a few lower than the file's (and GitHub's). Make the panel number lines as the file does | todo | The same line has the same number in the panel, the wiki bar and GitHub |
+| 1.32 | Quotes made honest: 29 code blocks skipped lines without saying so; each gap now shows "...". 5 quotes had been reworded and now match the code exactly. 6 pages counted "..." as a numbered line; renumbered | done (all 162 quotes match, per the test above; every "Line N" checked against the numbered line by script and by reading) | n/a |
 | 1.30 | Find where "only 20 walkthroughs" shows up (live wiki index, sketch pages, explain panel) and fix it if it's a bug | todo | Cause found and recorded |
 | 1.29 | `/feed.xml` built at build time: new walkthroughs and wiki entries, each with its summary and the date it first appeared (from git) | todo | Passes a feed validator; opens in a feed reader; linked in `<head>` |
 
@@ -95,7 +97,7 @@ shared card component, so they look and behave the same.
 | 2.2 | Clicking a line or piece opens the card; equation ↔ code highlighting both ways when a piece computes an equation symbol | todo | Clicked both ways in the browser on 3 sketches |
 | 2.3 | Keyboard (Tab and arrows move, Enter opens, Esc closes) and mobile (tap; the card becomes a bottom sheet) | todo | Checked by keyboard only, and at 390 px |
 | 2.4 | One card component shared by equation symbols and code | todo | Old duplicate code removed |
-| 2.5 | Drift check: a test fails if an explanation's anchor text, or a code block quoted in a wiki page, no longer appears in its file | todo | Changing a quoted line in a sketch makes `npm test` fail |
+| 2.5 | Drift check: a test fails if an explanation's anchor text, or a code block quoted in a wiki page, no longer appears in its file | doing (wiki half done: tests/wiki.test.mjs fails if any of the 162 quoted wiki code blocks stops matching its file, shown by changing one line of gameOfLife.js; the code-explanation half comes with 2.1) | Changing a quoted line in a sketch makes `npm test` fail |
 | 2.6 | Backfill: every place on the site that shows code (code panel, walkthrough code blocks, guide code blocks) | todo | Coverage report per sketch (see Q2 on scope) |
 
 ### 2B. A much deeper wiki
@@ -201,6 +203,12 @@ it.
 ---
 
 ## Decisions (made by Claude, recorded here)
+
+- "Line N" on a wiki page means the line numbered N beside the code block. Numbers count code lines only:
+  "..." (skipped code) and blank lines get no number.
+- A quote may leave off a line's trailing `// comment`; anything else must match the file exactly.
+- Blocks that aren't quotes of our code (shell commands, maths) are recognised by their language tag;
+  old code that no longer exists is marked with `<!-- not a quote -->` before the block.
 
 - Code explanations are anchored to quoted code text, not line numbers, so edits elsewhere in a file
   don't break them, and the drift test (2.5) catches real changes.

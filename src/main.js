@@ -476,6 +476,12 @@ function applyRoute() {
   if (route.page === 'viewer') {
     if (manager.getCurrent().id !== route.id && !manager.goToId(route.id)) pendingId = route.id;
     showPage('viewer');
+    // /s/<id>#L12-18: open the code panel at those lines (links from the wiki).
+    const lines = /^#L(\d+)(?:-(\d+))?$/.exec(location.hash);
+    if (lines) {
+      openPanel('code');
+      codePanelApi.showLines(route.id, +lines[1], +(lines[2] || lines[1]));
+    }
   } else if (route.page === 'profile') {
     showPage('profile');
     profilePage.show(route.name);

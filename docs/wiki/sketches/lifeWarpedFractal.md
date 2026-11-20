@@ -41,6 +41,7 @@ Reading the Life board and setting the fold, in the shader:
 ```glsl
 float life = texture2D(uLife, vUv).r;
 float angle = uTime * 0.05 + life * 1.2;
+...
 float scale = 1.08 + life * uLifeInfluence;
 ```
 

@@ -42,6 +42,7 @@ Repulsion, for every pair:
 ```js
 const d2 = dx * dx + dy * dy + dz * dz + SOFTENING2;
 const f = kr / d2;
+...
 fx += (dx / d) * f;
 ```
 
@@ -58,6 +59,7 @@ The springs:
 
 ```js
 const stretch = (d - REST_LENGTH) * ks;
+...
 a.vx += fx; ...
 b.vx -= fx; ...
 ```

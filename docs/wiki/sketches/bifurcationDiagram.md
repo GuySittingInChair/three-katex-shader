@@ -46,6 +46,7 @@ population. Bright means "the population often lands here".
 ```glsl
 float r = mix(2.4, 4.0, vUv.x);
 float x = 0.5;
+...
 for (int i = 0; i < 100; i++) {
   x = r * x * (1.0 - x);
 }

@@ -46,6 +46,7 @@ The main steps, in `main()`:
 ```glsl
 vec2 p = uv;
 p = logSpiralWarp(p, t);
+...
 float orbit;
 vec2 q = foldSpace(p, t, orbit);
 ```
@@ -71,6 +72,7 @@ The colour:
 
 ```glsl
 vec3 color = vibrantPalette(colorPhase, uColorSaturation);
+...
 float orbitIntensity = smoothstep(0.1, 2.5, orbit);
 color *= 0.8 + 2.5 * orbitIntensity;
 ```

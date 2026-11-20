@@ -6,6 +6,7 @@ import { getUser, shareSketch, updateSharedSketch } from '../core/community.js';
 import { shaderStarterSource, geometryStarterSource } from '../core/starterTemplates.js';
 import { getGroupForCategory, getAllCategories } from '../core/taxonomy.js';
 import { lineTerms, commentStart, similarLines, walkthroughSlug, wikiUrl } from '../core/wiki.js';
+import { wikiRefsFor } from './wikiCode.js';
 
 export function createCodePanel(container, manager, { onShared } = {}) {
   container.innerHTML = `
@@ -105,6 +106,10 @@ export function createCodePanel(container, manager, { onShared } = {}) {
     closeCard();
     const lines = editor.value.split('\n');
     lineTermsCache = lines.map((l) => lineTerms(l));
+    const wikiRefs = wikiRefsFor(currentId, editor.value);
+    const explained = new Set(wikiRefs.flatMap((r) => r.lines));
+    const refsAt = new Map();
+    for (const r of wikiRefs) refsAt.set(r.start, [...(refsAt.get(r.start) || []), r]);
     readEl.innerHTML = lines
       .map((line, i) => {
         const cut = commentStart(line);
@@ -125,7 +130,13 @@ export function createCodePanel(container, manager, { onShared } = {}) {
           at = t.end;
         });
         html += plain(at, line.length);
-        return `<div class="code-line" data-n="${i + 1}">${html || ' '}</div>`;
+        const n = i + 1;
+        // see docs/wiki/README.md: lines a wiki page explains link back to it.
+        const refs = (refsAt.get(n) || [])
+          .map((r) => `<a class="code-wiki-ref" data-link href="${esc(r.href)}">📖 Explained in “${esc(r.title)}” →</a>`)
+          .join('');
+        const cls = explained.has(n) ? 'code-line code-line-wiki' : 'code-line';
+        return `${refs ? `<div class="code-wiki-refs">${refs}</div>` : ''}<div class="${cls}" data-n="${n}">${html || ' '}</div>`;
       })
       .join('');
   }
@@ -460,6 +471,15 @@ export function createCodePanel(container, manager, { onShared } = {}) {
 
   return {
     refresh,
+    // Shows sketch `id`'s lines start..end (the panel's own numbering) in the
+    // read view, highlighted. Used by "Open these lines in the code panel".
+    showLines(id, start, end = start) {
+      if (currentId !== id) selectSketch(id);
+      setView('read');
+      readEl.querySelectorAll('.code-line-hl').forEach((el) => el.classList.remove('code-line-hl'));
+      for (let n = start; n <= end; n++) readEl.querySelector(`.code-line[data-n="${n}"]`)?.classList.add('code-line-hl');
+      requestAnimationFrame(() => showLine(start));
+    },
     // Opens the "+ New Sketch" form (used by "Write a new sketch" on a profile).
     startNew() {
       newForm.classList.remove('hidden');

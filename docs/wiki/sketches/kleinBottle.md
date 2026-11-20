@@ -61,6 +61,7 @@ The sweep, in the shader:
 
 ```glsl
 float th = 0.5 * u;
+...
 float radial = sin(v) * cos(th) - m_c * sin(2.0 * v) * sin(th);
 float height = sin(v) * sin(th) + m_c * sin(2.0 * v) * cos(th);
 float r = m_a + m_b * radial;

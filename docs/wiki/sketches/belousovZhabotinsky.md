@@ -51,7 +51,9 @@ The long comment at the top is the expert's summary. The settings follow:
 
 ```js
 const SIZE = 512; // cells across the dish
+...
 const DT = 0.02;
+...
 const RATE = 4; // chemical time units per second of motion
 ```
 

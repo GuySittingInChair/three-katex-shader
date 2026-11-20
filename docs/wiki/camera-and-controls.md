@@ -29,6 +29,7 @@ Then the app does the rest, in `src/core/SketchRunner.js`:
 
 ```js
 this.ctx.controls = new OrbitControls(this.ctx.camera, this.domElement);
+...
 if (!window.matchMedia('(pointer: coarse)').matches) this.ctx.controls.enableZoom = false;
 this.ctx.controls.enableDamping = true;
 ```

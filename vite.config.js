@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import { editableToModule, parseHelperNames } from './tools/sketchFiles.js';
-import { readWikiMeta } from './tools/wikiMeta.js';
+import { readWikiMeta, readWikiQuotes } from './tools/wikiMeta.js';
 
 // Dev-only persistence for the code panel. Without this, sketches you create
 // or edit in the browser live only in that browser's localStorage (per
@@ -164,7 +164,8 @@ function wikiMetaModule() {
       for (const f of fs.readdirSync(path.join(ROOT, 'docs/wiki'), { recursive: true })) {
         if (String(f).endsWith('.md')) this.addWatchFile(path.join(ROOT, 'docs/wiki', String(f)));
       }
-      return `export default ${JSON.stringify(readWikiMeta(ROOT))};`;
+      // quotes: which file and lines each wiki code block quotes (see codeQuote.js).
+      return `export default ${JSON.stringify(readWikiMeta(ROOT))};\nexport const quotes = ${JSON.stringify(readWikiQuotes(ROOT))};`;
     },
     handleHotUpdate({ file, server }) {
       if (!file.startsWith(path.join(ROOT, 'docs/wiki'))) return;

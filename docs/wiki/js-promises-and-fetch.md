@@ -29,6 +29,7 @@ Promise.all([
   new Promise((res, rej) => new THREE.TextureLoader().load(DATA_URL + 'sky.png', res, undefined, rej)),
 ]).then(([meta, tex]) => {
   if (s.disposed) { tex.dispose(); return; }
+  ...
   mat.uniforms.uSky.value = tex;
 ```
 
