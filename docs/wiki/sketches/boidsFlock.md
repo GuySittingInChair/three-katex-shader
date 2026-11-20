@@ -9,7 +9,9 @@ File: `src/sketches/boidsFlock.js` · Mode: 3d · Category: Emergence
 
 **What you see:** 120 small cones, like arrowheads, darting around inside an invisible box. At first they fly
 every which way. Within seconds they gather into groups that swoop and turn together, like starlings or a
-school of fish. Slow birds are blue, and fast ones shift towards green. You can drag to look around.
+school of fish. Slow birds are sky blue, and fast ones shift through green towards lime (see [RGB, three
+numbers](../rgb.md#form-3-hue-saturation-lightness-hsl) for the colours worked out). You can drag to look
+around.
 
 **The idea behind it:** no bird is in charge, and no bird knows the shape of the flock. Each one follows three
 rules about its nearby neighbours only:
@@ -52,7 +54,8 @@ velocity (which way, how fast). `steerS`, `steerA` and `steerC` are running tota
 - Line 1: `diff.subVectors(a, b)` sets `diff` to `a` minus `b`: the arrow from the other bird to this one.
 - Line 2: its length, squared (squaring avoids a slow square root).
 - Line 3: only count birds within 0.5 units (`perception2` is 0.5 squared): the bird's neighbourhood. `&& d2 >
-  0.0001` ("and not right on top of it") skips the bird itself.
+  0.0001` ("and not right on top of it") skips any bird sitting exactly where this one is, which would give an
+  arrow with no direction. (The bird itself was already skipped, a line earlier, by `if (i === j) continue;`.)
 - Line 5: separation. `addScaledVector(arrow, n)` adds the arrow times `n`. Add a push away from this
   neighbour (the `1 / d` part is explained below).
 - Line 6: alignment. Add up the neighbours' velocities.
@@ -76,7 +79,9 @@ bird moves:
 bi.pos.addScaledVector(bi.vel, dt);
 ```
 
-`dt` is the length of one time step. That is "position += velocity × time", the second half of the equation.
+`dt` is the length of one time step: the time since the last frame, but never more than 0.05 seconds, so a
+stutter can't fling the birds across the box. That is "position += velocity × time", the second half of the
+equation.
 
 **Numbers worth knowing:**
 - **120**: birds. Each checks the other 119 on every frame: about 14,000 checks, 60 times a second.

@@ -53,10 +53,9 @@ for (int i = 0; i < 100; i++) {
 }
 ```
 
-- Line 1: this pixel's column decides `r`. `vUv.x` is how far across the screen the pixel is, from 0 to
-  1. At the left edge (`vUv.x` = 0) it is 2.4, and at the right
-  edge (1) it is 4.0. `mix` blends between them (see [Blending, adding, dimming and
-  gain](../colour-blending-and-gain.md)).
+- Line 1: this pixel's column decides `r`. `vUv.x` is how far across the screen the pixel is, from 0 to 1. At
+  the left edge (`vUv.x` = 0) `r` is 2.4, and at the right edge (1) it is 4.0. `mix` blends between them (see
+  [Blending, adding, dimming and gain](../colour-blending-and-gain.md)).
 - Line 2: start with the population at half.
 - Lines 3–5: `for (int i = 0; i < 100; i++)` repeats what's inside 100 times (`i` counts 0, 1, 2… 99). Each
   time, `x = r * x * (1.0 - x)` works out next year's population from this year's. Run 100 years and throw
@@ -91,7 +90,8 @@ and then wraps round like a clock) brings it back to the left edge after coverin
 - **3.0**: the first split, the point where one steady population turns into a boom–bust cycle.
 - **3.57**: roughly where chaos begins.
 - **3.83**: the big window of order, a 3-year cycle in the middle of chaos.
-- **300**: years per pixel at most (100 burn-in + up to 200 drawn). Every pixel does this on every frame.
+- **300**: years per pixel at the default setting (100 burn-in + 200 drawn), and up to 400 with the
+  **Iterations** slider at its top (300). Every pixel does this on every frame.
 - **About 11 seconds**: how long the yellow line takes to cross, at the default speed (1.6 ÷ 0.15).
 
 **Words on this page:** [logistic map](../glossary.md#logistic-map),

@@ -74,9 +74,11 @@ vec3 color = deepWater + brightWater * caustic;
 ```
 
 `deepWater` is dark navy and `brightWater` pale aqua, each three numbers (red, green, blue: see [RGB, three
-numbers](../rgb.md)). `caustic` is the brightness of the net, 0 to 1. So: navy everywhere, plus aqua wherever
-the light is focused. A slight darkening towards the edges, the *vignette*, makes it feel like looking down
-into water.
+numbers](../rgb.md)). `caustic` is the brightness of the net: the three layers added up (the finer ones
+counted a little less), capped at 2.2, then boosted a little near the fractal's edges. So it runs from 0 in
+the dark patches up to about 2 where lines from different layers cross. So: navy everywhere, plus aqua
+wherever the light is focused, and more than full aqua (so close to white) where the lines cross. A slight
+darkening towards the edges, the *vignette*, makes it feel like looking down into water.
 
 **Numbers worth knowing:**
 - **3 layers**, at three sizes (3, 4.2 and 5.6 in the code, the larger the finer), each turned at a different

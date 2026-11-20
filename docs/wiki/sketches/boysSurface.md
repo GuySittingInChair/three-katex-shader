@@ -10,8 +10,8 @@ File: `src/sketches/boysSurface.js` · Mode: 3d · Category: Topology
 **What you see:** a strange, lumpy shell that slowly changes shape and back again, in a 16-second loop. One
 end of the loop is Steiner's *Roman surface*, a rounded shape with creases and pinched points. The other end
 is *Boy's surface*, a smooth shape with three lobes curling around a centre, like a three-bladed propeller
-wrapped in cloth. Each shape holds still for a moment before changing. You can drag to turn it, and the Params
-panel can switch the shading.
+wrapped in cloth. Each shape holds still for about 3 seconds (1.6 at the end of one half and 1.6 at the start
+of the next) before changing. You can drag to turn it, and the Params panel can switch the shading.
 
 **The idea behind it:** this is about a famous strange surface called the *projective plane*. Here is one way
 to make it, in your head:
@@ -50,7 +50,9 @@ return { s: index === 0 ? blend : 1 - blend };
 
 - `segments` (a helper from `src/lib/motion.js`) cuts the 16-second loop into 2 halves; `index` says which
   half we're in (0 or 1).
-- In each half, `blend` holds still for 40% of the time, then eases smoothly from 0 to 1.
+- In each 8-second half, `blend` stays at 0 for the first fifth, eases smoothly from 0 to 1 over the middle
+  three fifths, and stays at 1 for the last fifth. That's the `0.4`: 40% of each half spent holding still,
+  split between its start and its end.
 - `index === 0 ? blend : 1 - blend` means "if we're in the first half, `blend`; otherwise `1 - blend`". So
   first half: `s` = `blend` (Roman → Boy). Second half: `s` = `1 - blend` (Boy → Roman).
 
