@@ -11,7 +11,8 @@ import * as THREE from 'three';
 
 const SIZE = 128;
 const CELLS = SIZE * SIZE;
-// Heights run about ±12 (typically ±4); this many either side fills the colour scale.
+// Heights: typical spread ±4, 95% within ±9, the highest peaks about ±18 (measured over 600 time
+// units at the defaults). This many either side fills the colour scale; beyond it the colour stays at the end.
 const DISPLAY_RANGE = 9;
 
 // see docs/wiki/colour-scales.md: heights → 0..255 for the shader's colour ramp.

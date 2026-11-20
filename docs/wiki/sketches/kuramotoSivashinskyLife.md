@@ -82,8 +82,10 @@ three-quarters of the way to mint wherever Life is alive.
 **Numbers worth knowing:**
 - **4 generations a second** by default (**Gen rate**, 1 to 15).
 - **0.35**: the default **Drive**, how hard live squares push.
-- **About 22%** of squares start alive. Life boards like this thin out over a few minutes; the board never
-  resets, so after many minutes only a few blinkers and blobs keep feeding the flame.
+- **About 22%** of squares start alive: about 3,600 of the 16,384. In three test runs of the same rules, that
+  fell to about 1,000 within the first minute, then churned between about 500 and 1,100 for many minutes; two
+  of the runs settled (after 7 and 13 minutes) with 420 to 530 squares still alive, as still blobs and
+  blinkers that keep feeding the flame in the same places. The board never resets.
 - The flame's own numbers are on [the original's page](kuramotoSivashinsky.md). Before 2026-11-18 both
   versions froze after about 50 seconds: see [the bug that froze the flame](kuramotoSivashinsky-fix.md).
 

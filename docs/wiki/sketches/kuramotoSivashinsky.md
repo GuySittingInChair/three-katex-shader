@@ -65,7 +65,10 @@ Both are explained on [their own page](kuramotoSivashinsky-fix.md).
   (**Dt**).
 - **About 10 squares**: the width of the bump size that grows fastest, at the default **Spacing** of 0.9
   between squares. So about 13 cells fit across the screen.
-- **±4, ±12**: how high the landscape typically goes, and at most.
+- **±4, ±9, ±18**: how far the landscape goes from its average level: ±4 is the typical spread, 95% of the
+  squares stay within ±9, and the highest peaks and deepest holes reach about ±18 (measured by running the
+  solver for 600 units of time). The colour scale is filled by ±9, so the rare taller peaks all show as the
+  same deepest red.
 
 **Try this (funky):** drag **Spacing** down to 0.5. The same equation now covers a smaller patch of landscape,
 so the cells look about twice as big: fat, wobbling bubbles. Then push **Speed** to 15 and watch them boil.
