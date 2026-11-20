@@ -130,7 +130,7 @@ table of contents (generated from headings).
 
 | # | Item | Status | Done means |
 |---|------|--------|------------|
-| 2.7 | Page template and renderer support: embedded live sketch, generated TOC, generated "appears in" list, sources section | todo | Works on one page in the browser |
+| 2.7 | Page template and renderer support: embedded live sketch, generated TOC, generated "appears in" list, sources section | done (live embedded sketches (`<div class="wiki-embed" data-sketch="…">`, animate only on screen, checked to animate), "On this page" for 4+ sections, "Appears in these walkthroughs" worked out at build time, a Sources section in each expanded page) | Works on one page in the browser |
 | 2.8 | Order of work: most-linked first (shaders 28 links from walkthroughs, cosine palette 12, randomness 11, sine and cosine 10, noise 10, uniforms 8, mesh 8 …), plus new astronomy entries: parallax and distance, redshift, light curves and transits, Kepler's laws and orbits, standard candles, the electromagnetic spectrum, gravitational lensing | todo | Per-entry status below once started |
 | 2.9 | Fact-check every number, especially astronomy, against the data files in `public/data` and published sources, with the check recorded | todo | Every numeric claim has a source or a script in `_audit.md` |
 
@@ -195,8 +195,8 @@ Total: 36 new, for 67 sketches walked through.
 
 | # | Item | Status | Done means |
 |---|------|--------|------------|
-| 2.10 | Once clickable code works: expand 3 wiki entries: cosine palette, shaders, and new parallax and distance (Q5) | todo | Verified as above |
-| 2.11 | Write the first 5 new walkthroughs (proposed: keplersPizza, sunCycle, exoplanets, fourierEpicycles, blackHoleLensing: four astronomy, one maths, from easy to hard) | todo | Verified as above |
+| 2.10 | Once clickable code works: expand 3 wiki entries: cosine palette, shaders, and new parallax and distance (Q5) | done (cosine palette and shaders expanded; new parallax entry, tagged astronomy so it shows on /astronomy. All numbers worked out; see the audit log) | Verified as above |
+| 2.11 | Write the first 5 new walkthroughs (proposed: keplersPizza, sunCycle, exoplanets, fourierEpicycles, blackHoleLensing: four astronomy, one maths, from easy to hard) | doing (2 of 5 done: Black Hole Lensing, Fourier Epicycles, each with every line explained (105 and 141 lines) and clickable equation symbols. Next: Kepler's Pizza, Sun Cycle, Exoplanets) | Verified as above |
 | 2.12 | Stop for owner review | todo | Owner's verdict recorded |
 | 2.13 | The remaining 31 walkthroughs and the rest of the wiki | todo | After B |
 
