@@ -61,7 +61,7 @@ Nothing limits walkthroughs to 20. These are all the caps I found; each has a de
 |---|---|---|---|
 | `CLAUDE.md` | 600 words, "2 to 6 lines", "batches of about ten" | Removed (1.16, 1.17) | done |
 | Code panel "similar lines" card (`src/core/wiki.js` `similarLines`) | Showed 8 sketches out of up to 139 | Shows 8, plus "Show all N" that lists every one | done (clicked: 8 → 139) |
-| Same card | Line text cut at 90 characters | Cut removed; long lines fade out at the card's edge, full text on hover | done |
+| Same card | Line text cut at 90 characters | Cut removed from the text; a line too wide for the card ends in "…" on screen, with the full line shown on hover | done |
 | Code-term card (`.code-term-card`) | At most 36% of the panel's height | Kept: it scrolls, so nothing is hidden | kept |
 | Code panel sketch list (`.code-panel-list`) | 130 px tall | Kept: it scrolls | kept |
 | Wiki feedback form (`src/ui/wikiFeedback.js`) | Quote up to 1,500 characters; issue title quotes 50 | Kept for now: a GitHub "new issue" link stops working when the URL gets too long (about 8,000 characters). Revisit if it gets in the way | kept (reason given) |
