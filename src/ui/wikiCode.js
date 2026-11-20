@@ -1,6 +1,5 @@
 import { quotes } from 'virtual:wiki-meta';
 import wikiMeta from 'virtual:wiki-meta';
-import { getEditableSource } from '../core/sourceStore.js';
 import { locateQuote } from '../core/codeQuote.js';
 import { sketches } from '../core/registry.js';
 import { wikiUrl } from '../core/wiki.js';
@@ -21,13 +20,6 @@ const REPO = 'https://github.com/GuySittingInChair/three-katex-shader/blob/main/
 const isGap = (line) => /^\s*(?:\.\.\.|…)\s*$/.test(line);
 const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const sketchOf = (file) => /^src\/sketches\/([\w-]+)\.js$/.exec(file || '')?.[1];
-
-// Where a quote sits in the code panel's own text (which leaves out import
-// lines, so its numbers can differ from the file's).
-function panelLines(id, code) {
-  if (!sketches.some((s) => s.id === id)) return null;
-  return locateQuote(code, getEditableSource(id));
-}
 
 export function decorateWikiCode(root, slug) {
   const pres = [...root.querySelectorAll('pre')];
@@ -56,12 +48,12 @@ export function decorateWikiCode(root, slug) {
     const bar = document.createElement('div');
     bar.className = 'wiki-code-src';
     const id = sketchOf(q.file);
-    const panel = id && panelLines(id, q.code);
+    const panel = id && sketches.some((s) => s.id === id);
     const range = q.start === q.end ? `#L${q.start}` : `#L${q.start}-L${q.end}`;
     bar.innerHTML =
       `<span>From <code>${esc(q.file)}</code></span>` +
       (panel
-        ? `<a data-link href="/s/${id}#L${panel.start}-${panel.end}">Open these lines in the code panel →</a>`
+        ? `<a data-link href="/s/${id}#L${q.start}-${q.end}">Open these lines in the code panel →</a>`
         : '') +
       `<a href="${REPO}${q.file}${range}" target="_blank" rel="noopener">On GitHub</a>`;
     pre.before(bar);

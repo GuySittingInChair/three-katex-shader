@@ -1,6 +1,6 @@
 import { marked } from 'marked';
 import { sketches } from './registry.js';
-import { getEditableSource } from './sourceStore.js';
+import { getEditableSource, fileLineNumbers } from './sourceStore.js';
 import wikiMeta from 'virtual:wiki-meta';
 
 // The beginner wiki (docs/wiki), served on the site at /wiki/<page>, and the
@@ -167,20 +167,22 @@ export function lineTerms(line) {
 
 // Other sketches that use the same thing: lines containing the same text
 // (e.g. `setMatrixAt`), else any line matching the concept. One line per sketch.
-export function similarLines(term, excludeId, limit = 8) {
+export function similarLines(term, excludeId, limit = Infinity) {
   const needle = term.text && term.text.length > 2 ? term.text : null;
   const re = needle ? null : new RegExp(term.concept.re.source, term.concept.re.flags.replace('g', ''));
   const hits = [];
   let total = 0;
   for (const s of sketches) {
     if (s.id === excludeId || s.community) continue;
-    const lines = getEditableSource(s.id).split('\n');
+    const text = getEditableSource(s.id);
+    const lines = text.split('\n');
     const i = lines.findIndex((l) => (needle ? l.includes(needle) : re.test(l)) && l.trim().length > 4);
     if (i === -1) continue;
     total++;
-    hits.push({ id: s.id, name: s.name, line: i + 1, text: lines[i].trim() });
+    // line: the file's own number (as on GitHub and in the code panel).
+    hits.push({ id: s.id, name: s.name, line: fileLineNumbers(s.id, text)?.[i] ?? i + 1, text: lines[i].trim() });
   }
   // Spread the picks across the list so it isn't always the alphabetically first few.
-  const step = Math.max(1, Math.floor(hits.length / limit));
+  const step = Number.isFinite(limit) ? Math.max(1, Math.floor(hits.length / limit)) : 1;
   return { total, picks: hits.filter((_, k) => k % step === 0).slice(0, limit) };
 }

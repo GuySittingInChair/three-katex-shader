@@ -80,6 +80,19 @@ export function getEditableSource(id) {
   return toEditable(originalSource[id] || '');
 }
 
+// The file's own line number for each line of `text` (the editable form,
+// which leaves out import lines), or null if `text` isn't the file as saved
+// (an unsaved edit). Lets the code panel number lines the way GitHub does.
+export function fileLineNumbers(id, text) {
+  const orig = originalSource[id];
+  if (orig == null || toEditable(orig) !== text) return null;
+  const out = [];
+  orig.split('\n').forEach((line, i) => {
+    if (!/^\s*import\s/.test(line)) out.push(i + 1);
+  });
+  return out;
+}
+
 export function hasEdit(id) {
   return Boolean(edits[id]);
 }

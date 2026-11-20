@@ -53,6 +53,21 @@ From my own self-review on 2026-11-19 (8 points), plus the owner's reply (6 more
 | 1.18 | Remove the batch-of-ten and length notes from my memory file | done (memory note updated) | Memory file has no cap |
 | 1.19 | Short summaries for small spaces: each wiki page gets a `summary:` line at the top. The code-panel cards use it, and so will search results, hover cards, previews and the RSS feed. This replaces the `blurb` text now hard-coded in `src/core/wiki.js` | done (69 pages have `summary:`; tests/wiki.test.mjs fails if one is missing; code cards show it, checked in Firefox at 1200 and 390 px; header hidden on the page) | Every page has one (a test fails otherwise); the cards show it; the full page is unaffected |
 
+### 1B-2. Every other cap on a length or count (Step 0, item 3)
+
+Nothing limits walkthroughs to 20. These are all the caps I found; each has a decision.
+
+| Where | Cap | Decision | Status |
+|---|---|---|---|
+| `CLAUDE.md` | 600 words, "2 to 6 lines", "batches of about ten" | Removed (1.16, 1.17) | done |
+| Code panel "similar lines" card (`src/core/wiki.js` `similarLines`) | Showed 8 sketches out of up to 139 | Shows 8, plus "Show all N" that lists every one | done (clicked: 8 → 139) |
+| Same card | Line text cut at 90 characters | Cut removed; long lines fade out at the card's edge, full text on hover | done |
+| Code-term card (`.code-term-card`) | At most 36% of the panel's height | Kept: it scrolls, so nothing is hidden | kept |
+| Code panel sketch list (`.code-panel-list`) | 130 px tall | Kept: it scrolls | kept |
+| Wiki feedback form (`src/ui/wikiFeedback.js`) | Quote up to 1,500 characters; issue title quotes 50 | Kept for now: a GitHub "new issue" link stops working when the URL gets too long (about 8,000 characters). Revisit if it gets in the way | kept (reason given) |
+| Explain panel sound notes | 120 s recording, upload size limit | Kept: storage limits on the hosting side (Supabase) | kept (reason given) |
+| `wikicritic` (local AI) | 15 problems, 10 fact issues, 16,000 characters per source file, 30,000 in all, answer length | Kept: these are the local model's memory limits; the tool is optional and not used as evidence | kept (reason given) |
+
 ### 1C. Astronomy tab
 
 | # | Item | Status | Done means |
@@ -76,7 +91,7 @@ From my own self-review on 2026-11-19 (8 points), plus the owner's reply (6 more
 
 | # | Item | Status | Done means |
 |---|------|--------|------------|
-| 1.31 | The code panel hides `import` lines, so its line numbers can be a few lower than the file's (and GitHub's). Make the panel number lines as the file does | todo | The same line has the same number in the panel, the wiki bar and GitHub |
+| 1.31 | The code panel hides `import` lines, so its line numbers can be a few lower than the file's (and GitHub's). Make the panel number lines as the file does | done (panel margin shows the file's numbers; wiki link /s/gameOfLife#L93-96 highlights lines 93–96, each checked against the file; GitHub link is #L93-L96; a "similar line" pick checked against its file) | The same line has the same number in the panel, the wiki bar and GitHub |
 | 1.32 | Quotes made honest: 29 code blocks skipped lines without saying so; each gap now shows "...". 5 quotes had been reworded and now match the code exactly. 6 pages counted "..." as a numbered line; renumbered | done (all 162 quotes match, per the test above; every "Line N" checked against the numbered line by script and by reading) | n/a |
 | 1.30 | Find where "only 20 walkthroughs" shows up (live wiki index, sketch pages, explain panel) and fix it if it's a bug | todo | Cause found and recorded |
 | 1.29 | `/feed.xml` built at build time: new walkthroughs and wiki entries, each with its summary and the date it first appeared (from git) | todo | Passes a feed validator; opens in a feed reader; linked in `<head>` |

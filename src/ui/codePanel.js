@@ -5,7 +5,8 @@ import { compileSketch } from '../core/sketchCompiler.js';
 import { getUser, shareSketch, updateSharedSketch } from '../core/community.js';
 import { shaderStarterSource, geometryStarterSource } from '../core/starterTemplates.js';
 import { getGroupForCategory, getAllCategories } from '../core/taxonomy.js';
-import { lineTerms, commentStart, similarLines, walkthroughSlug, wikiUrl } from '../core/wiki.js';
+import { lineTerms, commentStart, similarLines, walkthroughSlug, wikiUrl, wikiMeta } from '../core/wiki.js';
+import { fileLineNumbers } from '../core/sourceStore.js';
 import { wikiRefsFor } from './wikiCode.js';
 
 export function createCodePanel(container, manager, { onShared } = {}) {
@@ -106,6 +107,7 @@ export function createCodePanel(container, manager, { onShared } = {}) {
     closeCard();
     const lines = editor.value.split('\n');
     lineTermsCache = lines.map((l) => lineTerms(l));
+    const fileNums = fileLineNumbers(currentId, editor.value);
     const wikiRefs = wikiRefsFor(currentId, editor.value);
     const explained = new Set(wikiRefs.flatMap((r) => r.lines));
     const refsAt = new Map();
@@ -136,7 +138,10 @@ export function createCodePanel(container, manager, { onShared } = {}) {
           .map((r) => `<a class="code-wiki-ref" data-link href="${esc(r.href)}">📖 Explained in “${esc(r.title)}” →</a>`)
           .join('');
         const cls = explained.has(n) ? 'code-line code-line-wiki' : 'code-line';
-        return `${refs ? `<div class="code-wiki-refs">${refs}</div>` : ''}<div class="${cls}" data-n="${n}">${html || ' '}</div>`;
+        // data-n: position in the panel; data-ln: the file's own line number
+        // (as on GitHub), shown in the margin. They differ by the hidden import lines.
+        const ln = fileNums ? fileNums[i] : n;
+        return `${refs ? `<div class="code-wiki-refs">${refs}</div>` : ''}<div class="${cls}" data-n="${n}" data-ln="${ln}">${html || ' '}</div>`;
       })
       .join('');
   }
@@ -154,14 +159,15 @@ export function createCodePanel(container, manager, { onShared } = {}) {
     if (term.see) {
       card.innerHTML = `<div class="code-term-head"><strong>Wiki page</strong><button type="button" class="code-term-close" aria-label="Close">×</button></div>
         <p>This comment points to the page that explains the code below it.</p>
-        <a class="code-term-wiki" data-link href="${wikiUrl(term.page)}">Read ${esc(term.page)} →</a>`;
+        <a class="code-term-wiki" data-link href="${wikiUrl(term.page)}">Read “${esc(wikiMeta[term.page]?.title || term.page)}” →</a>`;
     } else {
-      const { total, picks } = similarLines(term, currentId);
-      const list = picks
-        .map((h) => `<li><button type="button" class="code-term-similar" data-id="${esc(h.id)}" data-line="${h.line}">
+      // A spread of 8 first; "Show all" lists every sketch (nothing is cut off).
+      const { total, picks: few } = similarLines(term, currentId, 8);
+      const item = (h) => `<li><button type="button" class="code-term-similar" data-id="${esc(h.id)}" data-line="${h.line}" title="${esc(h.text)}">
             <span class="code-term-similar-name">${esc(h.name)} · line ${h.line}</span>
-            <code>${esc(h.text.length > 90 ? h.text.slice(0, 88) + '…' : h.text)}</code></button></li>`)
-        .join('');
+            <code>${esc(h.text)}</code></button></li>`;
+      const list = few.map(item).join('') +
+        (total > few.length ? `<li><button type="button" class="code-term-more">Show all ${total} →</button></li>` : '');
       card.innerHTML = `<div class="code-term-head"><strong>${esc(term.concept.label)}</strong>
           <code class="code-term-text">${esc(term.text)}</code>
           <button type="button" class="code-term-close" aria-label="Close">×</button></div>
@@ -174,8 +180,9 @@ export function createCodePanel(container, manager, { onShared } = {}) {
   }
 
   // Jump to a line in this panel's read view and flash it.
+  // `n` is the file's own line number (as shown in the margin).
   function showLine(n) {
-    const el = readEl.querySelector(`.code-line[data-n="${n}"]`);
+    const el = readEl.querySelector(`.code-line[data-ln="${n}"]`);
     if (!el) return;
     el.scrollIntoView({ block: 'center' });
     el.classList.remove('flash');
@@ -193,6 +200,19 @@ export function createCodePanel(container, manager, { onShared } = {}) {
   card.addEventListener('click', (e) => {
     if (e.target.closest('.code-term-close')) return closeCard();
     if (e.target.closest('.code-term-wiki')) return; // the page-wide router follows the link
+    if (e.target.closest('.code-term-more')) {
+      const btn = readEl.querySelector('.code-term.open');
+      const term = btn && lineTermsCache[+btn.dataset.line]?.[+btn.dataset.term];
+      if (term) {
+        const { picks } = similarLines(term, currentId);
+        card.querySelector('ul').innerHTML = picks
+          .map((h) => `<li><button type="button" class="code-term-similar" data-id="${esc(h.id)}" data-line="${h.line}" title="${esc(h.text)}">
+            <span class="code-term-similar-name">${esc(h.name)} · line ${h.line}</span>
+            <code>${esc(h.text)}</code></button></li>`)
+          .join('');
+      }
+      return;
+    }
     const hit = e.target.closest('.code-term-similar');
     if (hit) {
       const line = +hit.dataset.line;
@@ -471,13 +491,13 @@ export function createCodePanel(container, manager, { onShared } = {}) {
 
   return {
     refresh,
-    // Shows sketch `id`'s lines start..end (the panel's own numbering) in the
+    // Shows sketch `id`'s lines start..end (the file's own numbering) in the
     // read view, highlighted. Used by "Open these lines in the code panel".
     showLines(id, start, end = start) {
       if (currentId !== id) selectSketch(id);
       setView('read');
       readEl.querySelectorAll('.code-line-hl').forEach((el) => el.classList.remove('code-line-hl'));
-      for (let n = start; n <= end; n++) readEl.querySelector(`.code-line[data-n="${n}"]`)?.classList.add('code-line-hl');
+      for (let n = start; n <= end; n++) readEl.querySelector(`.code-line[data-ln="${n}"]`)?.classList.add('code-line-hl');
       requestAnimationFrame(() => showLine(start));
     },
     // Opens the "+ New Sketch" form (used by "Write a new sketch" on a profile).

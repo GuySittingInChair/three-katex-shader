@@ -3330,7 +3330,7 @@ body.is-recording.rec-panel-open #rec-indicator {
   tab-size: 2;
 }
 .code-line::before {
-  content: attr(data-n);
+  content: attr(data-ln);
   display: inline-block;
   width: 3.2em;
   padding-right: 0.9em;
@@ -3539,3 +3539,17 @@ body.is-recording.rec-panel-open #rec-indicator {
 .code-wiki-ref { color: var(--accent); text-decoration: none; }
 .code-wiki-ref:hover,
 .code-wiki-ref:focus-visible { text-decoration: underline; }
+.code-term-more {
+  width: 100%;
+  margin-top: 4px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: none;
+  color: var(--accent);
+  font: 600 0.78rem system-ui, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+.code-term-more:hover,
+.code-term-more:focus-visible { background: rgba(255, 255, 255, 0.06); }
