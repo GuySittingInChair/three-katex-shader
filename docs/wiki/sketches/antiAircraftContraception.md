@@ -72,8 +72,8 @@ acc = add(mul(cross(Om, norm(v)), -(terminal ? 4 : 3) * Vc), mul(norm(v), 2.0));
 - **6.4 m, 370 kg**: the cell, about a bus's length and the weight of a grand piano.
 - **14 m**: the egg's width, a four-storey building.
 - **2.3 km**: where each attempt starts.
-- **1,100 rounds a minute** from the gun by default, with shells leaving at 1,175 m/s, about 3.5 times the
-  speed of sound.
+- **1,100 rounds a minute** from the gun by default, with shells leaving at 1,175 m/s, about 3.4 times the
+speed of sound.
 
 **The quest that must never be finished:** that wrong-way minus sign means the cell never reaches the egg. It
 started as a bug and is kept on purpose, by order of the owner. See [the physics

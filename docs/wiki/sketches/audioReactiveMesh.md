@@ -70,7 +70,12 @@ paletteColor(0.55 + value * 0.5, colorTmp);
   slider (`ctx.params.displacement`).
 - Line 2 moves the corner out along its direction.
 - Line 3 picks its colour with the [cosine palette](../cosine-palette.md) (`paletteColor` writes the answer
-  into `colorTmp`): quiet spots are a blue-green, and loud spots shift round the rainbow.
+  into `colorTmp`): the palette's input runs from 0.55 for a silent slice to 1.05 for a full-volume one.
+  Worked out: silent <span class="swatch" style="background:#06dc97"></span> sea green, a quarter volume <span
+  class="swatch" style="background:#46ff38"></span> green, half <span class="swatch"
+  style="background:#a7d702"></span> lime, three quarters <span class="swatch"
+  style="background:#f17b16"></span> orange, full <span class="swatch" style="background:#f92368"></span>
+  raspberry red.
 
 Then `geometry.computeVertexNormals()` re-works out which way the surface faces, so the lights shade the new
 bumps correctly. The ball also turns a little on every frame, by the "spin" slider.

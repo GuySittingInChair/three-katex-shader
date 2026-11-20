@@ -83,9 +83,11 @@ depending on how many rounds it lasted.
 **Numbers worth knowing:**
 - **120**: rounds per pixel. A full-screen picture has about two million pixels, so that is up to 240 million
   squarings, 60 times a second. Only a graphics chip can do that.
-- **2**: the escape distance. Once a point is further than 2 from the centre, it can never come back: squaring
-  then stretches it by more than adding `c` (which here is always less than 1 from the centre) can pull it
-  back, so every round takes it further out.
+- **2**: the escape distance. Once a point is further than 2 from the centre, squaring at least doubles its
+  distance, and adding `c` can't pull it back by that much, so every round takes it further out. That works as
+  long as `c` itself is no more than 2 from the centre. Here `c` circles a point 0.81 from the centre, and at
+  the default sensitivity it never gets further than 1.31. (Only with the sensitivity slider at its top and
+  loud bass can it creep just past 2.)
 - **0.25**: with speed at its default 0.6, `c` takes about 42 seconds to go once round its circle.
 
 **Words on this page:** [Julia set](../glossary.md#julia-set), [complex

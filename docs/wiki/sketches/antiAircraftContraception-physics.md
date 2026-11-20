@@ -44,13 +44,14 @@ const TAYLOR_U = 0.5 * WAVE_W * WAVE_K * TIP_B * TIP_B;
   its beat rate and `TIP_B` its swing, each turned into the units the formula wants.
 - The tail's wave is 2.5 m long, beats 2.2 times a second, and swings 0.2 m to each side at the tip.
 - Taylor's formula, ½ × beat rate × waviness × swing², gives about 0.69 m/s: a slow stroll.
-- The cell actually flies at about 51 m/s, roughly 75 times faster than its tail could ever push it.
+- The cell actually starts at 51 m/s, roughly 75 times faster than its tail could ever push it, and speeds up
+  to about 75 m/s in the dive.
 
 ## The quest that must never be finished
 
 The cell's steering has its sign flipped, so in the dive it turns *away* from the egg instead of towards it.
-In a test of 40 attempts with the gun switched off, every one flew over the egg about 800 m up and crashed
-roughly a kilometre beyond it. With the sign corrected, all 40 reached the egg.
+In a test of 40 attempts with the gun switched off, every one flew over the egg, on average almost 900 m up,
+and crashed 1.0 to 1.2 km beyond it. With the sign corrected, all 40 reached the egg.
 
 It was found while writing these pages, on 2026-11-18. The same mistake in `intercept.js` (the
 [Intercept](intercept.md) sketch, a drone chasing a target, where the line came from) was fixed that day. Here

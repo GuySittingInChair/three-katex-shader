@@ -83,9 +83,11 @@ state.uniforms.uBass.value = 0.5 + 0.5 * Math.sin(ctx.time * 0.9);
 seconds (one full wave takes 6.28 ÷ 0.9 ≈ 7).
 
 **Numbers worth knowing:**
-- **0.4**: the ring's size, 40% of the way from the centre to the edge of the screen.
-- **3, 7, 13**: the bumps per part of the sound. They share no common factor, so the three ripples never line
-  up into a repeating shape.
+- **0.4**: the ring's size, 40% of the way from the centre to each edge of the screen. The sketch measures
+  across and up in the same −1 to +1 steps, so on a wide screen the "ring" is really a wide oval.
+- **3, 7, 13**: the bumps per part of the sound. No number divides all three (except 1), so the wobbly ring
+  has no symmetry: no turn of it, short of a full turn, lands it back on itself. (If they were 3, 6 and 9, the
+  shape would repeat three times round the ring.)
 - **0.05**: the colour drifts a twentieth of the way round the rainbow every second, so a full cycle takes 20
   seconds.
 
