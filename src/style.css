@@ -90,7 +90,7 @@ body {
 .code-panel-tab-sub {
   font-size: 0.72rem;
   padding: 3px 10px;
-  color: rgb(var(--ink-rgb) / 0.5);
+  color: var(--muted); /* faint text: each palette's muted colour passes AA */
 }
 
 .code-panel-list {
@@ -141,14 +141,14 @@ body {
 .code-panel-list-cat {
   flex: 0 0 auto;
   font-size: 0.72rem;
-  color: rgb(var(--ink-rgb) / 0.5);
+  color: var(--muted);
 }
 
 .code-panel-list-delete {
   flex: 0 0 auto;
   background: transparent;
   border: none;
-  color: rgb(var(--ink-rgb) / 0.4);
+  color: var(--muted);
   font-size: 1rem;
   line-height: 1;
   padding: 0 8px;
@@ -285,7 +285,7 @@ body {
 
 .comments-panel-status {
   font-size: 0.78rem;
-  color: rgb(var(--ink-rgb) / 0.5);
+  color: var(--muted); /* faint text: each palette's muted colour passes AA */
   flex: 0 0 auto;
 }
 .comments-panel-status.error {
@@ -301,7 +301,7 @@ body {
 }
 
 .comments-panel-empty {
-  color: rgb(var(--ink-rgb) / 0.5);
+  color: var(--muted); /* faint text: each palette's muted colour passes AA */
   font-size: 0.85rem;
 }
 
@@ -318,7 +318,7 @@ body {
 }
 .comment-time {
   font-size: 0.7rem;
-  color: rgb(var(--ink-rgb) / 0.4);
+  color: var(--muted); /* faint text: each palette's muted colour passes AA */
   margin-left: 6px;
   font-weight: 400;
 }
@@ -388,7 +388,7 @@ body {
 
 .ai-panel-status {
   font-size: 0.78rem;
-  color: rgb(var(--ink-rgb) / 0.5);
+  color: var(--muted); /* faint text: each palette's muted colour passes AA */
   flex: 0 0 auto;
   white-space: pre-wrap;
 }
@@ -554,7 +554,7 @@ body {
   gap: 14px;
 }
 .params-panel-empty {
-  color: rgb(var(--ink-rgb) / 0.5);
+  color: var(--muted); /* faint text: each palette's muted colour passes AA */
   font-size: 0.85rem;
 }
 
@@ -576,7 +576,7 @@ body {
 .params-panel-readout {
   font-family: 'SFMono-Regular', Menlo, Consolas, monospace;
   font-size: 0.78rem;
-  color: rgb(var(--ink-rgb) / 0.55);
+  color: var(--muted); /* faint text: each palette's muted colour passes AA */
   font-variant-numeric: tabular-nums;
 }
 .params-panel-row input[type='range'] {
@@ -586,7 +586,7 @@ body {
 .params-panel-help {
   font-size: 0.74rem;
   line-height: 1.4;
-  color: rgb(var(--ink-rgb) / 0.5);
+  color: var(--muted); /* faint text: each palette's muted colour passes AA */
 }
 .params-panel-group {
   margin-top: 10px;
@@ -613,7 +613,7 @@ body {
 .params-panel-hint {
   flex: 0 0 auto;
   font-size: 0.72rem;
-  color: rgb(var(--ink-rgb) / 0.4);
+  color: var(--muted); /* faint text: each palette's muted colour passes AA */
   line-height: 1.4;
 }
 
@@ -662,7 +662,7 @@ body {
 }
 .explain-hint {
   font-size: 0.75rem;
-  color: rgb(var(--ink-rgb) / 0.45);
+  color: var(--muted); /* faint text: each palette's muted colour passes AA */
   line-height: 1.45;
   margin-bottom: 10px;
 }
@@ -695,7 +695,7 @@ body {
 .explain-symbol-words {
   font-size: 0.72rem;
   line-height: 1.3;
-  color: rgb(var(--live-rgb) / 0.8);
+  color: var(--live);
 }
 .explain-symbol-words code {
   font-size: 0.7rem;
@@ -705,7 +705,7 @@ body {
   flex-wrap: wrap;
   gap: 4px 14px;
   margin-top: 2px;
-  color: rgb(var(--ink-rgb) / 0.5);
+  color: var(--muted); /* faint text: each palette's muted colour passes AA */
   font-size: 0.76rem;
 }
 .explain-source {
@@ -806,7 +806,7 @@ body {
 .comment-delete {
   background: none;
   border: 0;
-  color: rgb(var(--ink-rgb) / 0.4);
+  color: var(--muted); /* faint text: each palette's muted colour passes AA */
   cursor: pointer;
   font-size: 1rem;
   line-height: 1;
@@ -843,7 +843,7 @@ body {
   display: flex;
   justify-content: space-between;
   font-size: 0.72rem;
-  color: rgb(var(--ink-rgb) / 0.5);
+  color: var(--muted); /* faint text: each palette's muted colour passes AA */
 }
 .explain-note-body {
   font-size: 0.84rem;
@@ -1035,7 +1035,7 @@ body.is-recording[data-view='equation'] #rec-indicator {
   font-size: 0.72rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgb(var(--ink-rgb) / 0.55);
+  color: var(--muted); /* faint text: each palette's muted colour passes AA */
 }
 .media-row {
   display: flex;
@@ -1109,7 +1109,7 @@ body.is-recording[data-view='equation'] #rec-indicator {
 .media-hint {
   font-size: 0.74rem;
   line-height: 1.4;
-  color: rgb(var(--ink-rgb) / 0.55);
+  color: var(--muted); /* faint text: each palette's muted colour passes AA */
 }
 .media-hint code {
   color: rgb(var(--ink-rgb) / 0.85);
@@ -1194,6 +1194,163 @@ body.is-recording[data-view='equation'] #rec-indicator {
   --bar-h: 52px;
   --dock-h: 64px;
   --font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+}
+
+/* ---- Palettes. Picked with the Colours menu (src/ui/palette.js), or ?palette=<name>.
+   Each sets the same variables as :root (Classic). Checked for WCAG AA text
+   contrast by tools/contrast.mjs. ---- */
+:root[data-palette='space'] {
+  --bg-rgb: 12 20 52;
+  --surface-rgb: 17 27 66;
+  --panel-rgb: 14 23 58;
+  --ink-rgb: 234 240 255;
+  --text-rgb: 232 236 255;
+  --muted: rgb(var(--text-rgb) / 0.66);
+  --accent-rgb: 196 160 255;
+  --accent-light: #e2d2ff;
+  --on-accent: #170b2e;
+  --heading-soft: #c9d6ff;
+  --live-rgb: 255 210 122;
+  --live-hover: #ffe1a3;
+  --raised-0: #111c48;
+  --raised-0b: #111c49;
+  --raised-0c: #101b46;
+  --raised-1: #1b2860;
+  --raised-2: #283672;
+  --raised-3: #162250;
+  --raised-4: #13204e;
+  --dialog: #13204e;
+  --card: #172454;
+  --form: #121e4c;
+  --form-hover: #1f2d66;
+  --muted-solid: #9aa3c8;
+  --text-soft: #d4dcf5;
+  --text-bright: #eef1ff;
+  --text-bright-2: #f2f4ff;
+  --text-bright-3: #e4e8fb;
+  --tok-comment: #8c93bf;
+  --info-rgb: 120 150 255;
+  --avatar-a: #2a3570;
+  --avatar-b: #4a2a70;
+}
+:root[data-palette='dusk'] {
+  --bg-rgb: 36 19 40;
+  --surface-rgb: 46 26 50;
+  --panel-rgb: 42 23 46;
+  --ink-rgb: 255 240 232;
+  --text-rgb: 248 236 230;
+  --muted: rgb(var(--text-rgb) / 0.66);
+  --accent-rgb: 255 158 122;
+  --accent-light: #ffd0bd;
+  --on-accent: #2a0f08;
+  --heading-soft: #ffc9b0;
+  --live-rgb: 255 214 120;
+  --live-hover: #ffe2a0;
+  --raised-0: #2c1832;
+  --raised-0b: #2c1833;
+  --raised-0c: #2b1731;
+  --raised-1: #3a2242;
+  --raised-2: #4a2e54;
+  --raised-3: #331d3a;
+  --raised-4: #2f1a36;
+  --dialog: #2f1a36;
+  --card: #351e3d;
+  --form: #2e1934;
+  --form-hover: #402548;
+  --muted-solid: #b39aa8;
+  --text-soft: #ead7de;
+  --text-bright: #fbeee8;
+  --text-bright-2: #fdf1eb;
+  --text-bright-3: #f3e3dc;
+  --tok-comment: #a48a98;
+  --astro-rgb: 190 170 255;
+  --avatar-a: #4a2a46;
+  --avatar-b: #6a3040;
+}
+:root[data-palette='paper'] {
+  --bg-rgb: 246 241 230;
+  --surface-rgb: 255 251 242;
+  --panel-rgb: 252 248 239;
+  --ink-rgb: 31 27 22;
+  --text-rgb: 29 26 22;
+  --muted: rgb(var(--text-rgb) / 0.72);
+  --accent-rgb: 9 90 99;
+  --accent-light: #0a5961;
+  --on-accent: #ffffff;
+  --heading-soft: #24506b;
+  --live-rgb: 138 80 0;
+  --live-hover: #b56c00;
+  --raised-0: #efe8d9;
+  --raised-0b: #efe8da;
+  --raised-0c: #eee7d8;
+  --raised-1: #e8e0cf;
+  --raised-2: #ddd3bf;
+  --raised-3: #ece5d6;
+  --raised-4: #f1ebdd;
+  --dialog: #fffaf0;
+  --card: #fffaf0;
+  --form: #fffaf0;
+  --form-hover: #f1e9d9;
+  --muted-solid: #625b51;
+  --text-soft: #3a352e;
+  --text-bright: #1d1a16;
+  --text-bright-2: #1d1a16;
+  --text-bright-3: #2a261f;
+  --tok-comment: #6a655b;
+  --ok: #1b7a3a;
+  --success: #1e7b4a;
+  --success-light: #0f5f36;
+  --success-rgb: 30 123 74;
+  --success-2-rgb: 30 123 74;
+  --danger: #b3261e;
+  --danger-strong: #c4170d;
+  --danger-2: #b0244d;
+  --danger-3: #b33a3a;
+  --danger-4: #c62d22;
+  --danger-5: #b3261e;
+  --danger-6: #c53030;
+  --danger-light: #8f1d17;
+  --danger-bg: #f6d5d2;
+  --danger-rgb: 196 45 34;
+  --danger-soft-rgb: 179 38 30;
+  --warn: #8a5300;
+  --warn-text: #6a4000;
+  --warn-bg: #f3dfbf;
+  --warn-bg-2: #ead0a3;
+  --on-warn: #fffaf0;
+  --info-rgb: 30 90 180;
+  --info-2-rgb: 30 90 180;
+  --astro-rgb: 60 70 160;
+  --astro-bg-rgb: 238 236 250;
+  --astro-bg-2-rgb: 228 226 246;
+  --avatar-a: #c9d3ea;
+  --avatar-b: #e0cde6;
+}
+/* Things drawn over the animation keep light-on-dark text in every palette:
+   the art underneath is dark, whatever the page around it looks like. */
+:root[data-palette='paper'] :is(#topbar, #math-overlay, #dock, .feed-caption, .feed-actions, .show-controls, #landing .hero) {
+  --bg-rgb: 11 11 15;
+  --surface-rgb: 12 12 17;
+  --panel-rgb: 10 10 14;
+  --ink-rgb: 255 255 255;
+  --text-rgb: 242 243 247;
+  --muted: rgb(var(--text-rgb) / 0.62);
+  --surface-2: rgb(var(--ink-rgb) / 0.04);
+  --border: rgb(var(--ink-rgb) / 0.12);
+  --accent-rgb: 124 196 255;
+  --live-rgb: 255 209 102;
+  --on-accent: #08121c;
+  --astro-rgb: 157 180 255;
+  --astro-bg-rgb: 8 12 30;
+  --astro-bg-2-rgb: 14 20 48;
+  /* Variables built from the ones above are worked out where they're declared,
+     so they're restated here to pick up the dark values. */
+  --bg: rgb(var(--bg-rgb));
+  --surface: rgb(var(--surface-rgb) / 0.95);
+  --text: rgb(var(--text-rgb));
+  --accent: rgb(var(--accent-rgb));
+  --live: rgb(var(--live-rgb));
+  --astro: rgb(var(--astro-rgb));
 }
 body {
   font-family: var(--font);
@@ -2353,6 +2510,8 @@ body.feed-on #toast {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap; /* narrow screens: the links drop under the logo instead of running off the edge */
+  gap: 10px 18px;
   margin-bottom: 28px;
 }
 .page-title {
@@ -2410,7 +2569,8 @@ body.feed-on #toast {
 .page-nav {
   display: flex;
   align-items: center;
-  gap: 18px;
+  flex-wrap: wrap;
+  gap: 8px 18px;
 }
 .page-nav a {
   color: var(--muted);
@@ -3092,7 +3252,7 @@ body.feed-on #toast {
 }
 .rec-live-note {
   font-size: 0.78rem;
-  color: rgb(var(--ink-rgb) / 0.55);
+  color: var(--muted); /* faint text: each palette's muted colour passes AA */
   padding: 6px 2px;
 }
 .rec-layers {
@@ -3105,7 +3265,7 @@ body.feed-on #toast {
   align-items: center;
   gap: 6px;
   background: none;
-  color: rgb(var(--ink-rgb) / 0.5);
+  color: var(--muted); /* faint text: each palette's muted colour passes AA */
   border: 1px dashed rgb(var(--ink-rgb) / 0.2);
   border-radius: 10px;
   padding: 6px 10px;
@@ -3237,7 +3397,7 @@ body.feed-on #toast {
   text-align: center;
   min-height: 1.4em;
   font-size: 0.95rem;
-  color: rgb(var(--ink-rgb) / 0.55);
+  color: var(--muted); /* faint text: each palette's muted colour passes AA */
   flex: 0 0 auto;
 }
 .media-panel.is-rec .rec-clock {
@@ -3397,7 +3557,7 @@ body.is-recording.rec-panel-open #rec-indicator {
   width: 3.2em;
   padding-right: 0.9em;
   text-align: right;
-  color: rgb(var(--ink-rgb) / 0.22);
+  color: var(--muted); /* faint text: each palette's muted colour passes AA */
   user-select: none;
 }
 .code-line.flash { animation: code-flash 1.6s ease-out; }
@@ -3684,3 +3844,22 @@ body.is-recording.rec-panel-open #rec-indicator {
 .astro-wiki { list-style: none; padding: 0; }
 .astro-wiki li { margin-bottom: 10px; }
 .astro-wiki span { display: block; color: var(--muted); font-size: 0.88rem; }
+
+/* Colours menu (src/ui/palette.js), in page headers and the More menu. */
+.palette-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.palette-pick select {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 8px;
+}
+.palette-pick option { color: var(--text); background: var(--bg); }
+.menu .palette-pick { padding: 8px 14px; }

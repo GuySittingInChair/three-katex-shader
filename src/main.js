@@ -38,6 +38,10 @@ import { createToast, createViewMode } from './ui/viewMode.js';
 import { createRecorder } from './core/recorder.js';
 import { enableAudio, updateAudio, setSketchSound, setSoundOn, isSoundOn } from './core/audioEngine.js';
 import { soundUrl, uploadSound, deleteSound } from './core/sounds.js';
+import { initPalette, paletteSelect } from './ui/palette.js';
+
+// Colour palette first, before anything is drawn.
+initPalette();
 
 // The sketch playing behind the landing page's headline.
 const FEATURED = 'mocalocky';
@@ -476,6 +480,16 @@ function showPage(next) {
   renderTitle(manager.getCurrent());
 }
 
+// The viewer's More menu gets the Colours menu once.
+$('more-menu')?.append(paletteSelect());
+
+// Every page header gets the Colours menu (pages that redraw their header get it back here).
+function mountPalettePickers() {
+  document.querySelectorAll('.page-nav').forEach((nav) => {
+    if (!nav.querySelector('.palette-pick')) nav.append(paletteSelect());
+  });
+}
+
 function applyRoute() {
   const route = parseRoute();
   if (route.page === 'viewer') {
@@ -506,6 +520,7 @@ function applyRoute() {
     if (manager.getCurrent().id !== FEATURED) manager.goToId(FEATURED);
     showPage('landing');
   }
+  mountPalettePickers();
 }
 
 function navigate(path) {
