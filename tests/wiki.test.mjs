@@ -52,7 +52,8 @@ test('every link to a glossary word lands on that word', () => {
   const bad = [];
   for (const s of slugs) {
     if (s === 'README' || s === 'glossary') continue;
-    for (const [all, hash] of read(s).matchAll(/\]\((?:\.\.\/)*glossary\.md(?:#([^)]*))?\)/g)) {
+    for (const [all, text, hash] of read(s).matchAll(/\[([^\]]*)\]\((?:\.\.\/)*glossary\.md(?:#([^)]*))?\)/g)) {
+      if (/^glossary$/i.test(text) && !hash) continue; // a link to the glossary page itself
       if (!hash || !ids.has(hash)) bad.push(`${s}: ${all}`);
     }
   }
