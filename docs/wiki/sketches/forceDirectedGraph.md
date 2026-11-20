@@ -28,8 +28,9 @@ The equation on screen: repulsion is k_r ÷ d², so it gets much stronger as two
 distance, four times the push). The spring is k_s × (d − d₀): it pushes in proportion to how stretched or
 squashed it is.
 
-**Where the data comes from:** no data. The network is [random](../randomness.md): each ball links to 1 to 3
-others.
+**Where the data comes from:** no data. The network is [random](../randomness.md): each ball reaches out to 1
+to 3 others, and others can reach out to it too, so most balls end up with 2 to 5 threads and the busiest with
+about 7.
 
 **How it's built:**
 - [Instancing](../instancing.md) for the 40 balls, with a tiny [shader](../shaders.md) for per-ball colour.
@@ -79,7 +80,8 @@ n.vx *= DAMPING;
 through honey. That's what lets it settle instead of wobbling forever.
 
 **Numbers worth knowing:**
-- **40** balls and about 75 threads (it varies a little each time, since the links are random).
+- **40** balls and about 75 threads (66 to 83 in 9 runs out of 10, worked out by running the same random rule
+  2,000 times).
 - **780** pairs of balls (40 × 39 ÷ 2), each checked twice every frame, once from each ball: **1,560**
   repulsion sums a frame.
 - **90%**: the speed kept each step. At 99% the web would wobble for ages; at 50% it would freeze almost

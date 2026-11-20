@@ -51,8 +51,8 @@ const z = uu * uu - vv * vv;
 
 - `coeffs` holds the slider settings: `domainScale`, `cubicCoeff` and `crossCoeff`.
 - Lines 1–2: `u` and `v` arrive between 0 and 1. `u * 2 - 1` turns 0…1 into −1…+1 (doubling, then taking 1
-  off), and multiplying by the **Domain scale** setting stretches that to run from −1.3 to +1.3, and call the
-  results `uu` and `vv`.
+  off), and multiplying by the **Domain scale** setting (1.3 at the start) stretches that to run from −1.3 to
+  +1.3. The results are called `uu` and `vv`.
 - Lines 3–4: across and sideways positions. `uu * uu * uu` is `u` cubed (u × u × u), written `u³`. It stays
   tiny near the middle but grows fast towards the edges, and it's subtracted, so it pulls the edges back in.
   That's the curl.

@@ -8,7 +8,7 @@ added: 2026-11-18
 File: `src/sketches/gameOfLife.js` · Mode: shader · Category: Cellular Automata
 
 **What you see:** a grid of chunky coloured squares on a near-black background, flickering ten times a second.
-At first it's a chaotic soup. Over a minute or two it calms into scattered still blobs, blinking
+At first it's a chaotic soup. Over one to three minutes it calms into scattered still blobs, blinking
 three-in-a-row "blinkers", and now and then a little five-square *glider* that crawls diagonally across the
 screen and wraps round the edge. Squares are coloured by how crowded they are, and the colours drift slowly
 round the rainbow.
@@ -98,11 +98,15 @@ line multiplied by 8 instead of 255, which left every live square nearly the sam
 - **10** generations a second (1 to 30 on the slider).
 - **4 generations**: a glider's lap. Every 4 generations it is back to its own shape, one square further along
   diagonally.
+- **About 1 to 3½ minutes** to settle: in 8 test runs of the same rules on the same board, the soup stopped
+  changing (apart from blinkers) after 549 to 2,073 generations, with 99 to 154 squares still alive.
 - The board never resets. Leave the sketch and come back for a new random soup.
 
 **Try this (funky):** in `step()`, change the birth rule `(!alive && n === 3)` to `(!alive && (n === 3 || n
-=== 6))`. That's a famous variant called *HighLife*, where a special pattern can copy itself. The soup now
-churns longer and more wildly before it settles.
+=== 6))`. That's a famous variant called *HighLife*, where a special pattern can copy itself. One extra
+number, and the soup behaves differently: in the same 8 test runs it settled *sooner* (362 to 1,313
+generations) and left fewer survivors (71 to 108). Its self-copying pattern exists, but it almost never forms
+by chance from a random soup, so don't expect to see it.
 
 **Words on this page:** [cellular automaton](../glossary.md#cellular-automaton),
 [glider](../glossary.md#glider), [DataTexture](../glossary.md#datatexture), [shader](../glossary.md#shader),

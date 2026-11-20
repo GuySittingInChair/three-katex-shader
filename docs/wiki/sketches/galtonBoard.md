@@ -79,8 +79,9 @@ always fills the same height.
 **Numbers worth knowing:**
 - **1,024** possible left/right paths through 10 rows (2 × 2 × … ten times).
 - **24.6%**: the chance of landing in the middle slot (252 ÷ 1,024).
-- **0.1%**: the chance of either end slot (1 ÷ 1,024). In a run of 300 balls, you'll usually see none there at
-  all.
+- **0.1%**: the chance of either end slot (1 ÷ 1,024). In a round of 300 balls, a given end slot gets even one
+  ball only about 1 round in 4, and at least one of the two ends about 4 rounds in 9 (worked out: 1 − (1023 ÷
+  1024)³⁰⁰ ≈ 0.25).
 - **300**: balls per round before the bars reset.
 
 **Try this (funky):** in `galtonBoard.js`, change `Math.random() < 0.5` to `Math.random() < 0.8`. Now every
