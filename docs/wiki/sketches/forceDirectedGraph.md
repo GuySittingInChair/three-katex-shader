@@ -87,5 +87,5 @@ instead of wobbling forever.
 The web explodes outward into a big, loose, floating jellyfish. Swap them (repulsion low, springs stiff)
 and it crumples into a tight knotted ball.
 
-**Words on this page:** [graph](../glossary.md), [node](../glossary.md), [edge](../glossary.md),
-[force-directed layout](../glossary.md), [damping](../glossary.md), [instancing](../glossary.md)
+**Words on this page:** [graph](../glossary.md#graph), [node](../glossary.md#node), [edge](../glossary.md#edge),
+[force-directed layout](../glossary.md#force-directed-layout), [damping](../glossary.md#damping), [instancing](../glossary.md#instancing)

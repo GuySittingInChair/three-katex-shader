@@ -98,5 +98,5 @@ first line multiplied by 8 instead of 255, which left every live square nearly t
 `(!alive && (n === 3 || n === 6))`. That's a famous variant called *HighLife*, where a special pattern can
 copy itself. The soup now churns longer and more wildly before it settles.
 
-**Words on this page:** [cellular automaton](../glossary.md), [glider](../glossary.md),
-[DataTexture](../glossary.md), [shader](../glossary.md), [random](../glossary.md)
+**Words on this page:** [cellular automaton](../glossary.md#cellular-automaton), [glider](../glossary.md#glider),
+[DataTexture](../glossary.md#datatexture), [shader](../glossary.md#shader), [random](../glossary.md#random)

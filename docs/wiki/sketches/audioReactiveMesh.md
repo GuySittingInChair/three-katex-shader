@@ -84,5 +84,5 @@ new bumps correctly. The ball also turns a little on every frame, by the "spin" 
   angle between two minute marks on a clock face.
 - **0.6**: the default push. A full-volume slice pushes 60% further out than the ball's radius.
 
-**Words on this page:** [mesh](../glossary.md), [vertex](../glossary.md), [normal](../glossary.md),
-[spectrum](../glossary.md), [light](../glossary.md)
+**Words on this page:** [mesh](../glossary.md#mesh), [vertex](../glossary.md#vertex), [normal](../glossary.md#normal),
+[spectrum](../glossary.md#spectrum), [light](../glossary.md#light)

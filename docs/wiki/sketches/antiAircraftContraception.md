@@ -83,6 +83,6 @@ egg. It started as a bug and is kept on purpose, by order of the owner. See
 6 (the cell shrugs off five hits). In a test of 40 attempts, 15 now survived the gun, only to nosedive into
 the ground. Watch for the "It happens." caption.
 
-**Words on this page:** [proportional navigation](../glossary.md), [Reynolds number](../glossary.md),
-[seed](../glossary.md), [glow](../glossary.md),
-[comedy formula](../glossary.md)
+**Words on this page:** [proportional navigation](../glossary.md#proportional-navigation), [Reynolds number](../glossary.md#reynolds-number),
+[seed](../glossary.md#seed), [glow](../glossary.md#glow),
+[comedy formula](../glossary.md#comedy-formula)

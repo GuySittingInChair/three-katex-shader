@@ -36,3 +36,20 @@ test('every code concept in src/core/wiki.js names a real wiki page', () => {
   assert.ok(pages.length > 10);
   assert.deepEqual(pages.filter((p) => !meta[p]), []);
 });
+
+// Same rule as glossaryId in src/core/wiki.js.
+const glossaryId = (term) =>
+  term.replace(/\(.*?\)/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+test('every link to a glossary word lands on that word', () => {
+  const ids = new Set([...read('glossary').matchAll(/^- \*\*(.+?)\*\*/gm)].map((m) => glossaryId(m[1])));
+  const bad = [];
+  for (const s of slugs) {
+    if (s === 'README' || s === 'glossary') continue;
+    for (const [all, hash] of read(s).matchAll(/\]\((?:\.\.\/)*glossary\.md(?:#([^)]*))?\)/g)) {
+      if (!hash || !ids.has(hash)) bad.push(`${s}: ${all}`);
+    }
+  }
+  assert.deepEqual(bad, []);
+});

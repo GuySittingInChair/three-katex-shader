@@ -87,5 +87,5 @@ tallest one, so the hill always fills the same height.
 peg is rigged, with 80% of bounces going left (the `-1` side). The hill slides off to the left and leans,
 the way a loaded coin would.
 
-**Words on this page:** [probability](../glossary.md), [binomial distribution](../glossary.md),
-[bell curve](../glossary.md), [histogram](../glossary.md), [instancing](../glossary.md)
+**Words on this page:** [probability](../glossary.md#probability), [binomial distribution](../glossary.md#binomial-distribution),
+[bell curve](../glossary.md#bell-curve), [histogram](../glossary.md#histogram), [instancing](../glossary.md#instancing)

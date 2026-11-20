@@ -76,5 +76,5 @@ state.mesh.rotation.y += ctx.delta * ctx.params.spin;
 and wrap through each other into a wild crown of overlapping petals. Then try **slice** to cut it open and
 see inside.
 
-**Words on this page:** [minimal surface](../glossary.md), [surface](../glossary.md),
-[saddle](../glossary.md), [parametric](../glossary.md), [mesh](../glossary.md)
+**Words on this page:** [minimal surface](../glossary.md#minimal-surface), [surface](../glossary.md#surface),
+[saddle](../glossary.md#saddle), [parametric](../glossary.md#parametric-surface), [mesh](../glossary.md#mesh)

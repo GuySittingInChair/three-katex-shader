@@ -36,42 +36,42 @@ Ray Tracing, Spectra, 4D, Number Theory, Vector Fields and Voxels.
 
 | Technique | Sketches | Wiki page |
 |---|---|---|
-| Full-screen shader picture (`shader` mode) | 87 | [shaders.md](shaders.md) |
-| Shader programs inside 3D scenes (`ShaderMaterial`) | about 40 more | [shaders.md](shaders.md) |
-| Uniforms: numbers handed from JavaScript to a shader | nearly all | [uniforms.md](uniforms.md) |
+| Full-screen shader picture (`shader` mode) | 87 | [Shaders: two questions](shaders.md) |
+| Shader programs inside 3D scenes (`ShaderMaterial`) | about 40 more | [Shaders: two questions](shaders.md) |
+| Uniforms: numbers handed from JavaScript to a shader | nearly all | [Uniforms: knobs passed in from JavaScript](uniforms.md) |
 | A closed-form loop (`motion(t)`, `src/lib/motion.js`) | 101 | *(planned: animation and timing)* |
 | Smooth steps and fades (`smoothstep`, `smooth`) | about 95 | *(planned: animation and timing)* |
-| Blending two values (`mix`, `lerp`) | about 100 | [colour-blending-and-gain.md](colour-blending-and-gain.md) |
-| The cosine colour palette | 30 | [cosine-palette.md](cosine-palette.md) |
-| Sine and cosine waves | 151 | [sine-and-cosine.md](sine-and-cosine.md) |
-| Colour scales for data (CMB, temperature, density) | the data sketches | [colour-scales.md](colour-scales.md) |
-| Meshes, geometry and materials | all `3d` sketches | [mesh-geometry-material.md](mesh-geometry-material.md) |
-| Screen-width lines and dots (`src/lib/fatLines.js`) | 41 | [lines-and-points.md](lines-and-points.md) |
-| Clouds of points (`THREE.Points`) | 20 | [lines-and-points.md](lines-and-points.md) |
-| Many copies of one shape (`InstancedMesh`) | 12 | [instancing.md](instancing.md) |
-| Lights | 13 | [lights.md](lights.md) |
-| Orbit camera you can drag (`controls: 'orbit'`) | 60 | [camera-and-controls.md](camera-and-controls.md) |
-| Textures: pictures a shader looks things up in | many | [textures.md](textures.md) |
+| Blending two values (`mix`, `lerp`) | about 100 | [Colour 2: blending, adding, dimming and gain](colour-blending-and-gain.md) |
+| The cosine colour palette | 30 | [Colour 3: the cosine palette (the rainbow trick)](cosine-palette.md) |
+| Sine and cosine waves | 151 | [Sine and cosine: the wave-makers](sine-and-cosine.md) |
+| Colour scales for data (CMB, temperature, density) | the data sketches | [Colour 4: colour scales for data, and how they are chosen](colour-scales.md) |
+| Meshes, geometry and materials | all `3d` sketches | [Drawing in 3D 2: mesh, geometry and material](mesh-geometry-material.md) |
+| Screen-width lines and dots (`src/lib/fatLines.js`) | 41 | [Drawing in 3D 3: lines and points](lines-and-points.md) |
+| Clouds of points (`THREE.Points`) | 20 | [Drawing in 3D 3: lines and points](lines-and-points.md) |
+| Many copies of one shape (`InstancedMesh`) | 12 | [Drawing in 3D 6: many copies of one shape (instancing)](instancing.md) |
+| Lights | 13 | [Drawing in 3D 4: lights](lights.md) |
+| Orbit camera you can drag (`controls: 'orbit'`) | 60 | [Drawing in 3D 5: how the camera moves](camera-and-controls.md) |
+| Textures: pictures a shader looks things up in | many | [Textures: pictures a shader can look things up in](textures.md) |
 | Drawing on a hidden 2D canvas (`CanvasTexture`) | 12 | *(planned: drawing in 2D)* |
-| Grids of numbers stored as a picture (`DataTexture`) | 15 | [textures.md](textures.md) |
-| Simulating on the GPU by rendering back and forth (`WebGLRenderTarget`) | 5 | [render-targets.md](render-targets.md) |
+| Grids of numbers stored as a picture (`DataTexture`) | 15 | [Textures: pictures a shader can look things up in](textures.md) |
+| Simulating on the GPU by rendering back and forth (`WebGLRenderTarget`) | 5 | [Simulating on the graphics chip: render targets and ping-pong](render-targets.md) |
 | Ray marching distance fields (3D shapes drawn by a shader) | 13 | *(planned: shaders, part 2)* |
 | Escape-time fractals (repeat z → z² + c) | many of the 43 fractals | *(planned: math)* |
-| Surfaces that change shape on the GPU (`src/lib/morphSurface.js`) | 5 | [mesh-geometry-material.md](mesh-geometry-material.md) |
+| Surfaces that change shape on the GPU (`src/lib/morphSurface.js`) | 5 | [Drawing in 3D 2: mesh, geometry and material](mesh-geometry-material.md) |
 | Stepping a simulation forward in time (Euler, Runge–Kutta, Verlet) | 20 | *(planned: simulation)* |
 | Loops that refine a guess (Newton's method) | 10 | *(planned: math)* |
 | Realistic scenes (`src/lib/environment.js`) | 9 | *(planned)*; also docs/guide.md §13 |
 | The comedy formula (`src/lib/bit.js`) | 33 | docs/guide.md §12 |
-| Soft glow (`src/lib/glow.js`) | 13 | [glow.md](glow.md) |
-| Noise and fbm (home-made smooth randomness) | 14 | [noise.md](noise.md) |
-| Random numbers and seeds (`Math.random`, seeded generators) | many | [randomness.md](randomness.md) |
-| Sliders that rebuild the sketch (`rebuild: true`) | several | [params.md](params.md) |
+| Soft glow (`src/lib/glow.js`) | 13 | [Glow: making bright things shine](glow.md) |
+| Noise and fbm (home-made smooth randomness) | 14 | [Noise: randomness that looks natural](noise.md) |
+| Random numbers and seeds (`Math.random`, seeded generators) | many | [Random numbers, and seeds that make them repeatable](randomness.md) |
+| Sliders that rebuild the sketch (`rebuild: true`) | several | [Params: the sliders](params.md) |
 | Kuramoto–Sivashinsky solver (`src/lib/kuramotoSivashinsky.js`) | 5 | *(planned: science)* |
 | Voronoi cells (`src/lib/voronoi.js`) | 2 | *(planned: math)* |
 | Live sound input (`ctx.audio`) | 8 | *(planned: audio)* |
-| Loading data files (`fetch`) | 16 | [js-promises-and-fetch.md](js-promises-and-fetch.md) |
+| Loading data files (`fetch`) | 16 | [Reading JavaScript 5: loading data (`fetch`, `Promise`, `await`)](js-promises-and-fetch.md) |
 | Map projections (Mollweide, gnomonic) | 2 | *(planned: maps and the sky)* |
-| Buttons on a sketch (`actions`) | 7 | [sketch-format.md](sketch-format.md) |
+| Buttons on a sketch (`actions`) | 7 | [The sketch format: every field](sketch-format.md) |
 
 Techniques found in only one sketch (for example the 3D galaxy engine in `src/lib/galaxy/`, used by
 Messier in Depth and described in `docs/galaxy-engine.md`) are explained in that sketch's walkthrough.

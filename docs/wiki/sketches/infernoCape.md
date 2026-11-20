@@ -79,5 +79,5 @@ white-hot core.
 frantic, shattered, crackling mess, like the cape is about to explode. Then drag **Flow** to 0: the fire
 freezes into a still slab of glowing rock, with only the gentle breathing left.
 
-**Words on this page:** [procedural](../glossary.md), [noise](../glossary.md), [fbm](../glossary.md),
-[domain warping](../glossary.md), [smoothstep](../glossary.md), [vignette](../glossary.md)
+**Words on this page:** [procedural](../glossary.md#procedural), [noise](../glossary.md#noise), [fbm](../glossary.md#fbm),
+[domain warping](../glossary.md#domain-warping), [smoothstep](../glossary.md#smoothstep), [vignette](../glossary.md#vignette)

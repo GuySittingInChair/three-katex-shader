@@ -71,6 +71,6 @@ sneakier bug. Both are explained on [their own page](kuramotoSivashinsky-fix.md)
 landscape, so the cells look about twice as big: fat, wobbling bubbles. Then push **Speed** to 15 and
 watch them boil.
 
-**Words on this page:** [chaos](../glossary.md), [Laplacian](../glossary.md),
-[Fourier transform](../glossary.md), [Web Worker](../glossary.md), [DataTexture](../glossary.md),
-[colour scale](../glossary.md)
+**Words on this page:** [chaos](../glossary.md#chaos), [Laplacian](../glossary.md#laplacian),
+[Fourier transform](../glossary.md#fourier-transform), [Web Worker](../glossary.md#web-worker), [DataTexture](../glossary.md#datatexture),
+[colour scale](../glossary.md#colour-scale)

@@ -78,5 +78,5 @@ color = mix(color, bright, clamp((f + length(r) * 0.4 - 0.6) * 1.6, 0.0, 1.0));
 `deep = vec3(0.1, 0.0, 0.0)`, `mid = vec3(0.8, 0.2, 0.0)` and `bright = vec3(1.0, 0.9, 0.3)`. Same currents,
 but now it's molten rock oozing through a dark crust. Then push **warpStrength** to 2 for a full eruption.
 
-**Words on this page:** [noise](../glossary.md), [fbm](../glossary.md), [domain warping](../glossary.md),
-[hash](../glossary.md), [mix](../glossary.md), [shader](../glossary.md)
+**Words on this page:** [noise](../glossary.md#noise), [fbm](../glossary.md#fbm), [domain warping](../glossary.md#domain-warping),
+[hash](../glossary.md#hash), [mix](../glossary.md#lerp-mix), [shader](../glossary.md#shader)

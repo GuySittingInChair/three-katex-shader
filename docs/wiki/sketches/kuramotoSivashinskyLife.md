@@ -90,5 +90,5 @@ blend three-quarters of the way to mint wherever Life is alive.
 touch the flame: it's the plain sketch with a ghost layer drawn over it. Now drag **Drive** to its
 maximum, 1.2, and **Gen rate** to 15: the Life board stampedes, and the flame boils up wherever it goes.
 
-**Words on this page:** [Kuramoto–Sivashinsky equation](../glossary.md), [cellular automaton](../glossary.md),
-[glider](../glossary.md), [DataTexture](../glossary.md), [lerp / mix](../glossary.md)
+**Words on this page:** [Kuramoto–Sivashinsky equation](../glossary.md#kuramoto-sivashinsky-equation), [cellular automaton](../glossary.md#cellular-automaton),
+[glider](../glossary.md#glider), [DataTexture](../glossary.md#datatexture), [lerp / mix](../glossary.md#lerp-mix)

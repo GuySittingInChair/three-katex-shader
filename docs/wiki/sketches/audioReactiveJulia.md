@@ -89,5 +89,5 @@ colour depending on how many rounds it lasted.
   can pull it back, so every round takes it further out.
 - **0.25**: with speed at its default 0.6, `c` takes about 42 seconds to go once round its circle.
 
-**Words on this page:** [Julia set](../glossary.md), [complex number](../glossary.md),
-[escape time](../glossary.md), [shader](../glossary.md), [uniform](../glossary.md)
+**Words on this page:** [Julia set](../glossary.md#julia-set), [complex number](../glossary.md#complex-number),
+[escape time](../glossary.md#escape-time), [shader](../glossary.md#shader), [uniform](../glossary.md#uniform)

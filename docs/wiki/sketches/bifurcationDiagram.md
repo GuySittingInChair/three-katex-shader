@@ -94,5 +94,5 @@ covering the whole width of 1.6.
 - **300**: years per pixel at most (100 burn-in + up to 200 drawn). Every pixel does this on every frame.
 - **About 11 seconds**: how long the yellow line takes to cross, at the default speed (1.6 ÷ 0.15).
 
-**Words on this page:** [logistic map](../glossary.md), [bifurcation](../glossary.md),
-[chaos](../glossary.md), [burn-in](../glossary.md), [shader](../glossary.md), [smoothstep](../glossary.md)
+**Words on this page:** [logistic map](../glossary.md#logistic-map), [bifurcation](../glossary.md#bifurcation),
+[chaos](../glossary.md#chaos), [burn-in](../glossary.md#burn-in), [shader](../glossary.md#shader), [smoothstep](../glossary.md#smoothstep)

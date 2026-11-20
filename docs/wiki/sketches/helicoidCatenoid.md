@@ -80,6 +80,6 @@ hourglass parts do. In between, a bit of both shapes at once, and sliding α fro
 chessboard. As it rolls, every square bends but none stretches or squashes: the proof you can see. Then
 drag **Speed** to 4 and watch the pasta spin itself into a chimney and back like a nervous party trick.
 
-**Words on this page:** [minimal surface](../glossary.md), [helicoid](../glossary.md),
-[catenoid](../glossary.md), [isometry](../glossary.md), [Gaussian curvature](../glossary.md),
-[parametric surface](../glossary.md)
+**Words on this page:** [minimal surface](../glossary.md#minimal-surface), [helicoid](../glossary.md#helicoid),
+[catenoid](../glossary.md#catenoid), [isometry](../glossary.md#isometry), [Gaussian curvature](../glossary.md#gaussian-curvature),
+[parametric surface](../glossary.md#parametric-surface)

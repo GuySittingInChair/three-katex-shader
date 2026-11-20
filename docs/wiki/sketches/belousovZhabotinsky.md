@@ -99,6 +99,6 @@ Then the ticks run, as described in [Simulating on the graphics chip](../render-
 - **137.5°**: the golden angle, the same angle sunflowers use to space their seeds. Turning by it again
   and again never lands exactly on an earlier direction, so the cuts keep finding new angles.
 
-**Words on this page:** [reaction–diffusion](../glossary.md), [diffusion](../glossary.md),
-[render target](../glossary.md), [ping-pong](../glossary.md), [excitable](../glossary.md),
-[golden angle](../glossary.md)
+**Words on this page:** [reaction–diffusion](../glossary.md#reaction-diffusion), [diffusion](../glossary.md#diffusion),
+[render target](../glossary.md#render-target), [ping-pong](../glossary.md#ping-pong), [excitable](../glossary.md#excitable),
+[golden angle](../glossary.md#golden-angle)

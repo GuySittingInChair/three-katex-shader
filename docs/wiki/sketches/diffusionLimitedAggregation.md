@@ -83,5 +83,5 @@ Rings of colour spread outward, and the whole palette slowly drifts.
 **Try this (funky):** drag **speed** to its maximum, 20. Now it's 600 steps a second, and the tree shoots
 out its branches in well under a minute. Then drag it to 1 to watch single squares arrive one by one.
 
-**Words on this page:** [diffusion](../glossary.md), [aggregation](../glossary.md),
-[random walk](../glossary.md), [DataTexture](../glossary.md), [shader](../glossary.md)
+**Words on this page:** [diffusion](../glossary.md#diffusion), [aggregation](../glossary.md#aggregation),
+[random walk](../glossary.md#random-walk), [DataTexture](../glossary.md#datatexture), [shader](../glossary.md#shader)

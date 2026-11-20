@@ -74,5 +74,5 @@ along, stored as `hRe` and `hIm`). Average the two copies and write the result i
 
 **Checked:** it ran for 20 minutes, and about 7 minutes at each end of the sliders, without slowing.
 
-**Words on this page:** [Euler's method](../glossary.md), [Fourier transform](../glossary.md),
-[rounding error](../glossary.md), [clamp](../glossary.md)
+**Words on this page:** [Euler's method](../glossary.md#euler-s-method), [Fourier transform](../glossary.md#fourier-transform),
+[rounding error](../glossary.md#rounding-error), [clamp](../glossary.md#clamp)

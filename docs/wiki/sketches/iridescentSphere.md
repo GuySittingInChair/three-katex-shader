@@ -77,6 +77,6 @@ the sideways one (`rotation.x`), so it tumbles slightly.
 becomes a swirling psychedelic marble, still dark only at the very centre. Push **Hue speed** to 0.3 and it
 strobes like a disco ball.
 
-**Words on this page:** [Fresnel effect](../glossary.md), [iridescence](../glossary.md),
-[normal](../glossary.md), [cosine palette](../glossary.md), [lerp / mix](../glossary.md),
-[vertex shader](../glossary.md)
+**Words on this page:** [Fresnel effect](../glossary.md#fresnel-effect), [iridescence](../glossary.md#iridescence),
+[normal](../glossary.md#normal), [cosine palette](../glossary.md#cosine-palette), [lerp / mix](../glossary.md#lerp-mix),
+[vertex shader](../glossary.md#vertex-shader)

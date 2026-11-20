@@ -87,5 +87,5 @@ equation.
 - **1 / d**: in the separation step, `diff` is already as long as the distance, so dividing by `d` makes
   every neighbour's push the same size, pointing away from it.
 
-**Words on this page:** [emergence](../glossary.md), [velocity](../glossary.md),
-[vector](../glossary.md), [instancing](../glossary.md), [simulation step](../glossary.md)
+**Words on this page:** [emergence](../glossary.md#emergence), [velocity](../glossary.md#velocity),
+[vector](../glossary.md#vector), [instancing](../glossary.md#instancing), [simulation step](../glossary.md#simulation-step)

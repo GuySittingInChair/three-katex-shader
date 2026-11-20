@@ -87,5 +87,5 @@ float fade = exp(-age * 1.1);
 into a buzzy retro video-game chip sound. Then drag **noteInterval** down to 0.15 for a frantic arcade
 soundtrack.
 
-**Words on this page:** [random walk](../glossary.md), [pentatonic scale](../glossary.md),
-[synthesiser](../glossary.md), [uniform](../glossary.md), [shader](../glossary.md)
+**Words on this page:** [random walk](../glossary.md#random-walk), [pentatonic scale](../glossary.md#pentatonic-scale),
+[synthesiser](../glossary.md#synthesiser), [uniform](../glossary.md#uniform), [shader](../glossary.md#shader)

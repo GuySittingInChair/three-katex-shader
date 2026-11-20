@@ -86,6 +86,6 @@ angles.
 the dark like a flower. Then drag it up to 30 for a full bloom right to the rim, and set
 **Spin** to −1 to watch the whole infinite floor whirl.
 
-**Words on this page:** [hyperbolic geometry](../glossary.md), [Poincaré disk](../glossary.md),
-[tiling](../glossary.md), [reflection in a circle](../glossary.md), [kaleidoscope fold](../glossary.md),
-[shader](../glossary.md)
+**Words on this page:** [hyperbolic geometry](../glossary.md#hyperbolic-geometry), [Poincaré disk](../glossary.md#poincare-disk),
+[tiling](../glossary.md#tiling), [reflection in a circle](../glossary.md#reflection-in-a-circle), [kaleidoscope fold](../glossary.md#kaleidoscope-fold),
+[shader](../glossary.md#shader)

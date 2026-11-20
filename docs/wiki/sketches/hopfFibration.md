@@ -82,6 +82,6 @@ return q.yzw / max(1.0 - q.x, 1e-3);
 **Width** to its smallest. You get a dense, shimmering bird's nest of 8,128 linked pairs. Then drag
 **Width** to its biggest for a pile of chunky neon bangles.
 
-**Words on this page:** [Hopf fibration](../glossary.md), [stereographic projection](../glossary.md),
-[Clifford torus](../glossary.md), [topology](../glossary.md), [vertex shader](../glossary.md),
-[lerp / mix](../glossary.md)
+**Words on this page:** [Hopf fibration](../glossary.md#hopf-fibration), [stereographic projection](../glossary.md#stereographic-projection),
+[Clifford torus](../glossary.md#clifford-torus), [topology](../glossary.md#topology), [vertex shader](../glossary.md#vertex-shader),
+[lerp / mix](../glossary.md#lerp-mix)

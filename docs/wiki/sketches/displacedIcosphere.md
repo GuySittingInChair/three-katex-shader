@@ -88,5 +88,5 @@ flatter mountains.
 and the planet becomes a chunky, crumpled paper ball with patches of colour. Or try `(1, 12)`: about 3,400 triangles, and a
 much more detailed world with proper wiggly coastlines.
 
-**Words on this page:** [mesh](../glossary.md), [noise](../glossary.md), [fbm](../glossary.md),
-[normalise](../glossary.md), [flat shading](../glossary.md), [light](../glossary.md)
+**Words on this page:** [mesh](../glossary.md#mesh), [noise](../glossary.md#noise), [fbm](../glossary.md#fbm),
+[normalise](../glossary.md#normalise), [flat shading](../glossary.md#flat-shading), [light](../glossary.md#light)

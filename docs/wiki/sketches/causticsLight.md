@@ -86,5 +86,5 @@ towards the edges, the *vignette*, makes it feel like looking down into water.
 - **40**: rounds per pixel for the Julia set, a third of what [Audio-Reactive Julia](audioReactiveJulia.md)
   uses, since it only needs a rough outline.
 
-**Words on this page:** [caustic](../glossary.md), [interference](../glossary.md),
-[Julia set](../glossary.md), [shader](../glossary.md), [vignette](../glossary.md)
+**Words on this page:** [caustic](../glossary.md#caustic), [interference](../glossary.md#interference),
+[Julia set](../glossary.md#julia-set), [shader](../glossary.md#shader), [vignette](../glossary.md#vignette)

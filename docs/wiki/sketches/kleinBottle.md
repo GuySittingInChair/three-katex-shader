@@ -83,6 +83,6 @@ float r = m_a + m_b * radial;
 loops grow more than twice as tall: the bottle balloons into a puffy, tangled pretzel. (The equation on screen still says 1.1,
 because that number is typed into the `latex` text separately.)
 
-**Words on this page:** [Möbius strip](../glossary.md), [Klein bottle](../glossary.md),
-[non-orientable](../glossary.md), [topology](../glossary.md), [parametric surface](../glossary.md),
-[motion](../glossary.md)
+**Words on this page:** [Möbius strip](../glossary.md#mobius-strip), [Klein bottle](../glossary.md#klein-bottle),
+[non-orientable](../glossary.md#non-orientable), [topology](../glossary.md#topology), [parametric surface](../glossary.md#parametric-surface),
+[motion](../glossary.md#motion)

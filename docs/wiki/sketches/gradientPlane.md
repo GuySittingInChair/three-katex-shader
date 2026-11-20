@@ -65,5 +65,5 @@ state.uniforms.uScale.value = ctx.params.scale;
 swing perfectly together, except that green follows a different direction. The rainbow collapses into a
 psychedelic plaid of magenta, green, white and black. Then drag **Scale** to 8 for a tablecloth.
 
-**Words on this page:** [shader](../glossary.md), [cosine palette](../glossary.md),
-[uniform](../glossary.md), [vUv](../glossary.md), [swizzling](../glossary.md), [radians](../glossary.md)
+**Words on this page:** [shader](../glossary.md#shader), [cosine palette](../glossary.md#cosine-palette),
+[uniform](../glossary.md#uniform), [vUv](../glossary.md#vuv), [swizzling](../glossary.md#swizzling), [radians](../glossary.md#radians)

@@ -83,6 +83,6 @@ The label in the equation changes too: when `s` is under 0.02 it reads "(Roman s
 - **110 × 165**: the grid of points the surface is made of, about 18,000 points, all moved on the
   graphics chip on every frame.
 
-**Words on this page:** [projective plane](../glossary.md), [surface](../glossary.md),
-[pinch point](../glossary.md), [mix](../glossary.md), [uniform](../glossary.md),
-[topology](../glossary.md)
+**Words on this page:** [projective plane](../glossary.md#projective-plane), [surface](../glossary.md#surface),
+[pinch point](../glossary.md#pinch-point), [mix](../glossary.md#lerp-mix), [uniform](../glossary.md#uniform),
+[topology](../glossary.md#topology)

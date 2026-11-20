@@ -87,5 +87,5 @@ seconds (one full wave takes 6.28 ÷ 0.9 ≈ 7).
 - **0.05**: the colour drifts a twentieth of the way round the rainbow every second, so a full cycle takes
   20 seconds.
 
-**Words on this page:** [shader](../glossary.md), [uniform](../glossary.md), [smoothstep](../glossary.md),
-[cosine palette](../glossary.md), [radians](../glossary.md)
+**Words on this page:** [shader](../glossary.md#shader), [uniform](../glossary.md#uniform), [smoothstep](../glossary.md#smoothstep),
+[cosine palette](../glossary.md#cosine-palette), [radians](../glossary.md#radians)

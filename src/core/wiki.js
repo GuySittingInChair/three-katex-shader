@@ -32,6 +32,12 @@ export const stripHeader = (md) => md.replace(/^---\n[\s\S]*?\n---\n+/, '');
 const headingId = (text) =>
   text.toLowerCase().trim().replace(/<[^>]+>/g, '').replace(/[^\p{L}\p{N}\- ]/gu, '').replace(/ /g, '-');
 
+// "binary file (`.bin`)" -> "binary-file", "Bézier curve" -> "bezier-curve".
+// tests/wiki.test.mjs uses the same rule.
+export const glossaryId = (term) =>
+  term.replace(/\(.*?\)/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
 // Markdown -> HTML with the wiki's relative links pointed at the site:
 // other pages -> /wiki/..., a sketch's source file -> that sketch's page.
 // The wiki is written by us, not visitors, so its HTML is trusted.
@@ -41,6 +47,14 @@ export function renderWiki(md, slug) {
   const holder = document.createElement('div');
   holder.innerHTML = html;
   for (const h of holder.querySelectorAll('h1, h2, h3, h4')) h.id ||= headingId(h.textContent);
+  // Glossary entries ("- **golden angle**: …") get ids, so "Words on this page"
+  // links land on the word itself (glossary.md#golden-angle).
+  if (slug === 'glossary') {
+    for (const li of holder.querySelectorAll('li')) {
+      const term = li.firstElementChild?.tagName === 'STRONG' ? li.firstElementChild.textContent : null;
+      if (term) li.id = glossaryId(term);
+    }
+  }
   for (const a of holder.querySelectorAll('a[href]')) {
     const href = a.getAttribute('href');
     if (/^[a-z]+:/i.test(href) || href.startsWith('#') || href.startsWith('/')) {

@@ -89,5 +89,5 @@ the same pattern painted with a fat brush. Then try `300.0` for a shimmering moi
 resized the window the pattern sat off-centre until you left and came back. It now re-reads the size
 every frame.
 
-**Words on this page:** [shader](../glossary.md), [kaleidoscope fold](../glossary.md),
-[uniform](../glossary.md), [integral](../glossary.md)
+**Words on this page:** [shader](../glossary.md#shader), [kaleidoscope fold](../glossary.md#kaleidoscope-fold),
+[uniform](../glossary.md#uniform), [integral](../glossary.md#integral)

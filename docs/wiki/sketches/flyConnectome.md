@@ -77,6 +77,6 @@ neurons to other neurons, rather than to the senses or the muscles).
 rush, a looming threat, a random lesion, or a full "overload burst" firing every sense at once. Now and
 then it heals everything. Leave it running and watch the brain flicker between panic, damage and recovery.
 
-**Words on this page:** [connectome](../glossary.md), [neuron](../glossary.md),
-[leaky integrate-and-fire](../glossary.md), [lesion](../glossary.md), [threshold](../glossary.md),
-[Web Worker](../glossary.md), [instancing](../glossary.md)
+**Words on this page:** [connectome](../glossary.md#connectome), [neuron](../glossary.md#neuron),
+[leaky integrate-and-fire](../glossary.md#leaky-integrate-and-fire), [lesion](../glossary.md#lesion), [threshold](../glossary.md#threshold),
+[Web Worker](../glossary.md#web-worker), [instancing](../glossary.md#instancing)

@@ -72,5 +72,5 @@ deliberately: see that page.
 are aimed ahead of the drone, at where it's predicted to be, and you can watch its weaving make the gun's
 guesses go wrong.
 
-**Words on this page:** [proportional navigation](../glossary.md), [terminal velocity](../glossary.md),
-[seed](../glossary.md), [glow](../glossary.md), [lead (aiming)](../glossary.md)
+**Words on this page:** [proportional navigation](../glossary.md#proportional-navigation), [terminal velocity](../glossary.md#terminal-velocity),
+[seed](../glossary.md#seed), [glow](../glossary.md#glow), [lead (aiming)](../glossary.md#lead)

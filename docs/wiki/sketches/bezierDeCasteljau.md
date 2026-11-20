@@ -83,5 +83,5 @@ round has one point fewer, until one is left.
   half a turn.
 - **128**: short line pieces that make up the curve.
 
-**Words on this page:** [Bézier curve](../glossary.md), [control point](../glossary.md),
-[lerp](../glossary.md), [radians](../glossary.md), [orbit controls](../glossary.md)
+**Words on this page:** [Bézier curve](../glossary.md#bezier-curve), [control point](../glossary.md#control-point),
+[lerp](../glossary.md#lerp-mix), [radians](../glossary.md#radians), [orbit controls](../glossary.md#orbit-controls)

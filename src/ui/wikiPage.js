@@ -53,7 +53,11 @@ export function createWikiPage(el) {
       a.textContent = `▶ Open ${sketch.name}`;
     }
     const target = hash && doc.querySelector(`#${CSS.escape(hash)}`);
-    if (target) target.scrollIntoView();
+    if (target) {
+      // In-app navigation doesn't trigger CSS :target, so mark it by hand.
+      target.classList.add('wiki-target');
+      target.scrollIntoView({ block: target.tagName === 'LI' ? 'center' : 'start' });
+    }
     else el.scrollTop = 0;
   }
 

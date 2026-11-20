@@ -99,6 +99,6 @@ It is left over from an earlier version, so it has no effect on the picture. The
 - **5 ± 2**: wedges in the kaleidoscope.
 - **About 25 seconds**: how long the wedge count takes to sway through one full cycle (2π ÷ 0.25).
 
-**Words on this page:** [logarithmic spiral](../glossary.md), [orbit trap](../glossary.md),
-[kaleidoscope fold](../glossary.md), [tone map](../glossary.md), [cosine palette](../glossary.md),
-[shader](../glossary.md)
+**Words on this page:** [logarithmic spiral](../glossary.md#logarithmic-spiral), [orbit trap](../glossary.md#orbit-trap),
+[kaleidoscope fold](../glossary.md#kaleidoscope-fold), [tone map](../glossary.md#tone-map), [cosine palette](../glossary.md#cosine-palette),
+[shader](../glossary.md#shader)

@@ -88,6 +88,6 @@ That's static.
 into big, bold rainbow rings, like a 1970s album cover, with the Life blobs crawling over them. Then crank it to
 26 for maximum migraine.
 
-**Words on this page:** [fractal](../glossary.md), [kaleidoscope fold](../glossary.md),
-[cellular automaton](../glossary.md), [DataTexture](../glossary.md), [shader](../glossary.md),
-[interference](../glossary.md)
+**Words on this page:** [fractal](../glossary.md#fractal), [kaleidoscope fold](../glossary.md#kaleidoscope-fold),
+[cellular automaton](../glossary.md#cellular-automaton), [DataTexture](../glossary.md#datatexture), [shader](../glossary.md#shader),
+[interference](../glossary.md#interference)
