@@ -17,6 +17,8 @@ const PALETTES = (process.env.PALETTES || 'classic,space,dusk,paper').split(',')
 const VIEWS = [
   ['wiki walkthrough', '/wiki/sketches/gameOfLife'],
   ['wiki home', '/wiki'],
+  ['wiki tables and colour samples', '/wiki/cosine-palette'],
+  ['wiki audit log', '/wiki/_audit'],
   ['glossary', '/wiki/glossary#golden-angle'],
   ['sketches', '/sketches'],
   ['astronomy', '/astronomy'],
