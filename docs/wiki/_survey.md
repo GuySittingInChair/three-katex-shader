@@ -17,30 +17,31 @@ There are two **modes**, which decide how a sketch draws:
 
 | Mode | How many | What it means |
 |---|---|---|
-| `shader` | 87 | One flat picture filling the screen. A small program, the shader, picks the colour of every pixel. |
-| `3d` | 79 | A 3D scene with objects, a camera and often lights. Usually you can drag to look around. |
+| `shader` | 88 | One flat picture filling the screen. A small program, the shader, picks the colour of every pixel. |
+| `3d` | 102 | A 3D scene with objects, a camera and often lights. Usually you can drag to look around. |
 
-A `2d` mode is reserved in `src/core/SketchRunner.js`, but no sketch uses it. Flat drawing happens in two
-other ways: `shader` mode, and drawing onto a hidden 2D canvas that is then used as a picture ("canvas
-textures", 12 sketches).
+A `2d` mode is reserved in `src/core/SketchRunner.js`, but no sketch uses it. Flat drawing happens in three
+other ways: `shader` mode; drawing onto a hidden 2D canvas that is then used as a picture ("canvas textures",
+12 sketches); and the 2D stage (`src/lib/stage2d.js`, 22 sketches), a full-screen 2D canvas with a soft glow,
+used by the sketches added on 2026-11-20 (see [The 2D stage](stage-2d.md)).
 
 **Categories.** Each sketch names one category, and `src/core/taxonomy.js` sorts categories into seven groups
 (Mathematics, Systems, Fields, Geometry, Rendering, Audio, Experiments). The categories in use: Fractals 43,
-Physics 27, Astronomy 16, Chaos 8, Biology 5, Topology 4, Geometry 4, Functional Analysis 4,
-Reaction-Diffusion 3, Surfaces 3, Fluid Flow 3, Shaders 3, Knots 3, Particles 3, Waves 3, Splines 2, Optics 2,
-Graphs & Networks 2, Procedural Textures 2, Dynamical Systems 2, Algebraic Art 2, Chemistry 2, and one each
-for Audio-Reactive, Audio-Reactive Fractal, Visualization, Emergence, Growth, Meshes, Probability, Cellular
-Automata, Synthesis, Non-Euclidean, Materials, 3D, Waveforms, Optimization, Ray Tracing, Spectra, 4D, Number
-Theory, Vector Fields and Voxels.
+Physics 31, Astronomy 16, Chaos 8, Biology 8, Optics 6, Waves 5, Topology 5, Graphs & Networks 5, Geometry 5,
+Functional Analysis 4, Surfaces 3, Shaders 3, Reaction-Diffusion 3, Particles 3, Knots 3, Fluid Flow 3,
+Chemistry 3, Algorithms 3, Splines 2, Procedural Textures 2, Number Theory 2, Emergence 2, Dynamical Systems
+2, Algebraic Art 2, and one each for Waveforms, Voxels, Visualization, Vector Fields, Synthesis, Spectra, Ray
+Tracing, Probability, Optimization, Non-Euclidean, Meshes, Materials, Growth, Cellular Automata,
+Audio-Reactive Fractal, Audio-Reactive, 4D and 3D.
 
 ## Techniques used in more than one sketch
 
 | Technique | Sketches | Wiki page |
 |---|---|---|
-| Full-screen shader picture (`shader` mode) | 87 | [Shaders: two questions](shaders.md) |
+| Full-screen shader picture (`shader` mode) | 88 | [Shaders: two questions](shaders.md) |
 | Shader programs inside 3D scenes (`ShaderMaterial`) | 38 more | [Shaders: two questions](shaders.md) |
 | Uniforms: numbers handed from JavaScript to a shader | nearly all | [Uniforms: knobs passed in from JavaScript](uniforms.md) |
-| A closed-form loop (`motion(t)`, `src/lib/motion.js`) | 101 | *(planned: animation and timing)* |
+| A closed-form loop (`motion(t)`, `src/lib/motion.js`) | 123 | *(planned: animation and timing)* |
 | Smooth steps and fades (`smoothstep`, `smooth`) | about 95 | *(planned: animation and timing)* |
 | Blending two values (`mix`, `lerp`) | about 100 | [Colour 2: blending, adding, dimming and gain](colour-blending-and-gain.md) |
 | The cosine colour palette | 43 | [Colour 3: the cosine palette (the rainbow trick)](cosine-palette.md) |
@@ -54,6 +55,7 @@ Theory, Vector Fields and Voxels.
 | Orbit camera you can drag (`controls: 'orbit'`) | 60 | [Drawing in 3D 5: how the camera moves](camera-and-controls.md) |
 | Textures: pictures a shader looks things up in | many | [Textures: pictures a shader can look things up in](textures.md) |
 | Drawing on a hidden 2D canvas (`CanvasTexture`) | 12 | *(planned: drawing in 2D)* |
+| The 2D stage: a glowing full-screen canvas (`src/lib/stage2d.js`) | 22 | [The 2D stage](stage-2d.md) |
 | Grids of numbers stored as a picture (`DataTexture`) | 15 | [Textures: pictures a shader can look things up in](textures.md) |
 | Simulating on the GPU by rendering back and forth (`WebGLRenderTarget`) | 5 | [Simulating on the graphics chip: render targets and ping-pong](render-targets.md) |
 | Ray marching distance fields (3D shapes drawn by a shader) | 14 | *(planned: shaders, part 2)* |
@@ -146,10 +148,10 @@ Planck map), HTML and JSON answers from NED, Wikipedia and SkyView.
 
 ## Shared code in `src/lib/`
 
-`motion.js` (loop timing), `fatLines.js` (lines and dots), `morphSurface.js` + `surfaceMaterial.js` (GPU
-surfaces), `environment.js` (realistic scenes), `bit.js` (comedy timing), `glow.js`, `voronoi.js`,
-`kuramotoSivashinsky.js`, `curves.js`, `parametric.js`, `equation.js`, `hopf.js`, `skullHead.js`,
-`flyConnectome.js`, `galaxy/` (galaxy engine) and `sky/` (star layer).
+`motion.js` (loop timing), `fatLines.js` (lines and dots), `stage2d.js` (the 2D stage), `morphSurface.js` +
+`surfaceMaterial.js` (GPU surfaces), `environment.js` (realistic scenes), `bit.js` (comedy timing), `glow.js`,
+`voronoi.js`, `kuramotoSivashinsky.js`, `curves.js`, `parametric.js`, `equation.js`, `hopf.js`,
+`skullHead.js`, `flyConnectome.js`, `galaxy/` (galaxy engine) and `sky/` (star layer).
 
 ## Existing documentation (kept as it is)
 
@@ -338,3 +340,27 @@ day. "Walkthrough" links to the plain-English page where one exists.
 | 2026-11-12 | `exoplanets.js` | Six Thousand Worlds | 3d | Astronomy | [walkthrough](sketches/exoplanets.md) |
 | 2026-11-12 | `messierInDepth.js` | Messier's Sky, in Depth | 3d | Astronomy |  |
 | 2026-11-18 | `antiAircraftContraception.js` | Anti-Aircraft Contraception | 3d | Physics | [walkthrough](sketches/antiAircraftContraception.md) |
+| 2026-11-20 | `smallWorld.js` | Six Degrees of Poop | 3d | Graphs & Networks | [walkthrough](sketches/smallWorld.md) |
+| 2026-11-20 | `physarumRail.js` | Slime Mould Rail Planner | 3d | Graphs & Networks | [walkthrough](sketches/physarumRail.md) |
+| 2026-11-20 | `cascadingBlackout.js` | Cascading Blackout | 3d | Graphs & Networks | [walkthrough](sketches/cascadingBlackout.md) |
+| 2026-11-20 | `prisonersTurfWar.js` | Prisoner's Dilemma Turf War | 3d | Biology | [walkthrough](sketches/prisonersTurfWar.md) |
+| 2026-11-20 | `sillyWalksEvolved.js` | Silly Walks, Evolved | 3d | Biology | [walkthrough](sketches/sillyWalksEvolved.md) |
+| 2026-11-20 | `lSystemGarden.js` | L-System Botanical Garden | 3d | Biology | [walkthrough](sketches/lSystemGarden.md) |
+| 2026-11-20 | `doubleSlitEraser.js` | Double Slit, With Eraser | 3d | Waves | [walkthrough](sketches/doubleSlitEraser.md) |
+| 2026-11-20 | `sonicBoom.js` | Sonic Boom | 3d | Waves | [walkthrough](sketches/sonicBoom.md) |
+| 2026-11-20 | `soapFilmColours.js` | Soap Film Colours | shader | Optics | [walkthrough](sketches/soapFilmColours.md) |
+| 2026-11-20 | `prismDispersion.js` | Prism Dispersion | 3d | Optics | [walkthrough](sketches/prismDispersion.md) |
+| 2026-11-20 | `mirage.js` | Mirage | 3d | Optics | [walkthrough](sketches/mirage.md) |
+| 2026-11-20 | `schlierenPlume.js` | Schlieren: Seeing Hot Air | 3d | Optics | [walkthrough](sketches/schlierenPlume.md) |
+| 2026-11-20 | `lagrangeParking.js` | Lagrange Point Parking | 3d | Physics | [walkthrough](sketches/lagrangeParking.md) |
+| 2026-11-20 | `rocheShredder.js` | Roche Limit Shredder | 3d | Physics | [walkthrough](sketches/rocheShredder.md) |
+| 2026-11-20 | `foucaultPendulum.js` | Foucault's Pendulum | 3d | Physics | [walkthrough](sketches/foucaultPendulum.md) |
+| 2026-11-20 | `maxwellsDemon.js` | Maxwell's Demon | 3d | Physics | [walkthrough](sketches/maxwellsDemon.md) |
+| 2026-11-20 | `snowflakeGrowth.js` | Snowflake Growth | 3d | Chemistry | [walkthrough](sketches/snowflakeGrowth.md) |
+| 2026-11-20 | `hilbertNoodle.js` | Hilbert's Infinite Noodle | 3d | Geometry | [walkthrough](sketches/hilbertNoodle.md) |
+| 2026-11-20 | `zetaZeroHunter.js` | Riemann Zeta Zero Hunter | 3d | Number Theory | [walkthrough](sketches/zetaZeroHunter.md) |
+| 2026-11-20 | `stereographicMobius.js` | Stereographic Projection | 3d | Topology | [walkthrough](sketches/stereographicMobius.md) |
+| 2026-11-20 | `waveFunctionCollapse.js` | Wave Function Collapse | 3d | Algorithms | [walkthrough](sketches/waveFunctionCollapse.md) |
+| 2026-11-20 | `pathfindingRace.js` | Pathfinding Race | 3d | Algorithms | [walkthrough](sketches/pathfindingRace.md) |
+| 2026-11-20 | `huffmanSeaShells.js` | She Sells Sea Shells, Compressed | 3d | Algorithms | [walkthrough](sketches/huffmanSeaShells.md) |
+| 2026-11-20 | `hawksAndBoids.js` | Hawks and Boids | 3d | Emergence | [walkthrough](sketches/hawksAndBoids.md) |

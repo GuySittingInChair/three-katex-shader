@@ -71,8 +71,11 @@ There's also an expert guide, `docs/guide.md`, written for programmers. It shows
 - [4. Lists and labelled boxes](js-arrays-and-objects.md)
 - [5. Loading data: fetch and Promises](js-promises-and-fetch.md)
 
-## 4. Drawing in 2D *(planned)*
-Flat `shader` pictures and their coordinates; drawing on a hidden canvas (`CanvasTexture`, 12 sketches).
+## 4. Drawing in 2D
+
+- [The 2D stage: drawing flat pictures with a glow](stage-2d.md) (22 sketches)
+- *(planned)* Flat `shader` pictures and their coordinates; drawing on a hidden canvas (`CanvasTexture`, 12
+  sketches).
 
 ## 5. Drawing in 3D
 - [1. The scene and the camera](scene-and-camera.md)
@@ -171,6 +174,30 @@ sketches, with which ones are done, is at the end of [Survey of the project](_su
 | [Kepler's Pizza](sketches/keplersPizza.md) | A planet's orbit cut into equal-time slices: every slice holds the same area (Kepler's laws) |
 | [The Sun's Eleven-Year Heartbeat](sketches/sunCycle.md) | 142 years of real sunspots on a turning Sun, the butterfly diagram, and the 11-year cycle measured |
 | [Six Thousand Worlds](sketches/exoplanets.md) | All 6,412 known planets round other stars, appearing as found, then four charts of what they show |
+| [Six Degrees of Poop](sketches/smallWorld.md) | A rumour on a ring of friends: a few random shortcuts make the world small (Watts–Strogatz) |
+| [Slime Mould Rail Planner](sketches/physarumRail.md) | Nine thousand slime particles grow a rail network between twenty towns around Tokyo |
+| [Cascading Blackout](sketches/cascadingBlackout.md) | One failed power line overloads its neighbours until towns go dark (the swing equation) |
+| [Prisoner's Dilemma Turf War](sketches/prisonersTurfWar.md) | Cooperators and cheats on a board, each copying its best neighbour (Nowak and May) |
+| [Silly Walks, Evolved](sketches/sillyWalksEvolved.md) | A genetic algorithm teaching wobbly blobs to move |
+| [L-System Botanical Garden](sketches/lSystemGarden.md) | Six plants grown from single rewriting rules, swaying in the wind |
+| [Double Slit, With Eraser](sketches/doubleSlitEraser.md) | Particles through two slits build stripes; a detector wipes them; an eraser sorts them back |
+| [Sonic Boom](sketches/sonicBoom.md) | A singing robot flies faster than its own song: Doppler shifts and the Mach cone |
+| [Soap Film Colours](sketches/soapFilmColours.md) | A draining soap film coloured by real thin-film interference |
+| [Prism Dispersion](sketches/prismDispersion.md) | White light through a glass prism fans into a rainbow (Snell's law, Sellmeier formula) |
+| [Mirage](sketches/mirage.md) | Hot air over a road shows sky and an upside-down robot; cold air over the sea makes it loom |
+| [Schlieren: Seeing Hot Air](sketches/schlierenPlume.md) | The invisible hot air above a candle and a mug of tea, seen as a schlieren camera sees it |
+| [Lagrange Point Parking](sketches/lagrangeParking.md) | Rubber ducks at the five Lagrange points of the Earth and Moon: three roll off, two stay |
+| [Roche Limit Shredder](sketches/rocheShredder.md) | A rubble-pile moon spirals in and is torn into a ring at the Roche limit |
+| [Foucault's Pendulum](sketches/foucaultPendulum.md) | A pendulum over the spinning Earth: seen from the stars, the floor turns beneath it |
+| [Maxwell's Demon](sketches/maxwellsDemon.md) | A demon sorts fast molecules from slow ones; its memory pays the entropy bill (Landauer) |
+| [Snowflake Growth](sketches/snowflakeGrowth.md) | Six-armed snowflakes grown cell by cell from three numbers (Reiter's model) |
+| [Hilbert's Infinite Noodle](sketches/hilbertNoodle.md) | A single line folded finer and finer until it fills a square (the Hilbert curve) |
+| [Riemann Zeta Zero Hunter](sketches/zetaZeroHunter.md) | Walking the critical line and drawing where the Riemann zeta function lands, through every zero |
+| [Stereographic Projection](sketches/stereographicMobius.md) | A ball with a lamp on top casts its pattern on a plane; its moves are Möbius maps |
+| [Wave Function Collapse](sketches/waveFunctionCollapse.md) | Pipe tiles decided one at a time, least uncertain first, until tidy plumbing appears |
+| [Pathfinding Race](sketches/pathfindingRace.md) | Dijkstra and A* race through the same maze to the same shortest route |
+| [She Sells Sea Shells, Compressed](sketches/huffmanSeaShells.md) | A tongue-twister compressed two ways: Huffman codes and LZ77 |
+| [Hawks and Boids](sketches/hawksAndBoids.md) | Leaderless flocks from three simple rules, split and regrouped by three hunting hawks |
 
 ## 16. [Glossary](glossary.md)
 

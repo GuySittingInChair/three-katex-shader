@@ -12,7 +12,7 @@ import { caption } from '../lib/bit.js';
 // happens: the shadow turns inside out, straight lines curving into circles. Every one of these is a Möbius map,
 //     f(z) = (az + b) / (cz + d),     ad − bc ≠ 0,
 // and every Möbius map comes from some motion of the ball (Arnold and Rogness, "Möbius Transformations Revealed",
-// 2008). The numbers a, b, c, d shown are worked out live from where three points land: 0, 1 and ∞.
+// a short film, 2007). The numbers a, b, c, d shown are worked out live from where three points land: 0, 1 and ∞.
 // The pattern lives on the ball: a grid of unit squares and rings, as it would be on the plane with the ball at rest.
 // see docs/wiki/sketches/stereographicMobius.md
 

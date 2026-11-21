@@ -12,7 +12,7 @@ import { caption } from '../lib/bit.js';
 // Act 3, the eraser: the path record is read in a way that can't tell the slits apart, giving + or −:
 //     P(y, +) ∝ |ψ₁ + ψ₂|² / 2,  P(y, −) ∝ |ψ₁ − ψ₂|² / 2           fringes and anti-fringes
 // Their sum is still Act 2's pattern: the eraser never changes where particles land, only how they can be sorted
-// afterwards (as in Kim et al., 1999). Sorting by the result brings the fringes back, each subset on its own.
+// afterwards (as in Kim et al., Physical Review Letters, 2000). Sorting by the result brings the fringes back, each subset on its own.
 // see docs/wiki/sketches/doubleSlitEraser.md
 
 const D = 6, WIDTH = 1.5, L = 60, SUBS = 5;

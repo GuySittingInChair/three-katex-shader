@@ -84,8 +84,8 @@ export default {
 
   motion(t) {
     // Untilted, a level beam meets the left face at 30°. Turning the prism clockwise by φ makes it 30° + φ. The sweep runs
-    // the angle of incidence from 55° to 85°: below about 57° SF11 traps blue light inside (total internal
-    // reflection at the far face; it can only leave if it meets that face at less than asin(1/n) = 33°).
+    // the angle of incidence from 55° to 85°. Below 56.4° SF11 traps violet (420 nm) inside, and below 53.4° blue
+    // (486 nm): total internal reflection at the far face, which light can only leave at less than asin(1/n) ≈ 33°.
     const s = 0.5 - 0.5 * Math.cos(TAU * phaseOf(t, LOOP));
     return { tilt: -(25 + 30 * smooth(s)) * (Math.PI / 180) };          // negative = clockwise (y up)
   },

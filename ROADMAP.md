@@ -268,3 +268,17 @@ it.
   sketches at once.
 - **Phase 4 "how well" metric:** I agree it must stay private. I'd also leave it out of the proof of
   concept entirely, and build only speed and volume first.
+
+## Added 2026-11-20 at the owner's request: 24 new sketches
+
+The owner asked for a list of sketch ideas to be built without interruption. Built: Six Degrees of Poop (small
+world), Slime Mould Rail Planner (Physarum), Cascading Blackout, Prisoner's Dilemma Turf War, Silly Walks Evolved
+(genetic algorithm), L-System Botanical Garden, Double Slit With Eraser, Sonic Boom, Soap Film Colours, Prism
+Dispersion, Mirage, Schlieren, Lagrange Point Parking, Roche Limit Shredder, Foucault's Pendulum, Maxwell's Demon,
+Snowflake Growth, Hilbert's Infinite Noodle, Riemann Zeta Zero Hunter, Stereographic Projection, Wave Function
+Collapse, Pathfinding Race, She Sells Sea Shells Compressed, Hawks and Boids. Each has a walkthrough (CLAUDE.md
+rule) and thumbnail; a shared 2D stage helper (`src/lib/stage2d.js`, wiki page `stage-2d.md`) and an Algorithms
+category were added. Banach–Tarski (in the list) was replaced by the Hilbert curve, which the list offered as the
+alternative: its pieces can't be drawn. Line-by-line code notes for these are not written yet; they follow the
+note style the owner approves at check-in B. Verification: see the last row of `docs/wiki/_audit.md`.
+

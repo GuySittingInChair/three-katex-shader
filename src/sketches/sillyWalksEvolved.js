@@ -10,8 +10,9 @@ import { caption } from '../lib/bit.js';
 // and a floor where a node keeps (1 − grip) of its sideways motion.
 // Evolution: 40 creatures, each tried for 10 s; score = how far its middle moved to the right. The best 20 survive
 // and each has one child with every gene nudged at random by up to 12% of its range. Repeat.
-// Checked in Node (three seeds): the best of generation 1 manages 1–4 m; by generation 40, 11–17 m in 10 s, mostly by
-// hopping (the soft muscles were added because with stiff ones evolution found a way to fly).
+// Checked in Node (the sketch's first three runs): the best of generation 1 manages 0.9–2.5 m; by generation 40, 9–15 m
+// in 10 s, by lunging, scooting or hopping (the soft muscles were added because with stiff ones evolution found a
+// way to fly).
 // see docs/wiki/sketches/sillyWalksEvolved.md
 
 const PAIRS = [[0, 1], [1, 2], [2, 3], [3, 0], [0, 2], [1, 3]];

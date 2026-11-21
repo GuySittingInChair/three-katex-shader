@@ -12,7 +12,8 @@ import { caption } from '../lib/bit.js';
 // slowest case). Mass balance then gives a self-similar solution, worked out here, not quoted:
 //     flux q = ρ g h³ / 12η,   ∂h/∂t + ∂q/∂z = 0   →   h(z, t) = 2 √(η z / (ρ g t))
 // with z the depth below the top, η = 1.0 mPa·s (water), ρg = 9800 N/m³. So the top thins first and the colour
-// bands creep downward; where the film is thinner than about 30 nm it reflects almost nothing: black film.
+// bands creep downward; where the film is thinner than about 30 nm it reflects a fifth or less of its brightest, in
+// every colour, and looks black: black film.
 // Real soap films drain faster than this (their surfaces stretch and flow, and thin patches rise from the edges:
 // "marginal regeneration"); the slow swirls added to the thickness (±6%) stand in for that, and are not computed.
 // see docs/wiki/sketches/soapFilmColours.md
@@ -27,7 +28,7 @@ export default {
   description:
     'A soap film draining under gravity, coloured by real thin-film interference: light bouncing off its front and ' +
     'back surfaces, every wavelength added up and turned into a colour. The top thins first, bands of colour creep ' +
-    'down, and where it gets thinner than a thirtieth of a wavelength of light it goes black.',
+    'down, and where it gets thinner than about 30 nanometres, a twentieth of a wavelength of light, it looks black.',
   tags: ['optics', 'thin film', 'interference', 'soap bubble', 'colour science', 'drainage'],
   category: 'Optics',
   mode: 'shader',
