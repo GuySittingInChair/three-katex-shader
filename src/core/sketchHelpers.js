@@ -23,6 +23,7 @@ import { parseEquation, analyseSurface, EquationError, IPOW_GLSL } from '../lib/
 import { voronoiCells, polygonArea, polygonCentroid, secondMoment, lloydStep, cellStats, delaunayTriangles, G_HEXAGON } from '../lib/voronoi.js';
 import { createKS1D, createKS2D, fft, fft2 } from '../lib/kuramotoSivashinsky.js';
 import { createGlow } from '../lib/glow.js';
+import { createStage, rng, palette } from '../lib/stage2d.js';
 
 // Every name a sketch can use without importing it. The code panel runs edited
 // sketches as plain function bodies (see sketchCompiler.js), so these are
@@ -82,6 +83,9 @@ export {
   fft,
   fft2,
   createGlow,
+  createStage,
+  rng,
+  palette,
 };
 
 export const HELPERS = {
@@ -137,4 +141,7 @@ export const HELPERS = {
   fft,
   fft2,
   createGlow,
+  createStage,
+  rng,
+  palette,
 };
