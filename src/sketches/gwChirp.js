@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { smooth } from '../lib/motion.js';
 import { createFatLines } from '../lib/fatLines.js';
+import { createSoundPlayer, strainSound } from '../lib/spaceSound.js';
 
 // The First Chirp. GW150914, the first gravitational wave ever recorded (14 September 2015), taken from
 // the public LIGO strain (GWOSC: 32 s at 4096 samples a second from Hanford and Livingston) and worked
@@ -15,6 +16,9 @@ import { createFatLines } from '../lib/fatLines.js';
 //             measured phase, their separation from Kepler's law at the measured frequency
 //   measure   f^{−8/3} falls linearly to the merger, and its slope is the chirp mass
 // tools/gw/build_gw.py makes the data and every number shown.
+// Sound (with the Sound button on): the whitened Hanford strain, 35–350 Hz, played at its true speed (it is already in
+// the range we hear) during "clean" and "measure"; silent during the 60× slow-motion replay, which would be too low.
+// see docs/wiki/sketch-sound.md
 
 const DATA_URL = '/data/gw/';
 const PHASES = [['raw', 7], ['noise', 7], ['clean', 9], ['search', 7], ['merger', 22], ['measure', 11]];
@@ -142,6 +146,7 @@ export default {
   tags: ['gravitational waves', 'ligo', 'black holes', 'gw150914', 'matched filter', 'real data', 'relativity'],
   category: 'Astronomy',
   mode: '3d',
+  sound: 'live',
 
   motion(t) {
     const T = ((t % LOOP) + LOOP) % LOOP;
@@ -242,7 +247,7 @@ export default {
       LIVE.rawMax = rm / 100; // ×1e-21 → ×1e-19
       LIVE.d = d; s.d = d; s.tex = tex; s.ready = true;
     }).catch((err) => console.error('gw data', err));
-    return { s, hud, card, sheet, sheetMat, holes, ringTex, v: new THREE.Vector3(), w: new THREE.Vector3(), c: new THREE.Color(), look: new THREE.Vector3() };
+    return { s, hud, card, sheet, sheetMat, holes, ringTex, v: new THREE.Vector3(), w: new THREE.Vector3(), c: new THREE.Color(), look: new THREE.Vector3(), player: createSoundPlayer({ volume: 0.5 }), chirp: null };
   },
 
   update(ctx, state) {
@@ -262,6 +267,10 @@ export default {
     cam.lookAt(look);
     if (!s.ready) { hud.commit(); return; }
     const d = s.d, M = d.meta, U = sheetMat.uniforms;
+    // sound: the recorded chirp at true speed while the clean signal and the measurement are on screen
+    const hear = m.phase === 'clean' || m.phase === 'measure';
+    if (hear && !state.chirp) state.chirp = strainSound(d.H, 1, 0, d.n, M.fs, 22050);
+    state.player.loop(hear ? 'chirp' : null, hear ? state.chirp : null, 22050);
 
     // ---------- the binary ----------
     const tau = m.tau;
@@ -380,6 +389,7 @@ export default {
   dispose(ctx, state) {
     const s = state.s;
     s.disposed = true;
+    state.player.dispose();
     ctx.camera.remove(state.hud.object); ctx.camera.remove(state.card);
     state.card.geometry.dispose(); state.card.material.dispose();
     state.hud.dispose();

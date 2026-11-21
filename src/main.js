@@ -769,10 +769,12 @@ function updateSound() {
   const path = soundPathFor(sketch);
   setSketchSound(page === 'viewer' ? soundUrl(path) : null);
   const on = isSoundOn();
+  // A sketch with `sound: 'live'` makes its own sound in code (src/lib/spaceSound.js), so it gets the button too.
+  const audible = Boolean(path) || sketch.sound === 'live';
   for (const b of soundButtons) {
-    b.classList.toggle('hidden', !path);
+    b.classList.toggle('hidden', !audible);
     b.classList.toggle('active', on);
-    b.classList.toggle('sound-waiting', Boolean(path) && !on);
+    b.classList.toggle('sound-waiting', audible && !on);
     b.innerHTML = `${icon(on ? 'volume' : 'volumeOff')}<span>${on ? 'Sound on' : 'Sound'}</span>`;
   }
   const editable = canEditSound(sketch) && Boolean(getUser());

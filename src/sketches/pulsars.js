@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { smooth } from '../lib/motion.js';
 import { createFatLines } from '../lib/fatLines.js';
+import { createSoundPlayer, pulsarClicks } from '../lib/spaceSound.js';
 
 // Lighthouses of the Galaxy. Every pulsar in the ATNF Pulsar Catalogue with a known position and
 // distance (3679 of 3838), in the Milky Way where it is, each blinking at its own real rotation period.
@@ -8,6 +9,9 @@ import { createFatLines } from '../lib/fatLines.js';
 // steadily instead. Then the same points become the P–Ṗ diagram, the pulsar astronomer's map, and the
 // Crab pulsar's own numbers give the age and power of the Crab Nebula.
 // tools/pulsars/build_psr.py makes the data and every derived number (dipole spin-down, I = 10^45 g cm²).
+// Sound (with the Sound button on): one click per turn at the true rate, no speed-up: Vela (11.2 a second) over the
+// Galaxy, the Crab (29.9) in its section, the fastest known pulsar (716, a hum) with the millisecond pulsars.
+// see docs/wiki/sketch-sound.md
 
 const DATA_URL = '/data/pulsars/';
 const PHASES = [['galaxy', 13], ['chart', 12], ['crab', 10], ['msp', 10]];
@@ -68,6 +72,7 @@ export default {
   tags: ['pulsars', 'neutron stars', 'milky way', 'magnetars', 'crab', 'real data', 'p-pdot'],
   category: 'Astronomy',
   mode: '3d',
+  sound: 'live',
 
   motion(t) {
     const T = ((t % LOOP) + LOOP) % LOOP;
@@ -130,7 +135,7 @@ export default {
       ctx.scene.add(s.points);
       LIVE.d = { meta }; s.meta = meta; s.ready = true;
     }).catch((err) => console.error('pulsar data', err));
-    return { s, lines, v: new THREE.Vector3(), w: new THREE.Vector3(), c: new THREE.Color(), cg: new THREE.Vector3(), cc: new THREE.Vector3() };
+    return { s, lines, v: new THREE.Vector3(), w: new THREE.Vector3(), c: new THREE.Color(), cg: new THREE.Vector3(), cc: new THREE.Vector3(), player: createSoundPlayer({ volume: 0.4 }), clicks: {} };
   },
 
   update(ctx, state) {
@@ -157,6 +162,10 @@ export default {
     cam.lookAt(v);
     if (!s.ready) { lines.commit(); return; }
     const M = s.meta, U = s.mat.uniforms;
+    // sound: the pulsar this section is about, clicking once per turn at its catalogue period
+    const which = m.phase === 'crab' ? 'crab' : m.phase === 'msp' ? 'fastest' : m.phase === 'galaxy' ? 'vela' : null;
+    if (which && !state.clicks[which]) state.clicks[which] = pulsarClicks(M.special[which].P, 22050, which.length);
+    state.player.loop(which, which ? state.clicks[which] : null, 22050);
     U.uTime.value = ctx.time; U.uChart.value = chart;
     U.uPx.value = Math.max(3, Math.min(width, height) / 160);
     U.uHiMode.value = m.phase === 'msp' ? 1 : 0;
@@ -213,6 +222,7 @@ export default {
   dispose(ctx, state) {
     const s = state.s;
     s.disposed = true;
+    state.player.dispose();
     state.lines.dispose();
     if (s.geo) { s.geo.dispose(); s.mat.dispose(); }
     LIVE.d = null;

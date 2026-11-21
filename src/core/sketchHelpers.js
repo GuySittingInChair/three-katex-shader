@@ -24,6 +24,7 @@ import { voronoiCells, polygonArea, polygonCentroid, secondMoment, lloydStep, ce
 import { createKS1D, createKS2D, fft, fft2 } from '../lib/kuramotoSivashinsky.js';
 import { createGlow } from '../lib/glow.js';
 import { createStage, rng, palette } from '../lib/stage2d.js';
+import { createSoundPlayer, pulsarClicks, strainSound } from '../lib/spaceSound.js';
 
 // Every name a sketch can use without importing it. The code panel runs edited
 // sketches as plain function bodies (see sketchCompiler.js), so these are
@@ -86,6 +87,9 @@ export {
   createStage,
   rng,
   palette,
+  createSoundPlayer,
+  pulsarClicks,
+  strainSound,
 };
 
 export const HELPERS = {
@@ -144,4 +148,7 @@ export const HELPERS = {
   createStage,
   rng,
   palette,
+  createSoundPlayer,
+  pulsarClicks,
+  strainSound,
 };

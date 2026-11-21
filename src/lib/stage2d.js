@@ -24,12 +24,13 @@ const FRAG = /* glsl */ `
   vec3 bright(vec2 uv) { vec3 c = texture2D(uTex, uv).rgb; return max(c - 0.35, 0.0); }
   void main() {
     vec3 c = texture2D(uTex, vUv).rgb;
-    // a cheap glow: the bright parts of the picture, blurred over two rings of samples
+    // a cheap glow: the bright parts of the picture, blurred over three rings of 12 samples, each ring turned a
+    // little, so sharp bright things (like text) blur instead of leaving ghost copies
     vec3 g = vec3(0.0);
     for (int i = 0; i < 12; i++) {
       float a = float(i) * 0.5235988;
-      vec2 d = vec2(cos(a), sin(a));
-      g += bright(vUv + d * uPx * 4.0) * 0.6 + bright(vUv + d * uPx * 11.0) * 0.4;
+      vec2 d1 = vec2(cos(a), sin(a)), d2 = vec2(cos(a + 0.17), sin(a + 0.17)), d3 = vec2(cos(a + 0.35), sin(a + 0.35));
+      g += bright(vUv + d1 * uPx * 3.0) * 0.45 + bright(vUv + d2 * uPx * 6.5) * 0.35 + bright(vUv + d3 * uPx * 10.0) * 0.2;
     }
     c += uGlow * g / 12.0 * 1.6;
     // a gentle vignette
