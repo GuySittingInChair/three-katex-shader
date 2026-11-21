@@ -53,6 +53,7 @@ const KEYS = [
   { k: [0.9, 0.5, 0.39121], name: 'C', line: 'The hole spins backwards just enough to stand still. Exhausting.' },
   { k: [0.95, 0.7, 0.69], name: 'D', line: 'Hole spinning against the ring. Still in balance. Still dark.' },
 ];
+const RING_TEXT = 'YOU WILL HAVE NO FRIENDS AND DIE ALONE';   // what the ring says (owner's request, 2026-11-21)
 const MOVE = 4, HOLD = 8, LOOP = KEYS.length * (MOVE + HOLD);
 
 const HORIZON_VERT = /* glsl */ `
@@ -65,8 +66,9 @@ const HORIZON_VERT = /* glsl */ `
     gl_Position = projectionMatrix * mv;
   }`;
 const HORIZON_FRAG = /* glsl */ `
-  uniform float uTurn, uRing;
+  uniform float uTurn, uRing, uTextH;
   uniform vec3 uRim;
+  uniform sampler2D uText;
   varying vec3 vN, vView, vLocal;
   void main() {
     float f = pow(1.0 - abs(dot(normalize(vN), normalize(vView))), 5.0);   // only the very edge glows
@@ -75,6 +77,14 @@ const HORIZON_FRAG = /* glsl */ `
     float ang = (uRing > 0.5 ? atan(vLocal.y, vLocal.x) : atan(vLocal.z, vLocal.x)) + uTurn;
     float band = 0.5 + 0.5 * cos(ang * (uRing > 0.5 ? 24.0 : 10.0));
     vec3 col = uRim * (f * 1.5 + 0.05 * band * (0.3 + f)) + vec3(0.003);
+    // the ring's message, written round its top and bottom faces and carried round at the ring's own speed
+    if (uRing > 0.5) {
+      float tubeAng = atan(vLocal.z, length(vLocal.xy) - 1.0);          // where on the tube's cross-section
+      float across = abs(abs(tubeAng) - 1.5707963) * sign(length(vLocal.xy) - 1.0);
+      vec2 st = vec2(fract(-ang / 6.2831853), 0.5 - across / uTextH);
+      float ink = (st.y > 0.0 && st.y < 1.0) ? texture2D(uText, st).r : 0.0;
+      col += uRim * ink * 0.55;
+    }
     gl_FragColor = vec4(col, 1.0);
   }`;
 
@@ -123,9 +133,23 @@ export default {
     camera.position.set(0, 2.6, 6.2);
     ctx.controls?.target.set(0, 0, 0);
     ctx.controls?.update();
+    // the ring's message: a strip of text drawn once on a canvas, repeated three times round the ring
+    // see docs/wiki/textures.md and docs/wiki/sketches/darkSaturn.md
+    const cv = document.createElement('canvas');
+    cv.width = 4096; cv.height = 256;
+    const g = cv.getContext('2d');
+    g.fillStyle = '#000'; g.fillRect(0, 0, cv.width, cv.height);
+    g.fillStyle = '#fff'; g.font = 'bold 100px system-ui, sans-serif';
+    const fit = Math.min(1, (0.9 * cv.width / 3) / g.measureText(RING_TEXT).width);   // each copy fills 90% of its third
+    g.font = `bold ${Math.floor(100 * fit)}px system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    for (let i = 0; i < 3; i++) g.fillText(RING_TEXT, (i + 0.5) * cv.width / 3, cv.height / 2);
+    const text = new THREE.CanvasTexture(cv);
+    text.minFilter = THREE.LinearFilter; text.generateMipmaps = false;   // no mipmaps: the wrap-round seam would show
+    text.colorSpace = THREE.NoColorSpace;
     const mat = (rim, ring) => new THREE.ShaderMaterial({
       vertexShader: HORIZON_VERT, fragmentShader: HORIZON_FRAG,
-      uniforms: { uTurn: { value: 0 }, uRing: { value: ring ? 1 : 0 }, uRim: { value: new THREE.Color(rim) } },
+      uniforms: { uTurn: { value: 0 }, uRing: { value: ring ? 1 : 0 }, uRim: { value: new THREE.Color(rim) },
+        uText: { value: text }, uTextH: { value: 2 } },
     });
     const hole = new THREE.Mesh(new THREE.SphereGeometry(1, 96, 64), mat(0xffb46a, false));
     const ring = new THREE.Mesh(new THREE.TorusGeometry(1, 0.2, 48, 220), mat(0x8fb8ff, true));
@@ -136,7 +160,7 @@ export default {
     for (let i = 0; i < n; i++) { v.randomDirection().multiplyScalar(60 + Math.random() * 40); pos.set([v.x, v.y, v.z], i * 3); }
     const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     scene.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: 0x9aa6c8, size: 0.12, sizeAttenuation: true })));
-    return { glow, hole, ring, turnBH: 0, turnBR: 0, player: createSoundPlayer({ volume: 0.35 }) };
+    return { glow, hole, ring, text, turnBH: 0, turnBR: 0, player: createSoundPlayer({ volume: 0.35 }) };
   },
 
   update(ctx, state) {
@@ -155,6 +179,8 @@ export default {
       state.tube = tube;
       state.ring.geometry.dispose();
       state.ring.geometry = new THREE.TorusGeometry(1, tube, 40, 200);
+      // keep the letters the same shape: the text strip spans this much of the tube's cross-section (radians)
+      state.ring.material.uniforms.uTextH.value = (2 * Math.PI / 3) * (256 / (4096 / 3)) / tube;
     }
     // turning: angular velocity in units of 1/√M, slowed so the eye can follow
     const dt = ctx.delta * (ctx.params.speed ?? 1);
@@ -171,6 +197,7 @@ export default {
 
   dispose(ctx, state) {
     state.player.dispose();
+    state.text.dispose();
     state.glow.dispose();
   },
 };

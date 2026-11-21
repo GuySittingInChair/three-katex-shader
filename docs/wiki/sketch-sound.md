@@ -34,7 +34,7 @@ sound: 'live',
 In `setup`, it makes a player:
 
 ```js
-return { glow, hole, ring, turnBH: 0, turnBR: 0, player: createSoundPlayer({ volume: 0.35 }) };
+return { glow, hole, ring, text, turnBH: 0, turnBR: 0, player: createSoundPlayer({ volume: 0.35 }) };
 ```
 
 Every frame, it says what should be playing. Either a looped strip of samples (from

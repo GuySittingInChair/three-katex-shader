@@ -9,7 +9,9 @@ tags: astronomy
 File: `src/sketches/darkSaturn.js` · Mode: 3d · Category: Physics
 
 **What you see:** a dark ball with a glowing orange edge, and around it a dark ring with a glowing blue edge,
-like Saturn drawn in black. Faint bands drift round both, each at its own speed. Every 12 seconds the pair
+like Saturn drawn in black. Written round the ring's top, three times over, glowing faintly blue: "YOU WILL
+HAVE NO FRIENDS AND DIE ALONE" (a joke the owner asked for; the physics doesn't say this). Faint bands drift
+round both, each at its own speed, and the words ride round with the ring. Every 12 seconds the pair
 slides into a different shape: the ring fat or thin, the ball bigger or smaller, the ball's bands drifting
 with the ring, standing still, or going backwards. You can drag to look around. With Sound on, two tones hum,
 one for the ball and one for the ring.
@@ -54,6 +56,9 @@ five-dimensional black hole comes out with the paper's reference area, 2√2.
 - **The picture is a 3D slice and not to exact scale.** A five-dimensional shape can't be drawn exactly. The
   ball's size comes from its area (A = 2π²r³ for a 3-sphere); the ring's radius from the thin-ring estimate R
   ≈ 1/(√2 Ω); its thickness from its area (A ≈ 2πR × 4πr²).
+- The ring's words are drawn once onto a hidden canvas (a blank picture in the page's memory), turned into a
+  [*texture*](../textures.md) (a picture the graphics card can paint onto a surface), and the ring's shader paints it round the
+  ring's top and bottom faces.
 - The horizons are drawn by a [shader](../shaders.md): dark, with a glow where you look along the surface
   edge-on, and bands drifting at each horizon's angular velocity. [Glow](../glow.md) adds the halo.
 
@@ -91,6 +96,28 @@ const OBH = d * s((k2 * k3) / (2 * k1)) * (k3 * (1 - k1) - k1 * (1 - k2) * (1 - 
 Equation 3.21. With c̄₂ = 0 the hole has no spin of its own (`JBH` is 0), but this is not zero: frame
 dragging.
 
+The ring's message, near the top of the file:
+
+```js
+const RING_TEXT = 'YOU WILL HAVE NO FRIENDS AND DIE ALONE';   // what the ring says (owner's request, 2026-11-21)
+```
+
+In `setup`, the words are written three times across a canvas 4,096 dots wide and 256 tall, each copy shrunk
+to fill 90% of its third:
+
+```js
+const fit = Math.min(1, (0.9 * cv.width / 3) / g.measureText(RING_TEXT).width);   // each copy fills 90% of its third
+```
+
+`measureText` asks how wide the words come out at 100-dot letters; `fit` is how much to shrink them so one copy
+fits. In the shader, where on the ring a point sits (its angle round the ring) picks the spot along the
+canvas, and how far it is from the middle of the ring's top face picks the spot up and down. When the ring gets
+thinner, `update` widens that strip so the letters keep their shape:
+
+```js
+state.ring.material.uniforms.uTextH.value = (2 * Math.PI / 3) * (256 / (4096 / 3)) / tube;
+```
+
 The sound:
 
 ```js
@@ -115,6 +142,11 @@ From the exact formulas (reduced units):
 - **Saturn C:** a hole with spin of its own (−4.5% of the total), held motionless because the ring drags space
   the other way just as fast.
 
+**Try this:** in `darkSaturn.js`, change `const RING_TEXT = 'YOU WILL HAVE NO FRIENDS AND DIE ALONE';` to
+`const RING_TEXT = 'NOTHING ESCAPES';` and press Run. The ring says your words instead. Shorter words are not
+stretched to fill the gap: `fit` only ever shrinks text (it is capped at 1), so they come out at full size
+with more dark space between the three copies.
+
 **Try this (funky):** open Params and set **speed** to 0 while the caption says "Hole spinning against the
 ring" (saturn D): the bands freeze, and the numbers stay on the counter-rotating saturn. Then drag the view to
 look along the ring's plane: from edge-on, the ring shrinks to a thin line, but it is still a whole black
@@ -123,4 +155,5 @@ hole.
 **Words on this page:** [black ring](../glossary.md#black-ring), [black Saturn](../glossary.md#black-saturn),
 [event horizon](../glossary.md#event-horizon), [frame dragging](../glossary.md#frame-dragging), [extra
 dimensions](../glossary.md#extra-dimensions), [Smarr relation](../glossary.md#smarr-relation),
-[sonification](../glossary.md#sonification), [shader](../glossary.md#shader)
+[sonification](../glossary.md#sonification), [shader](../glossary.md#shader),
+[texture](../glossary.md#texture)
