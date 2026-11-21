@@ -282,3 +282,13 @@ category were added. Banach–Tarski (in the list) was replaced by the Hilbert c
 alternative: its pieces can't be drawn. Line-by-line code notes for these are not written yet; they follow the
 note style the owner approves at check-in B. Verification: see the last row of `docs/wiki/_audit.md`.
 
+## Added 2026-11-21 at the owner's request: sounds of space, and Dark Saturn
+
+Sound made in code (`src/lib/spaceSound.js`, `sound: 'live'` shows the Sound button), used by a new tour, Sounds of
+Space (four pulsars at their real rates, the Sun's oscillations ×100,000, GW150914 as recorded, the Perseus black hole
+×2⁵⁷), and added to Lighthouses of the Galaxy and The First Chirp. New sketch Dark Saturn: Elvang–Figueras black Saturn
+from its exact formulas, with a sonification of the two horizons' spins; the owner's mention of a paper published
+"today" is Armas, arXiv:2611.20701 (16 Nov 2026), described on the walkthrough but not computed. Pages: walkthroughs
+for both, new concept page `sketch-sound.md`. Possible next: more sources (Jupiter's radio, Saturn's kilometric
+radiation) need recordings, not models.
+

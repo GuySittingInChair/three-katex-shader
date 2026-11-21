@@ -24,8 +24,8 @@ It also keeps the drawing out of the way of the equation. On a wide screen the e
 so the stage offers a clear *area* on the left half; on a phone, held upright, the equation is at the top, so
 the area is the lower part of the screen.
 
-**Where you'll see it:** 22 of the sketches added on 2026-11-20, among them [Six Degrees of
-Poop](sketches/smallWorld.md), [Slime Mould Rail Planner](sketches/physarumRail.md), [Maxwell's
+**Where you'll see it:** 23 sketches: 22 of those added on 2026-11-20, and Sounds of Space, among them [Six
+Degrees of Poop](sketches/smallWorld.md), [Slime Mould Rail Planner](sketches/physarumRail.md), [Maxwell's
 Demon](sketches/maxwellsDemon.md) and [Pathfinding Race](sketches/pathfindingRace.md).
 
 **What it looks like in the code:** every sketch that uses it follows the same three steps. From
@@ -59,8 +59,8 @@ g.arc(x, y, rad * (1 + 0.8 * flash) * (i === 0 ? 1.6 : 1), 0, TAU);
 That is a circle at (x, y), its radius bigger while it is flashing (and 1.6 times bigger for the person who
 starts the rumour), drawn all the way round from angle 0 to a full turn (`TAU`, 2π).
 
-Inside the stage, the glow is a small shader that looks at 24 points around each pixel, keeps only the bright
-parts, and adds a little of them back: in `src/lib/stage2d.js`,
+Inside the stage, the glow is a small shader that looks at 36 points around each pixel (three rings of 12),
+keeps only the bright parts, and adds a little of them back: in `src/lib/stage2d.js`,
 
 ```glsl
 c += uGlow * g / 12.0 * 1.6;

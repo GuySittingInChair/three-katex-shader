@@ -63,6 +63,7 @@ There's also an expert guide, `docs/guide.md`, written for programmers. It shows
 - [Every field](sketch-format.md)
 - [Params: the sliders](params.md)
 - [Motion and the live equation](motion-and-latex.md)
+- [Sketch sound: sounds made in code](sketch-sound.md)
 
 ## 3. Reading JavaScript
 - [1. Values, names and comments](js-values-and-variables.md)
@@ -73,7 +74,7 @@ There's also an expert guide, `docs/guide.md`, written for programmers. It shows
 
 ## 4. Drawing in 2D
 
-- [The 2D stage: drawing flat pictures with a glow](stage-2d.md) (22 sketches)
+- [The 2D stage: drawing flat pictures with a glow](stage-2d.md) (23 sketches)
 - *(planned)* Flat `shader` pictures and their coordinates; drawing on a hidden canvas (`CanvasTexture`, 12
   sketches).
 
@@ -201,6 +202,8 @@ sketches, with which ones are done, is at the end of [Survey of the project](_su
 | [Pathfinding Race](sketches/pathfindingRace.md) | Dijkstra and A* race through the same maze to the same shortest route |
 | [She Sells Sea Shells, Compressed](sketches/huffmanSeaShells.md) | A tongue-twister compressed two ways: Huffman codes and LZ77 |
 | [Hawks and Boids](sketches/hawksAndBoids.md) | Leaderless flocks from three simple rules, split and regrouped by three hunting hawks |
+| [Dark Saturn](sketches/darkSaturn.md) | A black hole inside a black ring, in five-dimensional spacetime (black Saturn), with every number from the exact solution |
+| [Sounds of Space](sketches/soundsOfSpace.md) | Pulsars clicking, the Sun ringing, black holes merging and humming: real sounds of space from real numbers |
 
 ## 16. [Glossary](glossary.md)
 

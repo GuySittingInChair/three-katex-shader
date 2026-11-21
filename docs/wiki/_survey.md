@@ -18,16 +18,16 @@ There are two **modes**, which decide how a sketch draws:
 | Mode | How many | What it means |
 |---|---|---|
 | `shader` | 88 | One flat picture filling the screen. A small program, the shader, picks the colour of every pixel. |
-| `3d` | 102 | A 3D scene with objects, a camera and often lights. Usually you can drag to look around. |
+| `3d` | 104 | A 3D scene with objects, a camera and often lights. Usually you can drag to look around. |
 
 A `2d` mode is reserved in `src/core/SketchRunner.js`, but no sketch uses it. Flat drawing happens in three
 other ways: `shader` mode; drawing onto a hidden 2D canvas that is then used as a picture ("canvas textures",
-12 sketches); and the 2D stage (`src/lib/stage2d.js`, 22 sketches), a full-screen 2D canvas with a soft glow,
+12 sketches); and the 2D stage (`src/lib/stage2d.js`, 23 sketches), a full-screen 2D canvas with a soft glow,
 used by the sketches added on 2026-11-20 (see [The 2D stage](stage-2d.md)).
 
 **Categories.** Each sketch names one category, and `src/core/taxonomy.js` sorts categories into seven groups
 (Mathematics, Systems, Fields, Geometry, Rendering, Audio, Experiments). The categories in use: Fractals 43,
-Physics 31, Astronomy 16, Chaos 8, Biology 8, Optics 6, Waves 5, Topology 5, Graphs & Networks 5, Geometry 5,
+Physics 32, Astronomy 17, Chaos 8, Biology 8, Optics 6, Waves 5, Topology 5, Graphs & Networks 5, Geometry 5,
 Functional Analysis 4, Surfaces 3, Shaders 3, Reaction-Diffusion 3, Particles 3, Knots 3, Fluid Flow 3,
 Chemistry 3, Algorithms 3, Splines 2, Procedural Textures 2, Number Theory 2, Emergence 2, Dynamical Systems
 2, Algebraic Art 2, and one each for Waveforms, Voxels, Visualization, Vector Fields, Synthesis, Spectra, Ray
@@ -55,7 +55,8 @@ Audio-Reactive Fractal, Audio-Reactive, 4D and 3D.
 | Orbit camera you can drag (`controls: 'orbit'`) | 60 | [Drawing in 3D 5: how the camera moves](camera-and-controls.md) |
 | Textures: pictures a shader looks things up in | many | [Textures: pictures a shader can look things up in](textures.md) |
 | Drawing on a hidden 2D canvas (`CanvasTexture`) | 12 | *(planned: drawing in 2D)* |
-| The 2D stage: a glowing full-screen canvas (`src/lib/stage2d.js`) | 22 | [The 2D stage](stage-2d.md) |
+| The 2D stage: a glowing full-screen canvas (`src/lib/stage2d.js`) | 23 | [The 2D stage](stage-2d.md) |
+| Sound made in code (`sound: 'live'`, `src/lib/spaceSound.js`) | 4 (Sounds of Space, Dark Saturn, Lighthouses of the Galaxy, The First Chirp) | [Sketch sound](sketch-sound.md) |
 | Grids of numbers stored as a picture (`DataTexture`) | 15 | [Textures: pictures a shader can look things up in](textures.md) |
 | Simulating on the GPU by rendering back and forth (`WebGLRenderTarget`) | 5 | [Simulating on the graphics chip: render targets and ping-pong](render-targets.md) |
 | Ray marching distance fields (3D shapes drawn by a shader) | 14 | *(planned: shaders, part 2)* |
@@ -148,10 +149,11 @@ Planck map), HTML and JSON answers from NED, Wikipedia and SkyView.
 
 ## Shared code in `src/lib/`
 
-`motion.js` (loop timing), `fatLines.js` (lines and dots), `stage2d.js` (the 2D stage), `morphSurface.js` +
-`surfaceMaterial.js` (GPU surfaces), `environment.js` (realistic scenes), `bit.js` (comedy timing), `glow.js`,
-`voronoi.js`, `kuramotoSivashinsky.js`, `curves.js`, `parametric.js`, `equation.js`, `hopf.js`,
-`skullHead.js`, `flyConnectome.js`, `galaxy/` (galaxy engine) and `sky/` (star layer).
+`motion.js` (loop timing), `fatLines.js` (lines and dots), `stage2d.js` (the 2D stage), `spaceSound.js` (sound
+made in code), `morphSurface.js` + `surfaceMaterial.js` (GPU surfaces), `environment.js` (realistic scenes),
+`bit.js` (comedy timing), `glow.js`, `voronoi.js`, `kuramotoSivashinsky.js`, `curves.js`, `parametric.js`,
+`equation.js`, `hopf.js`, `skullHead.js`, `flyConnectome.js`, `galaxy/` (galaxy engine) and `sky/` (star
+layer).
 
 ## Existing documentation (kept as it is)
 
@@ -364,3 +366,5 @@ day. "Walkthrough" links to the plain-English page where one exists.
 | 2026-11-20 | `pathfindingRace.js` | Pathfinding Race | 3d | Algorithms | [walkthrough](sketches/pathfindingRace.md) |
 | 2026-11-20 | `huffmanSeaShells.js` | She Sells Sea Shells, Compressed | 3d | Algorithms | [walkthrough](sketches/huffmanSeaShells.md) |
 | 2026-11-20 | `hawksAndBoids.js` | Hawks and Boids | 3d | Emergence | [walkthrough](sketches/hawksAndBoids.md) |
+| 2026-11-21 | `darkSaturn.js` | Dark Saturn | 3d | Physics | [walkthrough](sketches/darkSaturn.md) |
+| 2026-11-21 | `soundsOfSpace.js` | Sounds of Space | 3d | Astronomy | [walkthrough](sketches/soundsOfSpace.md) |

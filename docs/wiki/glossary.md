@@ -39,6 +39,11 @@ don't exist yet; until then the link goes to the closest page that does.
   English](sketches/maxwellsDemon.md)
 - **black hole shadow**: the dark disc where light aimed too close to a black hole falls in, about 5.2 of its
   mass units across. → [Black Hole Lensing: in plain English](sketches/blackHoleLensing.md)
+- **black ring**: a black hole shaped like a ring (a doughnut), possible only with an extra dimension of
+  space; its spin keeps it from collapsing. → [Dark Saturn: in plain English](sketches/darkSaturn.md)
+- **black Saturn**: an exact solution of Einstein's equations in five-dimensional spacetime: a round black
+  hole inside a black ring, in balance (Elvang and Figueras, 2007). → [Dark Saturn: in plain
+  English](sketches/darkSaturn.md)
 - **boids**: Craig Reynolds's simulated birds (1987): separation, alignment and cohesion with nearby
   neighbours make a flock. → [Hawks and Boids: in plain English](sketches/hawksAndBoids.md)
 - **Born rule**: in quantum mechanics, the chance of finding a particle somewhere is the square of its wave's
@@ -170,6 +175,8 @@ don't exist yet; until then the link goes to the closest page that does.
   in plain English](sketches/belousovZhabotinsky.md)
 - **exoplanet**: a planet orbiting a star other than the Sun. The first were confirmed in 1992; over 6,000 are
   known now. → [Six Thousand Worlds: in plain English](sketches/exoplanets.md)
+- **extra dimensions**: directions of space beyond the three we know; physicists study what gravity would do
+  with more of them. → [Dark Saturn: in plain English](sketches/darkSaturn.md)
 - **fbm**: noise stacked in layers, each twice as detailed and half as strong. → [Noise: randomness that looks
   natural](noise.md)
 - **fetch**: ask for a file over the network. → [Reading JavaScript 5: loading data (`fetch`, `Promise`,
@@ -194,6 +201,8 @@ don't exist yet; until then the link goes to the closest page that does.
 - **fragment shader**: the shader that picks the colour of each pixel. → [Shaders: two questions](shaders.md)
 - **frame**: one picture of the animation; about 60 are drawn each second. → [The frame loop: setup, update,
   dispose](frame-loop.md)
+- **frame dragging**: a spinning mass dragging space round with it, so nearby things are turned too. → [Dark
+  Saturn: in plain English](sketches/darkSaturn.md)
 - **frequency**: how many waves (or swings, or turns) happen per second, measured in hertz (Hz). → [Sonic
   Boom: in plain English](sketches/sonicBoom.md)
 - **Fresnel effect**: surfaces seen edge-on reflect more than surfaces seen face-on, like a lake at a low
@@ -223,6 +232,8 @@ don't exist yet; until then the link goes to the closest page that does.
   [Belousov–Zhabotinsky: in plain English](sketches/belousovZhabotinsky.md)
 - **graph (network)**: dots joined by links, like a metro map. → [Force-Directed Graph: in plain
   English](sketches/forceDirectedGraph.md)
+- **gravitational wave**: a ripple in space itself, stretching and squeezing it, sent out by heavy objects
+  such as merging black holes. → [Sounds of Space: in plain English](sketches/soundsOfSpace.md)
 - **growth factor**: one number saying how far gravity has pulled the universe's lumps along since the
   beginning: 0 at the start, 1 today. → [Galaxy motions and the shapes they leave](galaxy-motions.md)
 - **habitable zone**: the band round a star where a planet like Earth could keep liquid water on its surface.
@@ -231,6 +242,8 @@ don't exist yet; until then the link goes to the closest page that does.
   randomness that looks natural](noise.md)
 - **helicoid**: the spiral-staircase soap film you'd get on a twisted wire. → [Helicoid ↔ Catenoid: in plain
   English](sketches/helicoidCatenoid.md)
+- **helioseismology**: studying the inside of the Sun from the sound waves ringing through it, seen as its
+  surface moving up and down. → [Sounds of Space: in plain English](sketches/soundsOfSpace.md)
 - **heuristic**: a rule of thumb or educated guess that speeds up a search. → [Pathfinding Race: in plain
   English](sketches/pathfindingRace.md)
 - **hexagonal grid**: a grid of six-sided cells, each with six neighbours at equal distances, like a
@@ -322,6 +335,8 @@ don't exist yet; until then the link goes to the closest page that does.
   is the sonic boom. → [Sonic Boom: in plain English](sketches/sonicBoom.md)
 - **Mach number**: a speed divided by the speed of sound: Mach 1 is the speed of sound, Mach 2 twice it. →
   [Sonic Boom: in plain English](sketches/sonicBoom.md)
+- **magnetar**: a pulsar with an extremely strong magnetic field, usually spinning slowly (once every few
+  seconds). → [Sounds of Space: in plain English](sketches/soundsOfSpace.md)
 - **Manhattan distance**: the distance between two points counted in straight-line moves along a grid, across
   plus up, like walking city blocks. → [Pathfinding Race: in plain English](sketches/pathfindingRace.md)
 - **material**: how a surface looks: colour, gloss, how it reacts to light. → [Drawing in 3D 2: mesh, geometry
@@ -418,6 +433,8 @@ don't exist yet; until then the link goes to the closest page that does.
   `Promise`, `await`)](js-promises-and-fetch.md)
 - **proportional navigation**: homing by steering to keep the target's direction from changing. →
   [Anti-Aircraft Contraception: in plain English](sketches/antiAircraftContraception.md)
+- **pulsar**: a spinning neutron star, about 20 km across, sweeping a beam of radio waves past us once per
+  turn, like a lighthouse. → [Sounds of Space: in plain English](sketches/soundsOfSpace.md)
 - **quantum eraser**: an experiment where which-path information is recorded and then erased; sorting the
   particles by the eraser's answer brings back interference stripes. → [Double Slit, With Eraser: in plain
   English](sketches/doubleSlitEraser.md)
@@ -474,6 +491,8 @@ don't exist yet; until then the link goes to the closest page that does.
   Limit Shredder: in plain English](sketches/rocheShredder.md)
 - **saddle**: a surface curving up one way and down the other, like a pringle. → [Enneper Surface: in plain
   English](sketches/enneperSurface.md)
+- **sample (sound)**: one number in a digital sound: the wave's height at one instant; 22,050 or more of them
+  make a second. → [Sounds of Space: in plain English](sketches/soundsOfSpace.md)
 - **scene**: the 3D world holding every object, light and camera. → [Drawing in 3D 1: the scene and the
   camera](scene-and-camera.md)
 - **schlieren**: a way of photographing invisible changes in air (heat, shock waves) by catching the tiny
@@ -504,6 +523,8 @@ don't exist yet; until then the link goes to the closest page that does.
 - **small world**: a network where friend groups are tight but any two members are linked by a short chain; a
   few random shortcuts are enough to make one. → [Six Degrees of Poop: in plain
   English](sketches/smallWorld.md)
+- **Smarr relation**: an identity linking a black hole's mass to its temperature, entropy, spin and angular
+  velocity; in five dimensions, ⅔M = TS + ΩJ. → [Dark Saturn: in plain English](sketches/darkSaturn.md)
 - **smoothstep**: a soft switch from 0 to 1 between two values. → [GLSL basics: reading a
   shader](glsl-basics.md)
 - **Snell's law**: the rule for refraction: n₁ sin θ₁ = n₂ sin θ₂, with θ the angle from straight-on on each
@@ -512,6 +533,8 @@ don't exist yet; until then the link goes to the closest page that does.
   [Snowflake Growth: in plain English](sketches/snowflakeGrowth.md)
 - **solar cycle**: the Sun's roughly 11-year rise and fall in sunspots, driven by its magnetic field. → [The
   Sun's Eleven-Year Heartbeat: in plain English](sketches/sunCycle.md)
+- **sonification**: turning data or numbers into sound, so you can hear a pattern. → [Dark Saturn: in plain
+  English](sketches/darkSaturn.md)
 - **space-filling curve**: a curve that, refined over and over, passes through every point of an area. →
   [Hilbert's Infinite Noodle: in plain English](sketches/hilbertNoodle.md)
 - **spectrum**: how loud each pitch in a sound is, from low to high. → [Audio-Reactive Mesh: in plain
