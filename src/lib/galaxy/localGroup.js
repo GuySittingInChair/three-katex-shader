@@ -29,9 +29,10 @@ const css = `
 .lg-box{background:rgba(255,255,255,.05);border-radius:10px;padding:9px 11px;margin:10px 0;font-size:13px}
 .lg-box ul{margin:4px 0 0;padding-left:18px}.lg-box li{margin:3px 0}
 .lg-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
-.lg-hud{position:absolute;left:12px;top:10px;font-size:12.5px;color:#b9c1d0;pointer-events:none;text-shadow:0 1px 3px #000}
+.lg-x{position:absolute;right:10px;top:10px;z-index:2;width:38px;height:38px;border-radius:50%;background:rgba(12,13,18,.85);color:#e9edf5;border:1px solid rgba(255,255,255,.25);font-size:18px;cursor:pointer}
+.lg-hud{position:absolute;left:12px;top:10px;right:58px;font-size:12.5px;color:#b9c1d0;pointer-events:none;text-shadow:0 1px 3px #000}
 .gx-badge{display:inline-block;font-size:11px;line-height:1.4;padding:0 7px;border:1px solid;border-radius:99px;margin-left:6px;vertical-align:1px;white-space:nowrap}
-@media (max-width:700px){.lg-wrap{flex-direction:column}.lg-cv{flex:none;height:50vh}.lg-side{width:auto;flex:1;border-left:0;border-top:1px solid rgba(255,255,255,.12)}}
+@media (max-width:700px){.lg-wrap{flex-direction:column}.lg-cv{flex:none;height:46vh}.lg-hud{font-size:11.5px}.lg-side{width:auto;flex:1;border-left:0;border-top:1px solid rgba(255,255,255,.12)}}
 `;
 const yrs = (myr) => {
   const a = Math.abs(myr);
@@ -76,7 +77,7 @@ export function createLocalGroupView({ url }) {
     const g = ctx2; g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.fillStyle = '#020306'; g.fillRect(0, 0, W, H);
     const S = st.data.scenarios[st.sc], nd = S.orbits.length;
-    const sc = (Math.min(W, H) * 0.9 / 1000) * st.zoom, cx = W / 2, cy = H / 2;    // 1000 kpc across the short side
+    const sc = (Math.min(W, H) * 0.9 / (W < 500 ? 1300 : 1000)) * st.zoom, cx = W / 2, cy = H / 2;    // 1000 kpc across the short side
     const P = [0, 0, 0];
     const X = (p) => cx + p[0] * sc, Y = (p) => cy - p[1] * sc;
     // the typical future: paths, faint for all time, brighter up to now
@@ -110,7 +111,9 @@ export function createLocalGroupView({ url }) {
       gr.addColorStop(0, BODY[b].col); gr.addColorStop(0.35, BODY[b].col + '88'); gr.addColorStop(1, BODY[b].col + '00');
       g.fillStyle = gr; g.beginPath(); g.arc(X(P), Y(P), r * 3, 0, 7); g.fill();
       // a label, unless it would land on one already drawn (when they've merged, the bigger galaxy's name stays)
-      const lx = X(P), lyy = Y(P) - r * 3 - 4;
+      // kept inside the picture, so a name near the edge isn't cut off (phones)
+      const tw = g.measureText(BODY[b].name).width / 2 + 4;
+      const lx = Math.min(W - tw, Math.max(tw, X(P))), lyy = Math.max(14, Y(P) - r * 3 - 4);
       if (!placed.some(([x, y]) => Math.abs(x - lx) < 90 && Math.abs(y - lyy) < 14)) {
         g.fillStyle = '#dfe6f3'; g.shadowColor = '#000'; g.shadowBlur = 4;
         g.fillText(BODY[b].name, lx, lyy); g.shadowBlur = 0; placed.push([lx, lyy]);
@@ -192,7 +195,8 @@ export function createLocalGroupView({ url }) {
   };
   const onInput = (e) => { if (e.target.classList.contains('lg-slider')) { st.t = +e.target.value; st.play = false; const tl = side.querySelector('.lg-time'); if (tl) tl.textContent = yrs(st.t); } };
   let drag = null; const pts = new Map();
-  const onDown = (e) => { cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); drag = { x: e.clientX, y: e.clientY, yaw: st.yaw, pitch: st.pitch, d: null, zoom: st.zoom }; cv.style.cursor = 'grabbing'; };
+  const onDown = (e) => {
+    if (e.target.closest?.('.lg-x')) return; cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); drag = { x: e.clientX, y: e.clientY, yaw: st.yaw, pitch: st.pitch, d: null, zoom: st.zoom }; cv.style.cursor = 'grabbing'; };
   const onMove = (e) => {
     if (!pts.has(e.pointerId)) return;
     pts.set(e.pointerId, [e.clientX, e.clientY]);
@@ -214,9 +218,9 @@ export function createLocalGroupView({ url }) {
   const build = () => {
     style = document.createElement('style'); style.textContent = css; document.head.appendChild(style);
     wrap = document.createElement('div'); wrap.className = 'lg-wrap';
-    wrap.innerHTML = '<div class="lg-cv"><canvas></canvas><div class="lg-hud"></div></div><div class="lg-side"></div>';
+    wrap.innerHTML = '<div class="lg-cv"><canvas></canvas><div class="lg-hud"></div><button class="lg-x" data-lg="close" title="back to the sky (Esc)">✕</button></div><div class="lg-side"></div>';
     cv = wrap.querySelector('.lg-cv'); canvas = cv.querySelector('canvas'); ctx2 = canvas.getContext('2d'); hud = wrap.querySelector('.lg-hud'); side = wrap.querySelector('.lg-side');
-    side.addEventListener('click', onClick); side.addEventListener('input', onInput);
+    side.addEventListener('click', onClick); cv.querySelector('.lg-x').addEventListener('click', () => close()); side.addEventListener('input', onInput);
     cv.addEventListener('pointerdown', onDown); cv.addEventListener('pointermove', onMove); cv.addEventListener('pointerup', onUp); cv.addEventListener('pointercancel', onUp);
     cv.addEventListener('wheel', onWheel, { passive: false });
   };

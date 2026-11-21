@@ -6,6 +6,7 @@ import { createStarsLayer } from '../lib/sky/starsLayer.js';
 import { search, unknownHTML, lookbackYears } from '../lib/galaxy/catalog.js';
 import { loadMotion, motionKey, motionHTML, motionRaDec, MOTION_CSS } from '../lib/galaxy/motion.js';
 import { createLocalGroupView } from '../lib/galaxy/localGroup.js';
+import { createFlowView } from '../lib/galaxy/flowView.js';
 
 // Messier's Sky, in depth. The 110 objects of Charles Messier's catalogue, each a real photograph (Digitized Sky
 // Survey 2, via NASA SkyView) placed in its true direction from the Sun at its measured distance, with distance on
@@ -139,7 +140,10 @@ const css = `
 .mz-unknown ul{margin:0;padding-left:18px}
 .mz-unknown li{margin:4px 0;font-size:13.5px}
 @media (max-width:700px){
-  .mz-panel{left:10px;right:10px;width:auto;top:auto;bottom:84px;max-height:52vh}
+  .mz-panel{left:8px;right:8px;width:auto;top:auto;bottom:66px;max-height:46vh;background:rgba(12,13,18,.97)}
+  .mz-in{padding:12px 13px 14px}
+  .mz-head h2{font-size:19px}
+  .mz-btn{padding:7px 11px}
   .mz-img{max-height:26vh;width:auto;margin-left:auto;margin-right:auto}
   .mz-panel.collapsed .mz-body{display:none}
   .mz-min{display:inline-block}
@@ -293,6 +297,24 @@ export default {
           s.pairs = m.pairs.filter((f) => f.ok);
           renderPanel();
         })
+        // ring and shell galaxies (see docs/wiki/galaxy-motions.md): the collision that made each one's shape (tools/galaxies/fit_shapes.mjs), played in
+        // the same time machine as the pairs, so each fit is given the few fields the pairs' frame and labels use
+        .then(() => fetch(PAIRS_URL + 'shapes.json')).then((r) => (r.ok && /json/.test(r.headers.get('content-type') || '') ? r.json() : null)).then((m) => {
+          if (!m || s.disposed) return;
+          for (const f of m.fits) {
+            if (!f.ok) continue;
+            const h = f.host || {};
+            const o = s.objs.find((x) => (h.arp != null ? x.cat === 'arp' && x.arp === h.arp : x.cat === 'unknown' && x.id === h.deep));
+            if (!o || o.pair) continue;
+            o.pair = Object.assign(f, {
+              arp: 'shape-' + f.tag, mainRa: f.centreRa, mainDec: f.centreDec,
+              mainName: f.kind === 'ring' ? 'the ring galaxy' : f.label.replace(/ \(.*\)$/, ''),
+              compName: f.kind === 'ring' ? 'the intruder' : 'the galaxy that fell in',
+              measured: { ...f.measured, sepKpc: f.measured.kpcPerArcmin, sepArcmin: 1 },
+            });
+          }
+          renderPanel();
+        })
         .then(() => loadMotion(MOTION_URL + 'motion.json')).then((m) => {
           if (!m || s.disposed) return;
           s.motion = m;
@@ -412,7 +434,8 @@ export default {
           const F = s.pairFrames[tmKey(o)], T = new THREE.Vector3().setFromMatrixPosition(F.matrix);
           // the origin of the simulation is the pair's centre of mass; look from nearly our direction, a little to one side
           const dir = F.ez.clone().multiplyScalar(0.8).addScaledVector(F.ey, 0.42).addScaledVector(F.ex, 0.42).normalize();
-          const d = Math.max(45, 3.2 * o.pair.measured.sepKpc) * F.upk * (narrow() ? 1.5 : 1);
+          const pm = o.pair.measured, span = o.pair.kind === 'ring' ? 2.2 * pm.ringKpc : o.pair.kind === 'shell' ? 4 * pm.re : pm.sepKpc;
+          const d = Math.max(45, 3.2 * span) * F.upk * (narrow() ? 1.5 : 1);
           s.fly = { t0: ctx.time, dur: 2.4, from: { p: cam.position.clone(), t: controls.target.clone() }, to: { t: T, p: T.clone().addScaledVector(dir, d) } };
         } else { flyTo(s.sel); s.bigAt = ctx.time; }
         renderPanel();
@@ -515,7 +538,7 @@ export default {
           <input class="mz-search" type="search" placeholder="Search: M51, Whirlpool, NGC 1976, dark matter, ring…" value="${esc(s.query || '')}"><div class="mz-results"></div>
           <div class="mz-chips"><button class="mz-chip ${s.cats.has('messier') ? '' : 'off'}" data-act="cat" data-k="messier" style="color:#dfe6f3;border-color:#dfe6f355">Messier's 110</button><button class="mz-chip ${s.cats.has('unknown') ? '' : 'off'}" data-act="cat" data-k="unknown" style="color:#ffd27a;border-color:#ffd27a55">✦ The Unknown Universe ${s.deep ? s.deep.length : ''}</button>${s.arp ? `<button class="mz-chip ${s.cats.has('arp') ? '' : 'off'}" data-act="cat" data-k="arp" style="color:#9fe0c0;border-color:#9fe0c055">Arp's Peculiar Galaxies ${s.arp.length}</button>` : ''}</div>
           <div class="mz-chips">${Object.entries(GROUPS).filter(([k]) => counts[k]).map(([k, G]) => `<button class="mz-chip ${s.filter.has(k) ? '' : 'off'}" data-g="${k}" style="color:${G.col};border-color:${G.col}55"><span class="mz-dot" style="background:${G.col}"></span>${G.label} ${counts[k]}</button>`).join('')}</div>
-          <div class="mz-nav" style="flex-wrap:wrap"><button class="mz-btn" data-act="hold" title="stop the slow turning and the tour (space)">${s.hold ? '▶ Let it move' : '⏸ Hold still'}</button><button class="mz-btn" data-act="tour">▶ Take the tour</button>${s.deep ? '<button class="mz-btn" data-act="tourdeep">✦ Tour the unknown</button>' : ''}<button class="mz-btn" data-act="names">${s.allNames ? 'Hide' : 'Show'} all names</button>${s.motion ? `<button class="mz-btn" data-act="motion" title="where each galaxy is heading, predicted from gravity (Cosmicflows-4)">${s.showMotion ? 'Hide' : '→ Show'} motions</button><button class="mz-btn" data-act="lg">⏳ The Local Group</button>` : ''}${s.starsLayer?.ready_ ? '<button class="mz-btn" data-act="sun">☀ Stars around the Sun</button>' : ''}</div>
+          <div class="mz-nav" style="flex-wrap:wrap"><button class="mz-btn" data-act="hold" title="stop the slow turning and the tour (space)">${s.hold ? '▶ Let it move' : '⏸ Hold still'}</button><button class="mz-btn" data-act="tour">▶ Take the tour</button>${s.deep ? '<button class="mz-btn" data-act="tourdeep">✦ Tour the unknown</button>' : ''}<button class="mz-btn" data-act="names">${s.allNames ? 'Hide' : 'Show'} all names</button>${s.motion ? `<button class="mz-btn" data-act="motion" title="where each galaxy is heading, predicted from gravity (Cosmicflows-4)">${s.showMotion ? 'Hide' : '→ Show'} motions</button><button class="mz-btn" data-act="lg">⏳ The Local Group</button><button class="mz-btn" data-act="flow" title="the matter around us, run backwards and forwards with gravity (Cosmicflows-4)">🎞 The nearby universe, flowing</button>` : ''}${s.starsLayer?.ready_ ? '<button class="mz-btn" data-act="sun">☀ Stars around the Sun</button>' : ''}</div>
           <div class="mz-src">Pictures: Digitized Sky Survey (photographic plates, 1950s–90s), via NASA SkyView. Facts and summaries: Wikipedia, CC BY-SA 4.0.</div></div></div>`;
       } else if (s.mode === 'time' && tmFor(i)) {
         const o = s.objs[i], G = GROUPS[o.group];
@@ -597,6 +620,7 @@ export default {
       else if (act === 'tour') { s.tourList = null; s.touring = true; s.tourI = -1; s.tourAt = -1e9; }
       else if (act === 'names') { s.allNames = !s.allNames; renderPanel(); }
       else if (act === 'motion') { s.showMotion = !s.showMotion; renderPanel(); }
+      else if (act === 'flow') { s.touring = false; s.flow = s.flow || createFlowView({ url: MOTION_URL }); s.flow.open(); }
       else if (act === 'lg') { s.touring = false; s.lg = s.lg || createLocalGroupView({ url: MOTION_URL + 'lg.json' }); s.lg.open(); }
       else if (act === 'min') { s.collapsed = !s.collapsed; renderPanel(); }
     };
@@ -731,7 +755,15 @@ export default {
 
     // phone with the card open: shift the picture into the space above the card
     // desktop: centre the scene in the space left of the card
-    const lift = width < 700 && (s.sel >= 0 || s.selStar >= 0) && !s.collapsed ? Math.round(height * 0.24) : 0;
+    // (measured from where the card and the timeline bar actually are, so the subject sits in the middle of what's visible)
+    let lift = 0;
+    if (width < 700 && !s.collapsed) {
+      const cr = ctx.domElement.getBoundingClientRect(), pr = s.dom.panel.getBoundingClientRect();
+      const bar = document.querySelector('.tm-bar'), br0 = bar?.getBoundingClientRect(), br = br0 && br0.height > 0 ? br0 : null;
+      const top = Math.max(cr.top + 48, br && br.bottom < cr.top + height / 2 ? br.bottom : 0), bottom = Math.min(cr.bottom, pr.top);
+      if (bottom > top) lift = Math.max(0, Math.round(cr.top + height / 2 - (top + bottom) / 2));
+      lift = Math.round(lift / 4) * 4;
+    }
     const side = width >= 700 ? Math.round(Math.min(400, width * 0.32) / 2) : 0;
     const key = `${lift},${side},${width},${height}`;
     if (key !== s.offKey) { s.offKey = key; if (lift || side) cam.setViewOffset(width, height, side, lift, width, height); else cam.clearViewOffset(); }
@@ -797,12 +829,16 @@ export default {
 
     // ---------- labels ----------
     const r = ctx.domElement.getBoundingClientRect();
+    // a name that would sit under the card or the timeline bar is hidden, not drawn through it (phones)
+    const covers = [s.dom.panel, document.querySelector('.tm-bar')].filter(Boolean).map((e) => e.getBoundingClientRect()).filter((b) => b.width > 0 && b.height > 0);
     const place = (el, P, dy = 0) => {
       v.copy(P).project(cam);
       if (v.z > 1 || Math.abs(v.x) > 1.2 || Math.abs(v.y) > 1.2) { el.style.display = 'none'; return false; }
+      const X = r.left + (v.x * 0.5 + 0.5) * r.width, Y = r.top + (0.5 - v.y * 0.5) * r.height + dy;
+      if (covers.some((b) => X > b.left - 30 && X < b.right + 30 && Y > b.top - 16 && Y < b.bottom)) { el.style.display = 'none'; return false; }
       el.style.display = '';
-      el.style.left = `${r.left + (v.x * 0.5 + 0.5) * r.width}px`;
-      el.style.top = `${r.top + (0.5 - v.y * 0.5) * r.height + dy}px`;
+      el.style.left = `${X}px`;
+      el.style.top = `${Y}px`;
       return true;
     };
     s.objs.forEach((o, i) => {
@@ -866,7 +902,7 @@ export default {
     for (const gm of Object.values(s.gx || {})) gm.dispose();
     for (const tm of Object.values(s.tm || {})) tm.dispose();
     s.starsLayer?.dispose();
-    s.lg?.dispose();
+    s.lg?.dispose(); s.flow?.dispose();
     if (s.geo) { s.geo.dispose(); s.mat.dispose(); s.tex.dispose(); ctx.scene.remove(s.cards); }
     for (const st of s.sets || []) { st.geo.dispose(); st.mat.dispose(); st.tex.dispose(); ctx.scene.remove(st.mesh); }
     if (s.big) { s.big.material.uniforms.uMap.value?.dispose(); s.big.geometry.dispose(); s.big.material.dispose(); ctx.scene.remove(s.big); }

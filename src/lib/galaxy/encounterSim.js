@@ -106,7 +106,18 @@ export function runEncounter(o) {
     const disk = i < nDisk, h = disk ? main : comp, ci = disk ? cM : cC;
     let px, py, pz, ux, uy, uz;
     const D = disk ? o.mainDisk : o.compDisk;
-    if (D) {
+    if (D && D.round) {
+      // a round, hot galaxy (an elliptical, for the shell galaxies): stars on circular orbits at random tilts,
+      // spread like a Hernquist profile with scale D.rd, out to D.rmax
+      let rr; do { const u = R(); rr = (D.rd * Math.sqrt(u)) / (1 - Math.sqrt(u)); } while (rr < 0.3 || rr > D.rmax);
+      const ct = R() * 2 - 1, st = Math.sqrt(1 - ct * ct), ph = R() * 2 * Math.PI;
+      px = rr * st * Math.cos(ph); py = rr * st * Math.sin(ph); pz = rr * ct;
+      const ax = [R() - 0.5, R() - 0.5, R() - 0.5];
+      let cx = py * ax[2] - pz * ax[1], cy = pz * ax[0] - px * ax[2], cz = px * ax[1] - py * ax[0];
+      const cl = Math.hypot(cx, cy, cz) + 1e-9, vc = Math.sqrt((G * h.M(rr)) / rr);
+      ux = (cx / cl) * vc; uy = (cy / cl) * vc; uz = (cz / cl) * vc;
+      born[i * 2] = rr; born[i * 2 + 1] = disk ? 0 : 1;
+    } else if (D) {
       born[i * 2] = tilted(D, h, tmp); born[i * 2 + 1] = disk ? 0 : 1;
       [px, py, pz, ux, uy, uz] = tmp;
     } else if (disk) {

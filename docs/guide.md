@@ -3142,6 +3142,14 @@ draws them all as arrows. For the Local Group the sideways motions have actually
 runs the Milky Way, Andromeda, Triangulum and the Large Magellanic Cloud from 6 billion years ago to 10 billion years
 ahead, 1000 times within the errors, for two mass scenarios.
 
+**The nearby universe, flowing.** "🎞 The nearby universe, flowing" (whole-sky panel, or any motion card) runs the
+Cosmicflows-4 map as a film: 90,000 dots placed where the matter is, moved along their velocities with the Zel'dovich
+approximation from the early universe to 29 billion years ahead. Slice or whole sphere, with or without the expansion.
+
+**Ring and shell galaxies.** Arp 146, 147, 148, the Cartwheel (rings) and NGC 474, IC 51, IC 1575, NGC 2911, IC 162
+(shells) have "⏳ The collision, past and future": a collision chosen automatically to match a deep Legacy Surveys
+image, with its score and controls on the card.
+
 **Stars around the Sun.** Press *☀ Stars around the Sun* (or search a star's name): all 8,785 stars you can see by
 eye, from the Hipparcos satellite, at their real distances, coloured by temperature, with the IAU's names. Click one
 for what is measured (distance, brightness, type) and what is worked out from it, approximately (temperature, power,

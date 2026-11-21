@@ -114,6 +114,11 @@ don't exist yet; until then the link goes to the closest page that does.
   moving. → [Lagrange Point Parking: in plain English](sketches/lagrangeParking.md)
 - **cosine palette**: the one-line rainbow recipe: red, green and blue each rise and fall, out of step. →
   [Colour 3: the cosine palette (the rainbow trick)](cosine-palette.md)
+- **cosmic microwave background**: the faint glow left over from the Big Bang, filling the whole sky; moving
+  through it is the universe's own way of measuring "standing still". → [Galaxy motions and the shapes they
+  leave](galaxy-motions.md)
+- **Cosmicflows-4**: a catalogue of about 56,000 galaxy distances, and the map of matter and motion worked out
+  from it (Courtois et al. 2023). → [Galaxy motions and the shapes they leave](galaxy-motions.md)
 - **crystal**: a solid whose atoms or molecules are arranged in a regular repeating pattern. → [Snowflake
   Growth: in plain English](sketches/snowflakeGrowth.md)
 - **ctx**: the bag of useful things the app hands a sketch: camera, scene, sliders, time. → [The frame loop:
@@ -218,6 +223,8 @@ don't exist yet; until then the link goes to the closest page that does.
   [Belousov–Zhabotinsky: in plain English](sketches/belousovZhabotinsky.md)
 - **graph (network)**: dots joined by links, like a metro map. → [Force-Directed Graph: in plain
   English](sketches/forceDirectedGraph.md)
+- **growth factor**: one number saying how far gravity has pulled the universe's lumps along since the
+  beginning: 0 at the start, 1 today. → [Galaxy motions and the shapes they leave](galaxy-motions.md)
 - **habitable zone**: the band round a star where a planet like Earth could keep liquid water on its surface.
   → [Six Thousand Worlds: in plain English](sketches/exoplanets.md)
 - **hash**: a scrambler that turns a position into a random-looking but repeatable number. → [Noise:
@@ -373,6 +380,8 @@ don't exist yet; until then the link goes to the closest page that does.
 - **params**: a sketch's sliders. → [Params: the sliders](params.md)
 - **parsec**: the distance at which a star's parallax is one arcsecond: 3.26 light-years. → [Parallax:
   measuring the distance to the stars](parallax-and-distance.md)
+- **peculiar motion**: a galaxy's own motion, left over once the expansion of the universe is taken out;
+  usually a few hundred km/s. → [Galaxy motions and the shapes they leave](galaxy-motions.md)
 - **pentatonic scale**: a five-note scale (C D E G A) in which no notes clash, like the piano's black keys. →
   [Generative Synth: in plain English](sketches/generativeSynth.md)
 - **perihelion**: an orbit's closest point to the Sun (or star). → [Kepler's Pizza: in plain
@@ -432,6 +441,8 @@ don't exist yet; until then the link goes to the closest page that does.
   sliders](params.md)
 - **recursion**: defining something in terms of smaller copies of itself, as each order of the Hilbert curve
   is four copies of the one before. → [Hilbert's Infinite Noodle: in plain English](sketches/hilbertNoodle.md)
+- **redshift**: light from something moving away from us, stretched to longer, redder wavelengths; how much
+  gives its speed along our line of sight. → [Galaxy motions and the shapes they leave](galaxy-motions.md)
 - **reflection in a circle**: a mirror that's a circle: points near its edge stay near, points deep inside are
   flung far out. → [Hyperbolic Tiling: in plain English](sketches/hyperbolicTiling.md)
 - **refraction**: light bending as it passes from one material into another, because it travels at different
@@ -448,6 +459,8 @@ don't exist yet; until then the link goes to the closest page that does.
   have real part ½. → [Riemann Zeta Zero Hunter: in plain English](sketches/zetaZeroHunter.md)
 - **Riemann zeta function**: ζ(s) = 1 + 1/2ˢ + 1/3ˢ + …, extended to complex numbers s; its zeros are tied to
   how prime numbers are spread out. → [Riemann Zeta Zero Hunter: in plain English](sketches/zetaZeroHunter.md)
+- **ring galaxy**: a galaxy with a bright ring, made when a smaller galaxy dropped straight through its disk,
+  like a ripple from a stone in a pond. → [Galaxy motions and the shapes they leave](galaxy-motions.md)
 - **RK4 (Runge–Kutta)**: a careful way to step a simulation forward: four test measurements per step,
   averaged. → [Black Hole Lensing: in plain English](sketches/blackHoleLensing.md)
 - **Roche limit**: the distance inside which a planet's tides pull a moon held together only by its own
@@ -476,6 +489,8 @@ don't exist yet; until then the link goes to the closest page that does.
   dispose](frame-loop.md)
 - **shader**: a small program on the graphics chip that answers "where does this corner go?" or "what colour
   is this pixel?". → [Shaders: two questions](shaders.md)
+- **shell galaxy**: a big round galaxy with thin arcs of stars round it: the remains of a small galaxy that
+  fell straight in and was torn apart. → [Galaxy motions and the shapes they leave](galaxy-motions.md)
 - **sidereal day**: one turn of the Earth measured against the stars: 23 h 56 min, a little shorter than a day
   measured by the Sun. → [Foucault's Pendulum: in plain English](sketches/foucaultPendulum.md)
 - **sine (`sin`)**: a calculation that turns a steadily growing number into a smooth wave between −1 and +1;
@@ -584,3 +599,6 @@ don't exist yet; until then the link goes to the closest page that does.
   nm violet to 700 nm red). → [Soap Film Colours: in plain English](sketches/soapFilmColours.md)
 - **Web Worker**: a separate helper inside the browser that runs code in parallel with the drawing. → [Fly
   Connectome: in plain English](sketches/flyConnectome.md)
+
+- **Zel'dovich approximation**: a shortcut for gravity's growth of structure: every bit of matter moves along
+  a straight line, further as time goes on. → [Galaxy motions and the shapes they leave](galaxy-motions.md)

@@ -130,7 +130,7 @@ Every data set lives in `public/data/<folder>/` and is made once, on this comput
 | `deepfield` | `webbDeepField.js` | JADES DR2 images and DR4 spectra | JWST JADES team, via MAST |
 | `zoom` | `skyZoom.js` | Gaia DR3, DSS2 plates via SkyView, JADES | ESA; NASA SkyView |
 | `messier` | `messierInDepth.js` | Wikipedia (facts, CC BY-SA); DSS2 plates via SkyView | Wikipedia; NASA SkyView |
-| `deepsky`, `arp`, `pairs`, `motion` | `messierInDepth.js` | NED (positions, redshifts, distances), Wikipedia, DSS via SkyView, published papers | NASA/IPAC NED |
+| `deepsky`, `arp`, `pairs`, `motion` | `messierInDepth.js` | NED (positions, redshifts, distances), Wikipedia, DSS via SkyView, published papers, Cosmicflows-4 velocity and density grids (Zenodo), DESI Legacy Imaging Surveys DR10 cutouts (ring and shell galaxies) | NASA/IPAC NED; Courtois et al. 2023; legacysurvey.org |
 | `galaxies/m51` | `messierInDepth.js` | DSS2 plates, NED, Wikipedia, published fits | as above |
 
 **File formats in `public/data/`:**
@@ -338,7 +338,7 @@ day. "Walkthrough" links to the plain-English page where one exists.
 | 2026-11-10 | `webbDeepField.js` | Webb Deep Field in Depth | 3d | Astronomy |  |
 | 2026-11-10 | `whereOrbitingStops.js` | Where Orbiting Stops | 3d | Physics |  |
 | 2026-11-12 | `exoplanets.js` | Six Thousand Worlds | 3d | Astronomy | [walkthrough](sketches/exoplanets.md) |
-| 2026-11-12 | `messierInDepth.js` | Messier's Sky, in Depth | 3d | Astronomy |  |
+| 2026-11-12 | `messierInDepth.js` | Messier's Sky, in Depth | 3d | Astronomy | [walkthrough](sketches/messierInDepth.md) |
 | 2026-11-18 | `antiAircraftContraception.js` | Anti-Aircraft Contraception | 3d | Physics | [walkthrough](sketches/antiAircraftContraception.md) |
 | 2026-11-20 | `smallWorld.js` | Six Degrees of Poop | 3d | Graphs & Networks | [walkthrough](sketches/smallWorld.md) |
 | 2026-11-20 | `physarumRail.js` | Slime Mould Rail Planner | 3d | Graphs & Networks | [walkthrough](sketches/physarumRail.md) |

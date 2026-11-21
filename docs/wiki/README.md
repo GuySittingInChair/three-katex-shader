@@ -15,7 +15,7 @@ project's code and explains them one at a time.
 - A **walkthrough** is a wiki page that tours one sketch: what you see, the idea behind it, and its most
   important lines of code.
 - The buttons along the bottom of a sketch open **panels**. **Explain** shows that sketch's walkthrough, if it
-  has one yet (31 sketches do), and the expert notes. **Code** shows the sketch's code; in its **Read** view,
+  has one yet (62 sketches do), and the expert notes. **Code** shows the sketch's code; in its **Read** view,
   underlined words are links to these pages, and lines a wiki page explains are marked with a link back to
   that explanation. **Params** holds the sliders.
 - **Claude** is the AI that writes and maintains this project and this wiki.
@@ -119,6 +119,8 @@ Map projections (Mollweide, gnomonic), sky coordinates, degrees and ℓ.
 
 ## 12. Science explainers
 - [Parallax: measuring the distance to the stars](parallax-and-distance.md)
+- [Galaxy motions and the shapes they leave](galaxy-motions.md): where galaxies are heading, the film of the
+  nearby universe, and the collisions behind ring and shell galaxies
 
 Planned, one page per topic: the cosmic microwave background, spherical harmonics, power spectra, Cepheids,
 supernovae, rotation curves, exoplanets, gravitational waves and more. The full list is in [Survey of the
@@ -132,7 +134,7 @@ project](_survey.md).
 How to read the captions, symbol by symbol. For now, see `docs/guide.md` sections 3 and 4.
 
 ## 15. Sketch walkthroughs
-31 of the 166 sketches have one so far, and more are being written, with astronomy first. The full list of
+62 of the 190 sketches have one so far, and more are being written, with astronomy first. The full list of
 sketches, with which ones are done, is at the end of [Survey of the project](_survey.md).
 
 | Sketch | What it is |
@@ -157,6 +159,7 @@ sketches, with which ones are done, is at the end of [Survey of the project](_su
 | [Galton Board](sketches/galtonBoard.md) | coin flips building a bell curve |
 | [Conway's Game of Life](sketches/gameOfLife.md) | four rules, endless creatures |
 | [Generative Synth](sketches/generativeSynth.md) | a melody that improvises itself |
+| [Messier's Sky, in Depth](sketches/messierInDepth.md) | the deep sky at real distances, where each galaxy is moving, and the collisions that shaped some |
 | [Intercept](sketches/intercept.md) | a drone, a gun, and the physics of both |
 | [Anti-Aircraft Contraception](sketches/antiAircraftContraception.md) | missile physics, starring a sperm cell ([the physics](sketches/antiAircraftContraception-physics.md)) |
 | [Gradient Plane](sketches/gradientPlane.md) | a flowing rainbow from one line of shader code |

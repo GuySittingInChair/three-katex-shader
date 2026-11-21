@@ -1,7 +1,7 @@
 // "Where it's moving": the card text says what's measured and what's predicted, and the arrow points the right way.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import fs, { readFileSync } from 'node:fs';
 import { motionKey, motionHTML, motionRaDec, inLocalGroupModel } from '../src/lib/galaxy/motion.js';
 
 const data = JSON.parse(readFileSync(new URL('../public/data/motion/motion.json', import.meta.url)));
@@ -56,5 +56,28 @@ test('the Local Group file: both scenarios, sensible present-day motions', () =>
     assert.ok(S.now.LMC.vTan > 280 && S.now.LMC.vTan < 360, 'LMC moves sideways at ~320 km/s');
     assert.ok(S.hit.t50 > 3000 && S.hit.t50 < 9000);
     assert.equal(S.orbits[0].length, 4);
+  }
+});
+
+test('flow.json + flow.bin: sizes match, time table runs through today, growth stops in the future', () => {
+  const m = JSON.parse(fs.readFileSync(new URL('../public/data/motion/flow.json', import.meta.url)));
+  const buf = fs.readFileSync(new URL('../public/data/motion/flow.bin', import.meta.url));
+  assert.equal(buf.length, m.n * 12 + m.n);
+  const now = m.table.find((r) => r[1] >= 1);
+  assert.ok(Math.abs(now[2] - 1) < 0.01 && Math.abs(now[0] - m.age) < 0.2);
+  assert.ok(m.dInf > 1.2 && m.dInf < 1.6, 'ΛCDM growth saturates ~1.4× today');
+  assert.ok(m.clumpiness.early < m.clumpiness.now, 'running back smooths the matter out');
+  assert.ok(m.labels.some((l) => /Virgo/.test(l.name)));
+});
+
+test('shapes.json: every ring and shell fit beats its own control', () => {
+  const m = JSON.parse(fs.readFileSync(new URL('../public/data/pairs/shapes.json', import.meta.url)));
+  const ok = m.fits.filter((f) => f.ok);
+  assert.ok(ok.length >= 8);
+  for (const f of ok) {
+    const ctl = f.kind === 'ring' ? Math.max(f.baseline, f.controlMedian) : Math.max(f.rotated, f.controlMedian);
+    assert.ok(f.score > ctl, `${f.tag}: ${f.score} vs ${ctl}`);
+    assert.ok(f.t0 < 0 && f.t1 > 0 && Number.isFinite(f.centreRa));
+    if (f.kind === 'ring') assert.ok(f.impact.t < 0 && f.impact.r < f.measured.ringKpc);
   }
 });

@@ -84,7 +84,8 @@ export function motionHTML(rec, meta) {
     }
     if (c4.nearby) parts.push(`<p class="mv-n">This close, the map’s cells (36 million light-years wide) blur it together with our own neighbourhood, so this is mostly the motion of the whole region, the Local Group included.</p>`);
     else if (!c4.reliable) parts.push(`<p class="mv-n">At this distance the map is built from fewer, rougher distances, so the prediction is less certain.</p>`);
-    parts.push(`<p class="mv-n">The arrow on the map shows this direction (length ∝ speed).</p>`);
+    parts.push(`<p class="mv-n">The arrow on the map shows this direction (length ∝ speed).</p>
+      <button class="mz-btn mv-btn" data-act="flow">🎞 Watch the nearby universe flow</button>`);
   }
   const ck = meta?.check?.find((c) => c.nMin === 20);
   parts.push(`<details><summary>How this works</summary>

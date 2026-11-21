@@ -72,6 +72,23 @@ policy blocks live archive requests, so everything is preprocessed).
    friction (once per pair, reaction on the host; forces symmetric), 1000 draws × 2 scenarios, −6 to +10 Gyr.
    Result: M31 collides on first approach in 82% / 93% of runs at ~5.5–5.75 Gyr (16–84%: 4.7–7.4), the rest miss
    widely. Known limit: the friction is too blunt to show the swing-out after first passage; stated on the page.
+   **The nearby universe, flowing — done** (`tools/motion/build_flow.py` → `public/data/motion/flow.{json,bin}`, viewer
+   `src/lib/galaxy/flowView.js`): 90,000 tracers drawn ∝ 1+δ (clipped) within 160 Mpc/h from the same CF4 grids, moved
+   with the Zel'dovich approximation x(t) = x₀ + (D(t)−1)ψ, ψ = v/(H₀f), f = 0.513, D from flat ΛCDM (Ωm 0.3, h 0.7;
+   age 13.47 Gyr; D(∞)/D(now) = 1.39). Check: clumpiness beyond Poisson (std/mean of counts in 10 Mpc/h boxes) 0.45
+   now → 0.21 at D = 0. Observer ψ = 16 Mpc (566 km/s), 16° from Centaurus, 17° from Shapley. First-order (ψ read at
+   today's position), no shell crossing: stated on the page.
+   **Ring and shell galaxies — done** (`tools/shapes/build_shapes.py` → `tools/galaxies/fit_shapes.mjs` →
+   `public/data/pairs/shapes.json`, played in the pairs' time machine). Images: DESI Legacy Surveys DR10 r-band
+   cutouts (DSS is too shallow for shells; UGC 1840/Arp 145 not covered — 500 from the cutout service). Rings (Arp 146,
+   147, 148, Cartwheel): ring ridge ellipse from 48 directions, by-eye starting radius; companion by eye + centroid;
+   orbits through the companion's sky position, kept if they went through the inner disk (< 0.45 a) once, 20–600 Myr
+   ago; tilts within 45° of the disk axis; score = log-brightness correlation inside 1.5 a (no nucleus, no companion).
+   Scores 0.62–0.82 vs undisturbed disk 0.13–0.52. Shells (NGC 474, IC 51, IC 1575, NGC 2911, IC 162): residual =
+   image ÷ elliptical-median smooth version, bright sources (residual ≥ 1 in log) masked; near-radial plunges of a light
+   satellite (halo 22 km/s — a 55 km/s one kept a bound core that the fit parked on NGC 470); scores 0.29–0.68 vs the
+   same debris turned 90° (< 0) and random plunges (~0). Debris light fraction hits the cap and is not reported.
+   Bug found on the way: t0 not a multiple of the snapshot spacing left no snapshot at t = 0 (scored −1); fixed.
 5. **Encyclopedia expansion — first collection done.** *The Unknown Universe*: 36 unusual galaxies, groups and
    clusters (`tools/deepsky/objects.py` → `build_deepsky.py` → `public/data/deepsky/`), placed in the same 3D map.
    Measurements from NED with reference codes: position, type, redshift; distance = NED-D median where NED-D has

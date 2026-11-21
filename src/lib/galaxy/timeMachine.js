@@ -45,7 +45,7 @@ export function createTimeMachine({ url, pair, labelLayer, onPanelChange }) {
   const R_MAIN = pair ? pair.mainDisk.rmax * 0.9 : 16, R_COMP = pair ? pair.compDisk.rmax * 0.7 : 4, R_MERGED = pair ? pair.mainDisk.rmax * 1.3 : 20;
   const style = document.createElement('style'); style.textContent = css; document.head.appendChild(style);
   const group = new THREE.Group(); group.matrixAutoUpdate = false; group.visible = false;
-  const st = { t: pair ? pair.t0 : -800, rate: pair ? 50 : 40, playing: false, ready: false, progress: 0, on: false, alpha: 0, follow: -1 };
+  const st = { t: pair ? pair.t0 : -800, rate: pair?.kind === 'shell' ? 150 : pair ? 50 : 40, playing: false, ready: false, progress: 0, on: false, alpha: 0, follow: -1 };
   let sim = null, fit = null, geo, mat, pos, off, pathGeo, pathFut, mainPath, trackLine;
   const labels = names.map((t) => { const el = document.createElement('div'); el.className = 'mz-label big'; el.textContent = t; el.style.display = 'none'; labelLayer.appendChild(el); return el; });
   const markGeo = new THREE.BufferGeometry(); markGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
@@ -96,12 +96,14 @@ export function createTimeMachine({ url, pair, labelLayer, onPanelChange }) {
           const late = sim.moments.filter((m) => m.kind !== 'merger' && m.kind !== 'today' && m.t > 0 && m.t > mg.t - 80 && m.r < 3);
           if (late.length > 1) sim.moments = [...sim.moments.filter((m) => !late.includes(m)), { t: late[0].t, kind: 'spiral' }].sort((a, b) => a.t - b.t);
         }
+        if (pair?.kind === 'shell') { const fp = sim.moments.find((q) => q.kind === 'closest'); sim.moments = sim.moments.filter((q) => q === fp || q.kind === 'today'); }
         build(); st.ready = true; st.t = sim.t0; st.playing = true; syncBar(); onPanelChange?.();
       };
       if (pair) {
         // the same set-up the fit scored (tools/galaxies/fit_pairs.mjs), with more stars: the companion's share by its light
-        const nD = 4500, nC = Math.round(nD * Math.max(0.3, Math.min(1, f.lightRatio)));
-        worker.postMessage({ main: f.main, comp: f.comp, compPos: f.compPos, compVel: f.compVel, t0: f.t0, t1: f.t1, nDisk: nD, nComp: nC, dt: 1, every: 10, mainDisk: f.mainDisk, compDisk: f.compDisk });
+        // (a ring or shell galaxy, from fit_shapes.mjs: its own star counts; shells run for billions of years, so fewer snapshots)
+        const nD = f.kind === 'shell' ? 2000 : 4500, nC = f.kind === 'shell' ? 5000 : f.kind === 'ring' ? Math.round(nD * f.nCompFrac) : Math.round(nD * Math.max(0.3, Math.min(1, f.lightRatio)));
+        worker.postMessage({ main: f.main, comp: f.comp, compPos: f.compPos, compVel: f.compVel, t0: f.t0, t1: f.t1, nDisk: nD, nComp: nC, dt: 1, every: f.kind === 'shell' ? 25 : 10, mainDisk: f.mainDisk, compDisk: f.compDisk });
       } else worker.postMessage({ main: f.main, comp: f.comp, compPos: f.compPos, compVel: f.compVel, spin: f.spin, t0: f.t0, t1: f.t1, nDisk: 6000, nComp: 1000 });
     });
   };
@@ -137,6 +139,8 @@ export function createTimeMachine({ url, pair, labelLayer, onPanelChange }) {
     mainPath = new THREE.Line(new THREE.BufferGeometry().setFromPoints(mp), new THREE.LineBasicMaterial({ color: 0xfff0c0, transparent: true, opacity: 0.25, depthTest: false }));
     trackLine = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0x7dffc0, transparent: true, opacity: 0.9, depthTest: false }));
     for (const l of [l1, l2, mainPath, trackLine]) { l.frustumCulled = false; l.renderOrder = 3; }
+    // shells: the torn-apart galaxy has no centre worth tracing after its first plunge (its path would hide the shells)
+    if (pair?.kind === 'shell') l1.visible = l2.visible = false;
     group.add(pts, marks, l1, l2, mainPath, trackLine);
     // ticks for the key moments
     const track = bar.querySelector('.tm-track');
@@ -166,7 +170,42 @@ export function createTimeMachine({ url, pair, labelLayer, onPanelChange }) {
     return `out in a tidal tail, ${dM.toFixed(0)} kpc from ${names[0]}'s centre`;
   };
 
+  // a ring or shell galaxy (tools/galaxies/fit_shapes.mjs): one galaxy whose shape a collision made
+  const shapePanel = () => {
+    const f = pair, m = f.measured, ring = f.kind === 'ring';
+    const title = `${ring ? 'How the ring was made' : 'How the shells were made'} ${badge('SIMULATED')}`;
+    if (!st.ready) return `<div class="gx-ev"><h3>${title}</h3><p style="margin:0">Computing the collision in your browser… ${Math.round(st.progress * 100)}%</p></div>`;
+    const kly = (k) => `${k.toFixed(0)} kpc (${(k * 3.26).toFixed(0)} thousand light-years)`;
+    const lift = f.score - (ring ? Math.max(f.baseline, f.controlMedian) : Math.max(f.rotated, f.controlMedian));
+    const verdict = lift > 0.3 ? 'clearly prefers' : lift > 0.15 ? 'somewhat prefers' : 'hardly singles out';
+    // shells: the torn-apart galaxy's centre keeps swinging through in the model, but only its first plunge matters
+    const firstPass = sim.moments.find((q) => q.kind === 'closest');
+    const moments = ring ? sim.moments : sim.moments.filter((q) => q === firstPass || q.kind === 'today');
+    const fol = st.follow >= 0 ? `<div class="gx-ev"><h3>The star you're following</h3><p style="margin:0 0 6px">It started in ${esc(names[sim.born[st.follow * 2 + 1] > 0.5 ? 1 : 0])}, ${sim.born[st.follow * 2].toFixed(1)} kpc from its centre, ${-sim.t0} million years ago. The green line is its whole path ${badge('SIMULATED')}.</p></div>` : '';
+    const how = ring
+      ? `<p style="margin:0 0 6px">A ring like this is a splash. A smaller galaxy fell almost straight through the disk, close to its centre. For a moment every star felt an extra pull inwards; then the intruder was gone. All the stars' orbits swung in together and then out together, and that outswing travels outwards through the disk like the ripple from a stone in a pond, crowding stars and gas into a ring (Lynds &amp; Toomre 1976). ▶ Play to watch it happen; drag the view to see it from the side.</p>
+      <p style="margin:0 0 6px">In this model ${esc(names[1])} went through ${f.impact.r} kpc from the centre, <b>${-f.impact.t} million years ago</b>, at ${f.impact.v} km/s, ${f.impact.tilt}° from straight down the disk's axis. Its mass is ${f.massRatio < 1 ? `${Math.round(f.massRatio * 100)}% of` : `${f.massRatio.toFixed(1)} times`} the ring galaxy's.${f.compSeen ? ` It is the galaxy seen beside the ring today, ${kly(Math.hypot(...m.compXY))} away across the sky and, in the model, ${Math.abs(f.compPos[2]).toFixed(0)} kpc ${f.compPos[2] > 0 ? 'nearer to us' : 'further away'}.` : ` The model doesn't know which galaxy it was: it puts the intruder ${kly(Math.hypot(...f.compPos))} away now. Which of the Cartwheel's neighbours really did it is still argued about.`}</p>`
+      : `<p style="margin:0 0 6px">Shells are what's left of a small galaxy that fell almost straight into this big one. On the first plunge through the centre it was torn apart. Its stars carried on swinging back and forth through the middle, but each with its own period: they turn round at their farthest point and pile up there, so the debris gathers into thin arcs at growing distances, on alternating sides (Quinn 1984). ▶ Play to watch the shells appear one after another.</p>
+      <p style="margin:0 0 6px">In this model the small galaxy fell from about ${kly(f.plunge.ra)} out, passed ${f.plunge.rp} kpc from the centre <b>${(f.plunge.tp / 1000).toFixed(1)} billion years ago</b>, and its orbit points ${f.plunge.los > 30 ? 'mostly towards us' : f.plunge.los < -30 ? 'mostly away from us' : 'mostly across the sky'}. Its own mass barely matters to the shells; it was made light, so that it's fully torn apart, as the image suggests.</p>`;
+    const chk = ring
+      ? `the same disk left undisturbed scores ${f.baseline}, and orbits picked at random from those that pass through the disk score about ${f.controlMedian} (the best of a dozen ${f.controlMax})`
+      : `the same debris turned by 90° scores ${f.rotated}, and plunges picked at random score about ${f.controlMedian} (the best of a dozen ${f.controlMax})`;
+    return `${fol}<div class="gx-ev"><h3>${title}</h3>${how}
+      <p style="margin:6px 0 4px;font-weight:600">Moments</p>
+      <ul class="gx-list">${moments.map((q) => `<li><span class="n">${fmtT(q.t)} <span style="color:#9aa3b5">· ${!ring && q === firstPass ? 'the plunge through the centre that tore it apart' : KIND_TEXT[q.kind]}${q.r ? `, ${q.r.toFixed(1)} kpc` : ''}</span></span><button class="mz-btn" data-tmj="${q.t}">Go</button></li>`).join('')}</ul>
+      <p style="margin:6px 0 4px;font-weight:600">How this collision was found (automatically)</p>
+      <p style="margin:0 0 6px;font-size:13px">${ring ? `${f.tried.toLocaleString()} trial orbits, ${f.sensible} of them through the inner disk` : `${f.sensible} trial plunges`}; about ${f.simulated.toLocaleString()} simulated and compared with a deep image (${esc(m.image)}). The score is how well ${ring ? "the model's brightness pattern matches the image's" : "the model's shells match the image's"} ${ring ? 'around the ring' : '(the image divided by a smooth version of the galaxy, so the shells stand out)'}: ${f.score} for this one, where 1 would be perfect. As checks, ${chk}. So the image ${verdict} this collision. ${ring ? '' : "What it matches is roughly where the shells lie and how far out; the exact pattern of arcs it doesn't. "}The best of many tries also looks a little better than it is, since some of the match is luck.</p>
+      <p style="margin:6px 0 4px;font-weight:600">What's real here</p>
+      <div class="gx-prov"><div>${badge('OBSERVED')} The galaxy's position and redshift (${esc(m.ned)}, z = ${m.z}, NED); the image, from the DESI Legacy Imaging Surveys.</div>
+        <div>${badge('INFERRED')} ${ring ? `The ring: ${kly(m.ringKpc)} across its long half, measured along its brightest ridge${f.compSeen ? `; the companion's position and its light (${m.lightRatio}× the ring galaxy's)` : ''}` : `The galaxy's size (half its light within ${kly(m.re)}) and shape`}, at ${m.mpc.toFixed(0)} Mpc (${esc(m.distSrc)}).</div>
+        <div>${badge('INFERRED')} Found by the fit, not measured: ${ring ? "the intruder's depth, speed and path, the disk's tilt and the masses" : 'the direction, depth and timing of the plunge'}.</div>
+        <div>${badge('ARTISTIC')} The galaxies as soft balls of mass with test stars; ${ring ? 'the disk as a cold, thin disk' : 'the big galaxy as a round ball of stars'}. Stars don't pull on each other; no gas, so no new stars (real rings glow blue with them).</div></div>
+      <div class="mz-unknown"><div class="mz-unknown-h">What we still don't know</div><ul>
+        ${ring ? "<li>The intruder's real path: only its position on the sky is measured here, not its distance along our line of sight or its speed.</li><li>The masses (dark matter included), which set how fast the ring expands.</li>" : '<li>Which galaxy fell in, and how big it was: it no longer exists as a galaxy.</li><li>Whether one plunge made all the shells, or several. Some shell galaxies need more than one.</li>'}</ul></div></div>`;
+  };
+
   const pairPanel = () => {
+    if (pair.kind) return shapePanel();
     const f = pair, m = f.measured, title = `${esc(names[0])} and ${esc(names[1])} through time ${badge('SIMULATED')}`;
     if (!st.ready) return `<div class="gx-ev"><h3>${title}</h3><p style="margin:0">Computing the collision in your browser… ${Math.round(st.progress * 100)}%</p></div>`;
     const close = sim.moments.filter((q) => q.kind === 'closest'), merger = sim.moments.find((q) => q.kind === 'merger');
