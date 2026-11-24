@@ -311,3 +311,20 @@ ks each); `build_bh.py` centres on the X-ray peak, takes c_s from the gas temper
 distance, and measures a spacing from the profiles. Honest caveat: for most of the ten the measured spacing hits the
 upper limit (a third of the radius range), i.e. it is "the size of the biggest bubbles", so their pitches are rough
 and labelled so. Citations trimmed to author + year (volumes/pages were from memory, unverified). New `hole` slider.
+
+## Added 2026-11-23 at the owner's request: real black hole ripples
+
+Sounds of Space's Perseus scene rebuilt the way NASA/CXC made its 2022 sonification (radial lines through the Chandra
+ripple image, radar sweep, 57 + 58 octaves), from raw Chandra event files, plus a new Centaurus scene (the only other
+cluster with detected sound-wave ripples). Data: `tools/blackholes/build_bh.py` → `public/data/blackholes/` (add a
+black hole = one entry in its `BH` list). Known flaw: a camera seam in Perseus (straight dark line, south of the
+core) isn't masked; a straight-line finder was tried and masked real gas, so it was dropped. Possible next: M87 /
+Abell 2052 / NGC 5813 as single shock "booms" (shocks, not ripple trains), labelled as such.
+
+## Added 2026-11-23 at the owner's request: annoying black holes
+
+Owner liked how grating Perseus is and asked for black holes that are "specifically annoying". Pitch ∝ c_s / spacing,
+so: nearby galaxies with small structures. Added Centaurus A (3.3 kHz at 2^57: the most grating), M89, NGC 4636, M84
+and Sagittarius A* (raised 47 octaves, per-object `octave` field, since at 57 it would be ~2.3 MHz). M84 (28 ks) and
+Sgr A* are mostly Poisson speckle. Also an `annoy` slider (adds 59th/60th-octave voices + overdrive). Measured-spacing
+lower bound changed from max(8", 2 kpc) to 8" so small structures count. Owner rule: always push to the site.

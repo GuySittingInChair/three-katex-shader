@@ -3,7 +3,8 @@ observations, longest first, until about 150 ks (at most 4), all pointed within 
 import json, os, re, sys, urllib.request, urllib.parse
 UA = {'User-Agent': 'aiship-data-builder/1.0'}
 TARGETS = {'m87': 'M87', 'a2052': 'Abell 2052', 'n5813': 'NGC 5813', 'hydraa': 'Hydra A', 'ms0735': 'MS0735.6+7421',
-           'a2199': 'Abell 2199', 'n5044': 'NGC 5044', 'a0335': '2A0335+096', 'a262': 'Abell 262', 'cyga': 'Cygnus A'}
+           'a2199': 'Abell 2199', 'n5044': 'NGC 5044', 'a0335': '2A0335+096', 'a262': 'Abell 262', 'cyga': 'Cygnus A',
+           'cena': 'Centaurus A', 'm89': 'NGC 4552', 'n4636': 'NGC 4636', 'm84': 'NGC 4374', 'sgra': 'Sgr A*'}
 def get(url, t=120): return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=t).read()
 def hms(ra, dec):
     h, m, s = map(float, ra.split()); d = dec.split(); sg = -1 if d[0].startswith('-') else 1

@@ -123,7 +123,7 @@ Every data set lives in `public/data/<folder>/` and is made once, on this comput
 | `kepler` | `keplerEleven.js` | Kepler-11 light curve | NASA Kepler mission, via MAST |
 | `pulsars` | `pulsars.js` | ATNF Pulsar Catalogue v2.6.1 | CSIRO Australia Telescope National Facility |
 | `gw` | `gwChirp.js` | LIGO strain data for GW150914 | LIGO / GWOSC |
-| `blackholes` | `blackHoleRipples.js` | Chandra X-ray event files for 12 black holes in galaxy clusters and groups (Perseus 3209, 4289; Centaurus 4954, 4955, 5310; ten more chosen by `bh_fetch.py`, listed in `meta.json`); ripple spacings from Fabian et al. 2003, Sanders & Fabian 2008 | NASA Chandra X-ray Center archive |
+| `blackholes` | `soundsOfSpace.js`, `blackHoleRipples.js` | Chandra X-ray event files for 17 black holes in galaxy clusters, groups and nearby galaxies (Perseus 3209, 4289; Centaurus 4954, 4955, 5310; fifteen more chosen by `bh_fetch.py`, listed in `meta.json`); ripple spacings from Fabian et al. 2003, Sanders & Fabian 2008 | NASA Chandra X-ray Center archive |
 | `sn` | `snAcceleration.js` | Pantheon+ supernova distances | Scolnic, Brout et al. 2022 (public release) |
 | `sparc` | `missingMass.js` | SPARC galaxy rotation curves | Lelli, McGaugh & Schombert 2016 |
 | `sdss` | `sdssCosmicWeb.js` | SDSS DR18 galaxy spectra | Sloan Digital Sky Survey |

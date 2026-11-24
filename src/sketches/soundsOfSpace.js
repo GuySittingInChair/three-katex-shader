@@ -1,10 +1,10 @@
 import { TAU } from '../lib/motion.js';
 import { createStage, rng } from '../lib/stage2d.js';
-import { createSoundPlayer, pulsarClicks, strainSound } from '../lib/spaceSound.js';
+import { createSoundPlayer, pulsarClicks, strainSound, ripplesSong } from '../lib/spaceSound.js';
 import { caption } from '../lib/bit.js';
 
 // Sounds of Space. Space is (nearly) empty, so sound can't cross it, but plenty out there rings, ticks and hums at
-// frequencies of its own. This tour plays seven of them, each from real numbers, and says how much (if at all) it was
+// frequencies of its own. This tour plays eight of them, each from real numbers, and says how much (if at all) it was
 // sped up to reach your ears. Turn the Sound button on.
 //   1–4. Pulsars, played at their true rate, no speed-up: one click per turn of the spinning neutron star.
 //        Periods from the ATNF Pulsar Catalogue (public/data/pulsars/meta.json): Vela 0.089328 s, the Crab 0.033392 s,
@@ -16,10 +16,12 @@ import { caption } from '../lib/bit.js';
 //        measured modes). Each mode swells and fades at random, with a lifetime of about 3 days (2.6 s here).
 //   6.   GW150914, the first gravitational waves detected (LIGO, 14 Sept 2015), as recorded: the Hanford detector's
 //        strain, filtered to 35–350 Hz (public/data/gw), already at frequencies we can hear, played at true speed.
-//   7.   The black hole in the Perseus cluster, whose outbursts send pressure waves through the hot gas around it with
-//        a period of about 9.6 million years (Fabian et al. 2003, Chandra). Raised 57 octaves (2⁵⁷ ≈ 1.4 × 10¹⁷ times),
-//        that is 476 Hz, near the B♭ above middle C: the "B♭ 57 octaves below middle C". Played as a pure tone at that
-//        pitch, swelling with each wave.
+//   7–8. The black holes in the Perseus and Centaurus clusters, whose outbursts send pressure waves (real sound) through
+//        the hot gas around them, ripples 11 and 9 kpc apart, one passing every ~10 million years (Fabian et al. 2003;
+//        Sanders & Fabian 2008). Rebuilt the way NASA/CXC made their 2022 Perseus sonification: from the Chandra X-ray
+//        image (public/data/blackholes, made by astro-data/build_bh.py), the ripples read along lines out from the
+//        centre, a radar sweeping round, each ripple spacing played at its true rate raised 57 and 58 octaves
+//        (ripplesSong in lib/spaceSound.js). Perseus's ripples land near the B♭ above middle C: "B♭, 57 octaves down".
 // The picture shows the same samples you hear (an oscilloscope), and a drawing of the source.
 // see docs/wiki/sketches/soundsOfSpace.md
 
@@ -31,9 +33,12 @@ const PULSARS = {
   fast: { name: 'The fastest known pulsar', id: 'J1748−2446ad', P: 0.001396, where: 'in the star cluster Terzan 5' },
   magnetar: { name: 'Magnetar at the galaxy\'s centre', id: 'J1745−2900', P: 3.763733, where: 'a third of a light-year (as seen from here) from the Milky Way\'s black hole' },
 };
-const SCENES = ['vela', 'crab', 'fast', 'magnetar', 'sun', 'gw', 'perseus'];
+const SCENES = ['vela', 'crab', 'fast', 'magnetar', 'sun', 'gw', 'perseus', 'centaurus'];
 const SUN = { dnu: 135.1, numax: 3090, eps: 1.4, d02: 9, speed: 1e5, life: 3 * 86400 };   // μHz, μHz, —, μHz, ×, s
 const PERSEUS = { periodYears: 9.6e6, octaves: 57 };
+// published ripple spacing (kpc) and sound speed (km/s): Fabian et al. 2003; Sanders & Fabian 2008 (speed = 9 kpc / 10 Myr)
+const BH_PAPER = { perseus: { cluster: 'Perseus', lam: 11, cs: 1170 }, centaurus: { cluster: 'Centaurus', lam: 9, cs: 880 } };
+const KPC_M = 3.0857e19;
 const perseusHz = () => 2 ** PERSEUS.octaves / (PERSEUS.periodYears * 365.25 * 86400);
 
 // The Sun: modes l = 0, 1, 2 near νmax, each a sine whose size wanders (a random walk pulled back to its average, with
@@ -63,7 +68,26 @@ function sunSong(seed) {
   let peak = 0; for (const v of trimmed) peak = Math.max(peak, Math.abs(v));
   return trimmed.map((v) => (0.8 * v) / peak);
 }
-// Perseus: the scaled-up pitch, with soft overtones, swelling once each 1.5 s like the gas ripples drawn.
+// Black holes (see docs/wiki/sketches/soundsOfSpace.md): the Chandra ripple data, fetched once. Until it arrives,
+// Perseus plays its textbook pitch as a plain tone (below), so the scene is never silent.
+const BH = { meta: null, tables: {}, imgs: {} };
+const isBH = (key) => key === 'perseus' || key === 'centaurus';
+function loadBH() {
+  if (BH.meta) return;
+  BH.meta = 'loading';
+  fetch('/data/blackholes/meta.json').then((r) => r.json()).then((meta) => {
+    BH.meta = Object.fromEntries(meta.objects.map((o) => [o.id, o]));
+    for (const o of meta.objects) {
+      fetch(`/data/blackholes/${o.id}.prof`).then((r) => r.arrayBuffer()).then((b) => {
+        BH.tables[o.id] = new Int8Array(b);
+        // making the sound takes most of a second: do it now, one black hole at a time, not mid-scene
+        setTimeout(() => songFor(o.id), 300 + 900 * meta.objects.indexOf(o));
+      });
+      const im = new Image(); im.src = `/data/blackholes/${o.id}.jpg`; BH.imgs[o.id] = im;
+    }
+  }).catch((err) => { BH.meta = null; console.error('black hole data', err); });
+}
+// The textbook pitch: one wave per 9.6 million years, raised 57 octaves, with soft overtones, swelling every 1.5 s.
 function perseusSong() {
   const f = perseusHz(), dur = 6, n = dur * RATE, out = new Float32Array(n);
   for (let i = 0; i < n; i++) {
@@ -79,7 +103,8 @@ function songFor(key) {
   if (SONGS[key]) return SONGS[key];
   if (PULSARS[key]) SONGS[key] = pulsarClicks(PULSARS[key].P, RATE, key.length);
   else if (key === 'sun') SONGS[key] = sunSong(7);
-  else if (key === 'perseus') SONGS[key] = perseusSong();
+  else if (isBH(key) && BH.meta?.[key] && BH.tables[key]) SONGS[key] = ripplesSong(BH.meta[key], BH.tables[key], RATE, { sweep: SCENE });
+  else if (key === 'perseus') return (SONGS.textbook ??= perseusSong());   // placeholder while the data loads
   else if (key === 'gw' && GW) SONGS[key] = strainSound(GW.S, GW.cols, 1, GW.n, GW.fs, RATE);
   return SONGS[key] || null;
 }
@@ -89,9 +114,10 @@ const LIVE = { scene: 'vela' };
 export default {
   name: 'Sounds of Space',
   description:
-    'Seven real sounds from space, played from real numbers: four pulsars clicking at their true rates, the Sun ringing ' +
+    'Eight real sounds from space, played from real numbers: four pulsars clicking at their true rates, the Sun ringing ' +
     'with its 5-minute oscillations (sped up 100,000 times), the first gravitational waves ever detected, exactly as ' +
-    'LIGO heard them, and the black hole in the Perseus cluster, humming a B♭ 57 octaves too low to hear. Sound on.',
+    'LIGO heard them, and two black holes humming through the hot gas of their galaxy clusters, Perseus and Centaurus, ' +
+    'rebuilt from Chandra X-ray data the way NASA made its famous black hole sound: 57 octaves up. Sound on.',
   tags: ['astronomy', 'sound', 'sonification', 'pulsars', 'helioseismology', 'gravitational waves', 'black holes', 'real data'],
   category: 'Astronomy',
   mode: '3d',
@@ -120,11 +146,12 @@ export default {
       '&\\text{GW150914: two black holes merging (LIGO Hanford)} \\\\' +
       '&\\text{strain} \\sim 10^{-21},\\ 35 \\to 250\\ \\text{Hz} \\\\' +
       '&\\text{speed-up: none (as recorded, 14 Sept 2015)}' + tail + '\\end{aligned}';
-    const f = perseusHz();
+    // the black holes: the published ripple spacing and wave speed give the true pitch; then x 2^57 (and 2^58)
+    const P = BH_PAPER[s], f0 = (P.cs * 1e3) / (P.lam * KPC_M), f = f0 * 2 ** 57;
     return '\\begin{aligned}' +
-      '&\\text{The Perseus cluster\'s black hole} \\\\' +
-      `&\\text{period } 9.6 \\times 10^6\\ \\text{years} = ${hl(1 / (PERSEUS.periodYears * 365.25 * 86400) * 1e15, 2)} \\times 10^{-15}\\ \\text{Hz} \\\\` +
-      `&\\times 2^{57}:\\ ${hl(f, 0)}\\ \\text{Hz, near B}\\flat\\ (466\\ \\text{Hz})` + tail + '\\end{aligned}';
+      `&\\text{The ${P.cluster} cluster\'s black hole (Chandra X-ray data)} \\\\` +
+      `&\\lambda \\approx ${P.lam}\\ \\text{kpc},\\ c_s \\approx ${P.cs}\\ \\text{km/s}:\\ f = c_s/\\lambda = ${hl(f0 * 1e15, 2)} \\times 10^{-15}\\ \\text{Hz} \\\\` +
+      `&\\times 2^{57}:\\ ${hl(f, 0)}\\ \\text{Hz (near B}\\flat\\ 466),\\ \\times 2^{58}:\\ ${hl(2 * f, 0)}\\ \\text{Hz}` + tail + '\\end{aligned}';
   },
 
   params: {
@@ -133,6 +160,7 @@ export default {
 
   setup(ctx) {
     const stage = createStage(ctx, { glow: 1.0 });
+    loadBH();
     if (!GW) {
       Promise.all([fetch('/data/gw/meta.json').then((r) => r.json()), fetch('/data/gw/strain.bin').then((r) => r.arrayBuffer())])
         .then(([meta, buf]) => { GW = { S: new Float32Array(buf), cols: 6, n: meta.strain.n, fs: meta.fs }; })
@@ -145,7 +173,9 @@ export default {
     const { g } = state.stage.begin(ctx);
     const m = ctx.motion, a = state.stage.area, s = m.scene;
     const song = songFor(s);
-    state.player.loop(s, song, RATE);
+    // (the placeholder gets its own name, so the real sound replaces it the moment it's ready)
+    const key = song && song === SONGS.textbook ? 'textbook' : s;
+    state.player.loop(key, song, RATE);
     LIVE.scene = s;
 
     // The source, drawn in the upper part of the area.
@@ -186,8 +216,20 @@ export default {
       if (pos < tc) for (const sgn of [1, -1]) { g.fillStyle = 'rgb(10,10,14)'; g.strokeStyle = 'rgba(255,190,120,0.9)'; g.lineWidth = 2; g.beginPath(); g.arc(cx + sgn * sep * Math.cos(ph), cy + sgn * sep * Math.sin(ph), R * 0.16, 0, TAU); g.fill(); g.stroke(); }
       else { g.strokeStyle = 'rgba(255,190,120,0.9)'; g.lineWidth = 2; g.beginPath(); g.arc(cx, cy, R * 0.24, 0, TAU); g.stroke(); }
       for (let k = 0; k < 6; k++) { const rr = ((t * 0.6 + k / 6) % 1) * R * 2.4; g.strokeStyle = `rgba(255,190,120,${0.35 * (1 - rr / (R * 2.4))})`; g.beginPath(); g.arc(cx, cy, rr, 0, TAU); g.stroke(); }
+    } else if (isBH(s) && BH.meta?.[s] && BH.imgs[s]?.complete) {
+      // The real Chandra picture of the ripples (bright = denser gas than the smooth glow, dark = thinner; north up,
+      // east left), with the radar line the sound is reading right now. see docs/wiki/sketches/soundsOfSpace.md
+      const o = BH.meta[s], size = R * 2.6, x0 = cx - size / 2, y0 = cy - size / 2, px = size / (2 * o.imgHalfArcsec);
+      g.save(); g.beginPath(); g.arc(cx, cy, size / 2, 0, TAU); g.clip();
+      g.drawImage(BH.imgs[s], x0, y0, size, size); g.restore();
+      const pos = state.player.position(), ang = (TAU * (pos ?? m.tScene)) / SCENE;   // one turn per loop
+      g.strokeStyle = 'rgba(140,230,255,0.9)'; g.lineWidth = 2; g.beginPath();
+      g.moveTo(cx + Math.cos(ang) * o.rmin * px, cy - Math.sin(ang) * o.rmin * px);
+      g.lineTo(cx + Math.cos(ang) * o.rmax * px, cy - Math.sin(ang) * o.rmax * px); g.stroke();
+      g.strokeStyle = 'rgba(140,230,255,0.25)'; g.lineWidth = 1;
+      for (const rr of [o.rmin, o.rmax]) { g.beginPath(); g.arc(cx, cy, rr * px, 0, TAU); g.stroke(); }
     } else {
-      // Perseus: ripples spreading through hot gas from the central black hole
+      // Black hole data still loading: ripples spreading through hot gas from the central black hole
       for (let k = 0; k < 7; k++) {
         const rr = ((t / 1.5 + k / 7) % 1) * R * 2.4;
         g.strokeStyle = `rgba(190,140,255,${0.6 * (1 - rr / (R * 2.4))})`; g.lineWidth = 3;
@@ -218,10 +260,11 @@ export default {
       g.fillText(`the sound itself: ${win >= 1 ? win.toFixed(1) + ' s' : Math.round(win * 1000) + ' ms'} of it`, a.x, oy + oh + 14);
     }
     g.font = state.stage.font(15, '600'); g.fillStyle = 'rgba(235,240,255,0.95)'; g.textAlign = 'center';
-    const title = PULSARS[s] ? PULSARS[s].name : s === 'sun' ? 'The Sun, ringing' : s === 'gw' ? 'Two black holes merging, 1.3 billion years ago' : 'The black hole in the Perseus cluster';
+    const bh = isBH(s) && BH.meta?.[s];
+    const title = PULSARS[s] ? PULSARS[s].name : s === 'sun' ? 'The Sun, ringing' : s === 'gw' ? 'Two black holes merging, 1.3 billion years ago' : bh ? bh.name : s === 'centaurus' ? 'The black hole in the Centaurus cluster' : 'The black hole in the Perseus cluster';
     g.fillText(title, cx, a.y + 6);
     g.font = state.stage.font(11); g.fillStyle = 'rgba(200,210,230,0.75)';
-    const sub = PULSARS[s] ? PULSARS[s].where : s === 'sun' ? 'thousands of sound waves trapped inside it, each a few minutes long' : s === 'gw' ? 'its 4 km arms stretched by about a thousandth of a proton\'s width' : '250 million light-years away; ripples about 36,000 light-years apart';
+    const sub = PULSARS[s] ? PULSARS[s].where : s === 'sun' ? 'thousands of sound waves trapped inside it, each a few minutes long' : s === 'gw' ? 'its 4 km arms stretched by about a thousandth of a proton\'s width' : bh ? `${bh.dist} away; ${bh.note}` : 'loading the Chandra data…';
     g.fillText(sub, cx, a.y + 24);
     state.stage.end();
   },

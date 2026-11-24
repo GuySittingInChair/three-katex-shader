@@ -41,10 +41,10 @@ Every frame, it says what should be playing. Either a looped strip of samples (f
 `src/sketches/soundsOfSpace.js`):
 
 ```js
-state.player.loop(s, song, RATE);
+state.player.loop(key, song, RATE);
 ```
 
-`s` names the sound (calling again with the same name changes nothing; a new name fades the old sound out and
+`key` names the sound (usually the scene's name, such as `'vela'`) (calling again with the same name changes nothing; a new name fades the old sound out and
 the new one in), `song` is the strip of samples, and `RATE` how many samples make a second (22,050). Or a few
 steady notes, as Dark Saturn does with each horizon's tone. And when the sketch closes:
 

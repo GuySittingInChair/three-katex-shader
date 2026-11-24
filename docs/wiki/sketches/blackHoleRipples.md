@@ -1,5 +1,5 @@
 ---
-summary: Twelve giant black holes humming through the hot gas around them, from real Chandra X-ray data, played the NASA way and pitched down a little.
+summary: Seventeen black holes humming through the hot gas around them, from real Chandra X-ray data, played the NASA way and pitched down a little.
 added: 2026-11-23
 tags: astronomy
 ---
@@ -12,7 +12,7 @@ Astronomy
 **What you see:** a real X-ray picture of the gas around a giant black hole, bright where the gas is squeezed and
 dark where it is stretched, with a glowing "radar" line turning slowly over it. Below it, a wavy line: an
 *oscilloscope* trace of the sound itself, the very numbers your speakers are playing. After 22 seconds (one full
-turn of the radar) it moves on to the next of twelve black holes; the **hole** slider stops the tour on one. Press **Sound** to hear it.
+turn of the radar) it moves on to the next of seventeen black holes; the **hole** slider stops the tour on one. Press **Sound** to hear it.
 
 **The idea behind it:** this is the black hole idea from [Sounds of Space](soundsOfSpace.md), on its own, bigger,
 slower, and a little deeper. A *galaxy cluster* is a swarm of hundreds of galaxies sitting in one huge cloud of gas
@@ -27,7 +27,7 @@ octave), 5 by default, for a deeper growl.
 
 **Two kinds of black hole.** Only two places are known to have a steady *train* of ripples, one after another
 like the rings from a dripping tap: the Perseus and Centaurus clusters (numbers 1 and 2 on the slider). The other
-ten (3 to 12) are famous for a black hole visibly shoving its gas around, but in single events: *shock fronts*
+fifteen (3 to 17) are famous for a black hole visibly shoving its gas around, but in single events: *shock fronts*
 (one sharp pressure jump racing outwards, more a thunderclap than a hum) and *bubbles* (cavities blown in the gas
 by the black hole's jets). Those are real pressure waves too, but nobody has measured a ripple spacing for them,
 so this sketch measures a typical size from the picture itself (see step 5 below). Their pitch is this sketch's
@@ -47,6 +47,20 @@ rough reading, not a discovery, and the equation says so.
 | 10 | 2A 0335+096 | shocks | a stirred-up core full of bubbles |
 | 11 | Abell 262 | shocks | bubbles blown by radio jets |
 | 12 | Cygnus A | shocks | a jet-blown cocoon edged by a shock |
+| 13 | Centaurus A | shocks | the nearest big active black hole; picked as the most annoying |
+| 14 | M89 | shocks | two small shock rings |
+| 15 | NGC 4636 | shocks | shock-edged arms of gas |
+| 16 | M84 | shocks | small bubbles blown by its jets |
+| 17 | Sagittarius A* | gas | our own galaxy's black hole; raised 47 octaves, not 57 |
+
+Numbers 13 to 17 were chosen to be **annoying**. The pitch comes out as (speed of sound ÷ spacing), so small
+structures make high notes, and our ears are most sensitive (and most easily irritated) around 2,000 to 4,000 Hz.
+Nearby galaxies are close enough for Chandra to see structures only a few thousand light-years across, so they
+sing higher than the far-off clusters. Sagittarius A*, the black hole at the middle of our own Milky Way, is so
+close that its gas structures are only light-years across: raised NASA's 57 octaves it would sing at about 2.3
+million Hz, a hundred times higher than anyone can hear, so it is raised 47 octaves instead (the equation shows the number used). Fair warning:
+M84 and Sagittarius A* have far less X-ray light to work with than the clusters, so their pictures (and sounds) are
+grainier, more random speckle than structure.
 
 **Where the data comes from:** `public/data/blackholes/`, made by
 `tools/blackholes/build_bh.py` from Chandra's public archive (Perseus: observations 3209 and 4289; Centaurus: 4954,
@@ -89,17 +103,24 @@ colleagues (2003) for Perseus, Jeremy Sanders and Andrew Fabian (2008) for Centa
 
 ## A tour of the file
 
-The sound for one black hole, at one pitch:
+The sound for one black hole, at one setting:
 
 ```js
-    SONGS[key] = ripplesSong(BH.meta[id], BH.tables[id], RATE, { sweep: SCENE, octaves: [57 - down, 58 - down] });
+    const o = BH.meta[id], base = (o.octave ?? 57) - semis / 12, a = annoy / 10;
+    SONGS[key] = ripplesSong(o, BH.tables[id], RATE, {
+      sweep: SCENE, octaves: [base, base + 1, base + 2, base + 3], mix: [1, 0.55, 0.7 * a, 0.5 * a], drive: 1 + 4 * a,
+    });
 ```
 
 `ripplesSong` turns each ripple spacing into a pitch: the real frequency (wave speed ÷ spacing), doubled once per
-octave. `octaves: [57 - down, 58 - down]` asks for two voices, NASA's 57 and 58 octaves, each lowered by `down`.
-`down` is the slider's semitones divided by 12, because 12 semitones make one octave: 5 semitones is 5/12 = 0.42
-of an octave, so the voices sit at 2^56.58 and 2^57.58 instead of 2^57 and 2^58. `sweep: SCENE` makes the radar
-take 22 seconds per turn.
+octave. `base` is how many octaves to raise it: the black hole's own `octave` from the data (only Sagittarius A* has
+one, 47), or NASA's 57 (`?? 57` means "if there isn't one, use 57"), lowered by the pitch slider's semitones divided
+by 12, because 12 semitones make one octave: 5 semitones is 5/12 = 0.42 of an octave, so for most black holes the
+voices sit at 2^56.58, 2^57.58 and so on. `octaves` lists four voices, `base` and the three octaves above it. `mix` says how loud each voice is: the
+first two always 1 and 0.55; the shrill two are multiplied by `a`, the annoy slider divided by 10, so at annoy 0
+they are silent and at 10 they are at 0.7 and 0.5. `drive` is the overdrive: 1 at annoy 0 (clean), 5 at annoy 10,
+pushing the sound into its rounding-off so the peaks flatten and it rasps like a guitar amp turned all the way up.
+`sweep: SCENE` makes the radar take 22 seconds per turn.
 
 The slider:
 
@@ -110,20 +131,20 @@ The slider:
 0 is NASA's pitch exactly. 12 is one octave down, 24 two octaves down. Change `value: 5` to `value: 12` and the
 sketch starts a whole octave lower: Perseus's middle note goes from 372 Hz to 249 Hz (half of NASA's 497).
 
-Waiting for the slider to settle:
+Waiting for the sliders to settle:
 
 ```js
     if (state.pitch === null || (want !== state.pitch && t - state.since > 0.5)) state.pitch = want;
 ```
 
-Making a black hole's sound takes most of a second of computer work. If it remade the sound at every step while you
-drag the slider, the page would stutter. So it waits until the slider has stayed put for half a second (`t -
+Making a black hole's sound takes most of a second of computer work (nearer two with annoy up, four voices instead
+of two). If it remade the sound at every step while you drag a slider, the page would stutter. So it waits until the slider has stayed put for half a second (`t -
 state.since > 0.5`), then makes the sound once. Sounds already made are kept, so going back to a pitch you tried
 before is instant.
 
 ## Numbers worth knowing
 
-λ is the spacing (for 1–2 published; for 3–12 measured here, rough), c_s the speed of sound in the gas. The pitch
+λ is the spacing (for 1–2 published; for 3–17 measured here, rough), c_s the speed of sound in the gas. The pitch
 is c_s ÷ λ raised 57 octaves (NASA's), then 5 semitones down (this sketch's default).
 
 | | black hole | distance | λ (kpc) | c_s (km/s) | NASA pitch | default here |
@@ -140,17 +161,31 @@ is c_s ÷ λ raised 57 octaves (NASA's), then 5 semitones down (this sketch's de
 | 10 | 2A 0335+096 | 490 million light-years | 37 | 816 | 102 Hz | 77 Hz |
 | 11 | Abell 262 | 230 million light-years | 18 | 729 | 191 Hz | 143 Hz |
 | 12 | Cygnus A | 780 million light-years | 46 | 1,210 | 124 Hz | 93 Hz |
+| 13 | Centaurus A | 12 million light-years | 0.57 | 400 | 3,277 Hz | 2,455 Hz |
+| 14 | M89 | 50 million light-years | 2.9 | 400 | 651 Hz | 488 Hz |
+| 15 | NGC 4636 | 48 million light-years | 4.2 | 432 | 477 Hz | 357 Hz |
+| 16 | M84 | 55 million light-years | 2.6 | 432 | 770 Hz | 577 Hz |
+| 17 | Sagittarius A* | 27 thousand light-years | 0.0012 | 588 | 2,292 Hz (2⁴⁷) | 1,717 Hz |
 
 Big bubbles mean a long spacing, and a long spacing means a low note: MS 0735's outburst blew cavities hundreds of
 thousands of light-years across, so it comes out at a 30 Hz rumble that small speakers can barely play (try pitch 0,
 or headphones). The papers describing each one's shocks and bubbles: Fabian et al. 2003; Sanders & Fabian 2008;
 Forman et al. 2007; Blanton et al. 2011; Randall et al. 2015; Nulsen et al. 2005; McNamara et al. 2005; Nulsen et al.
-2013; David et al. 2009; Sanders et al. 2009; Blanton et al. 2004; Snios et al. 2018.
+2013; David et al. 2009; Sanders et al. 2009; Blanton et al. 2004; Snios et al. 2018; Croston et al. 2009;
+Machacek et al. 2006; Baldi et al. 2009; Finoguenov et al. 2008; Baganoff et al. 2003.
 
 A *kpc* (kiloparsec) is about 3,260 light-years. Five semitones down multiplies every frequency by 2^(−5/12), about
 0.75: 497 × 0.75 = 372.
 
-**Try this:** set **hole** to 5 (NGC 5813) and watch the radar cross its rings: three outbursts left three nested
+**Why some are more annoying than others:** the smallest spacings make the most grating sound. A small spacing
+means a high pitch, in the range our ears are most sensitive to, and tightly packed ripples give many close tones
+that beat against each other into a buzz. Measured over one turn at the default pitch, M87 (smallest spacing, 4.6
+kpc) is the brightest, its sound centred around 867 Hz, then Perseus (608 Hz); MS 0735 (biggest, 134 kpc) is a
+smooth rumble centred around 46 Hz with almost all its sound in a few clean tones.
+
+**Try this:** set **hole** to 13 (Centaurus A), **pitch** to 0 and **annoy** to 10: the most grating sound the
+sketch can make, a 3,300 Hz rasp right where your ears are most sensitive. Then set
+**hole** to 5 (NGC 5813) and watch the radar cross its rings: three outbursts left three nested
 shells, and the sound changes as the line passes each. Then drag **pitch** to 24: two octaves down, everything is a
 quarter of NASA's pitch (Perseus's middle note about 124 Hz), a low rumble. Drag it to 0 for NASA's own pitch.
 

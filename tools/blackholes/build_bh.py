@@ -63,6 +63,20 @@ BH += [
          rmin=10, rmax=170, ref='Blanton et al. 2004', note='bubbles blown by radio jets'),
     dict(SH, id='cyga', obs='cyga', depth=0.45, name='Cygnus A', galaxy='Cygnus A', z=0.0561, kT=5.5,
          rmin=15, rmax=150, ref='Snios et al. 2018', note='a jet-blown cocoon edged by a shock'),
+    # nearby galaxies: small structures (a few kpc) -> high pitches; chosen because they should sound the most grating
+    dict(SH, id='cena', obs='cena', name='Centaurus A', galaxy='NGC 5128', dist_mpc=3.8, kT=0.6, depth=0.5,
+         rmin=15, rmax=300, ref='Croston et al. 2009', note='the nearest big active black hole; a supersonic shock shell'),
+    dict(SH, id='m89', obs='m89', name='M89, the black hole in NGC 4552', galaxy='NGC 4552', dist_mpc=15.3, kT=0.6,
+         rmin=5, rmax=120, ref='Machacek et al. 2006', note='two small shock rings'),
+    dict(SH, id='n4636', obs='n4636', name='The black hole in NGC 4636', galaxy='NGC 4636', dist_mpc=14.7, kT=0.7,
+         rmin=8, rmax=200, ref='Baldi et al. 2009', note='shock-edged arms of gas'),
+    dict(SH, id='m84', obs='m84', name='M84, the black hole in NGC 4374', galaxy='NGC 4374', dist_mpc=16.8, kT=0.7,
+         rmin=6, rmax=150, ref='Finoguenov et al. 2008', note='small bubbles blown by its jets'),
+    # our own galaxy's black hole: its gas structures are light-years across, so 57 octaves would land far above
+    # hearing; raised only `octave` (47) octaves instead, which puts it near 2 kHz (said so on the page). Fixed centre: Sgr A* itself is faint.
+    dict(SH, id='sgra', obs='sgra', kind='gas', name='Sagittarius A*, our own galaxy\'s black hole', galaxy='Sgr A*', dist_mpc=0.0082,
+         kT=1.3, center=None, ra_fix=266.416837, dec_fix=-29.007811, octave=47, depth=0.5,
+         rmin=3, rmax=90, ref='Baganoff et al. 2003', note='hot gas a few light-years around it'),
 ]
 def kpc_per_arcsec(o):   # angular scale: measured distance, or flat Lambda-CDM (H0 70, Omega_m 0.3) from redshift
     if o.get('dist_mpc'): return o['dist_mpc'] * 1e3 * np.radians(1 / 3600)
@@ -72,15 +86,17 @@ def kpc_per_arcsec(o):   # angular scale: measured distance, or flat Lambda-CDM 
 def ly_text(o):          # "how far", in light-years (light-travel-ish: distance or c z / H0)
     mpc = o.get('dist_mpc') or 299792.458 * o['z'] / 70
     mly = mpc * 3.2616
+    if mly < 1: return f"{mly * 1000:,.0f} thousand light-years"
     return f"{mly / 1000:.1f} billion light-years" if mly >= 1000 else f"{int(float(f'{mly:.2g}')):,} million light-years"
 OBS = json.load(open('bh/obs.json')) if os.path.exists('bh/obs.json') else {}
 for o in BH:
     o.setdefault('kind', 'ripples')
-    if o['kind'] == 'shocks':
+    if o['kind'] in ('shocks', 'gas'):
         o['kpc_per_arcsec'] = kpc_per_arcsec(o)
         o['cs_kms'] = round(np.sqrt(5 / 3 * o['kT'] * 1.602e-16 / (0.6 * 1.6726e-27)) / 1e3)
         o['dist'] = ly_text(o)
         if o['obs'] in OBS: o.update(obsids=OBS[o['obs']]['obsids'], ra=OBS[o['obs']]['ra'], dec=OBS[o['obs']]['dec'])
+        if o.get('ra_fix') is not None: o.update(ra=o['ra_fix'], dec=o['dec_fix'])
     if o['cs_kms'] is None:   # where the paper gives wavelength + period but no sound speed, speed = wavelength / period
         o['cs_kms'] = round(o['wave_kpc'] * KPC / (o['period_yr'] * YR) / 1e3)
 
@@ -169,16 +185,16 @@ def build(o):
         fin = np.isfinite(v); raw[k] = np.interp(rs, rs[fin], v[fin]) if fin.any() else np.zeros_like(rs)
     if o['wave_kpc'] is None:
         # no published spacing: measure it. Average power spectrum of the profiles (slow trend removed), strongest
-        # spacing between 8" (and 2 kpc) and half the range read; then period = spacing / sound speed
+        # spacing between 8" and a third of the range read; then period = spacing / sound speed
         span = len(rs); d = raw - ndi.gaussian_filter1d(raw, span / 4, axis=1, mode='nearest')
         pw = (np.abs(np.fft.rfft(d * np.hanning(span), 4 * span, axis=1)) ** 2).mean(0)
         lamf = 4 * span / np.maximum(np.arange(len(pw)), 1e-9)
         # gas is lumpier at bigger sizes (power falls roughly as 1/frequency); multiply by frequency to even that out,
         # so the peak is the spacing that stands out, not simply the biggest allowed
         pw = pw * np.arange(len(pw))
-        okl = (lamf >= max(8, 2 / o['kpc_per_arcsec'])) & (lamf <= span / 3)
+        okl = (lamf >= 8) & (lamf <= span / 3)   # 8" up: smaller is mostly pixel noise
         lam_as = lamf[okl][np.argmax(pw[okl])]
-        o['wave_kpc'] = round(float(lam_as * o['kpc_per_arcsec']), 2)
+        o['wave_kpc'] = float(f"{lam_as * o['kpc_per_arcsec']:.3g}")   # 3 significant figures (Sgr A*'s is ~0.001)
         o['period_yr'] = float(o['wave_kpc'] * KPC / (o['cs_kms'] * 1e3) / YR)
         print(f"  {o['id']}: strongest spacing {lam_as:.0f}\" = {o['wave_kpc']} kpc, one per {o['period_yr'] / 1e6:.1f} Myr")
     lam = o['wave_kpc'] / o['kpc_per_arcsec']
@@ -194,7 +210,7 @@ def build(o):
     Image.fromarray((rgb[::-1] * 255).astype(np.uint8)).resize((512, 512), Image.LANCZOS).save(f"out_bh/{o['id']}.jpg", quality=88)
     sec_per_arcsec = o['kpc_per_arcsec'] * KPC / (o['cs_kms'] * 1e3)
     return dict({k: o[k] for k in ('id', 'name', 'galaxy', 'obsids', 'kpc_per_arcsec', 'cs_kms', 'wave_kpc', 'period_yr',
-                                   'rmin', 'rmax', 'dist', 'ref', 'note', 'kind')}, kT=o.get('kT'),
+                                   'rmin', 'rmax', 'dist', 'ref', 'note', 'kind')}, kT=o.get('kT'), octave=o.get('octave', 57),
                 n=len(rs), secPerArcsec=sec_per_arcsec, clipFrac=round(float(clip), 4), cover=round(float(cover.mean()), 3),
                 imgHalfArcsec=half)
 

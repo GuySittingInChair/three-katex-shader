@@ -139,7 +139,7 @@ export function strainSound(strain, cols, col, n, fs, RATE) {
 // wave's would: wave speed / spacing = how many crests pass a point each second, then x 2^57 (and x 2^58, softer). A
 // "radar" turns once every `sweep` seconds and the strengths follow it, so as the ripples crowd or spread in different
 // directions the sound glides. Data: tools/blackholes/build_bh.py; see docs/wiki/sketches/blackHoleRipples.md
-export function ripplesSong(meta, table, RATE, { sweep = 20, octaves = [57, 58], mix = [1, 0.55], seed = 3 } = {}) {
+export function ripplesSong(meta, table, RATE, { sweep = 20, octaves = [57, 58], mix = [1, 0.55], seed = 3, drive = 1 } = {}) {
   const n = meta.n, len = Math.round(sweep * RATE), out = new Float32Array(len), r = rng(seed);
   // spacings to listen for: from 0.4x to 2.5x the published ripple wavelength (in arcseconds on the sky)
   const lam = meta.wave_kpc / meta.kpc_per_arcsec, NF = 48;
@@ -181,8 +181,9 @@ export function ripplesSong(meta, table, RATE, { sweep = 20, octaves = [57, 58],
     }
   });
   // loudness: set by the typical level (98th percentile), not the single loudest moment, then rounded off gently
-  // (tanh) so the rare loud bursts don't clip -- otherwise a few strong directions leave the rest nearly silent
+  // (tanh) so the rare loud bursts don't clip -- otherwise a few strong directions leave the rest nearly silent.
+  // `drive` above 1 pushes harder into that rounding: overdrive, like a guitar amp turned up, adding rasp
   const mags = Array.from(out, Math.abs).sort((x, y) => x - y), p98 = mags[Math.floor(mags.length * 0.98)] || 1;
-  for (let i = 0; i < len; i++) out[i] = 0.8 * Math.tanh((1.1 * out[i]) / p98);
+  for (let i = 0; i < len; i++) out[i] = 0.8 * Math.tanh((1.1 * drive * out[i]) / p98);
   return out;
 }
