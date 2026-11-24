@@ -14,7 +14,7 @@ import { caption } from '../lib/bit.js';
 // see docs/wiki/sketches/blackHoleRipples.md
 
 const RATE = 22050;
-const SCENE = 22;                                   // seconds per black hole = one full turn of the radar
+const SCENE = 22;                                   // seconds per black hole = one full turn of the radar, at speed 1
 const KPC_M = 3.0857e19;
 // The black holes, in the data's order (the list grows when tools/blackholes/build_bh.py gets a new entry). Until
 // the data arrives, the two with published ripples.
@@ -39,16 +39,17 @@ function load() {
 // octave). `annoy` (0-10) stacks two shriller voices on top, 59 and 60 octaves up, and overdrives the result.
 // Making it takes most of a second, so each one is kept once made.
 const SONGS = {};
-function songFor(id, semis, annoy, rough, chaos) {
-  const key = `${id}:${semis}:${annoy}:${rough}:${chaos}`;
+function songFor(id, semis, annoy, rough, chaos, siren, speed) {
+  const key = `${id}:${semis}:${annoy}:${rough}:${chaos}:${siren}:${speed}`;
   if (!SONGS[key] && BH.meta?.[id] && BH.tables[id]) {
     // (most are raised 57 octaves like NASA's; one whose structures are tiny, Sagittarius A*, says fewer in its data)
     const o = BH.meta[id], base = (o.octave ?? 57) - semis / 12, a = annoy / 10, c = chaos / 10;
     // chaos adds two clashing voices one semitone (1/12 octave) above the first two, the "minor second" of horror
     // films, a 3,000 Hz boost and random stutters and dropouts
     SONGS[key] = ripplesSong(o, BH.tables[id], RATE, {
-      sweep: SCENE, octaves: [base, base + 1, base + 2, base + 3, base + 1 / 12, base + 1 + 1 / 12],
+      sweep: SCENE / speed, octaves: [base, base + 1, base + 2, base + 3, base + 1 / 12, base + 1 + 1 / 12],
       mix: [1, 0.55, 0.7 * a, 0.5 * a, 0.9 * c, 0.5 * c], drive: 1 + 4 * a, rough: rough / 10, focus: c, glitch: c,
+      siren: siren / 10,
     });
   }
   return SONGS[key] || null;
@@ -67,10 +68,13 @@ export default {
   sound: 'live',
 
   // hole 0 = a tour, 22 s each; 1, 2, 3 … = stay on that black hole
+  // (the site runs this clock `speed` times faster when a sketch has a `speed` param, so at speed 8 each black hole
+  // lasts SCENE / 8 real seconds with no change here; the sound's loop is made SCENE / speed seconds long to match)
   motion(t, params) {
+    const len = SCENE;
     const pick = Math.round(params?.hole ?? 0);
-    const k = pick > 0 ? Math.min(pick, IDS.length) - 1 : Math.floor(t / SCENE) % IDS.length;
-    return { id: IDS[k], tScene: t % SCENE };
+    const k = pick > 0 ? Math.min(pick, IDS.length) - 1 : Math.floor(t / len) % IDS.length;
+    return { id: IDS[k], tScene: t % len };
   },
 
   latex: (params, hl, m) => {
@@ -92,7 +96,9 @@ export default {
     hole: { value: 0, min: 0, max: 17, step: 1 },    // 0 = tour all of them; 1, 2, 3 … = stay on one (in the data's order)
     annoy: { value: 0, min: 0, max: 10, step: 1 },   // 0 = as measured; 10 = two shrill octaves on top, overdriven
     rough: { value: 0, min: 0, max: 10, step: 1 },   // 0 = smooth; 10 = chopped on and off ~70 times a second
-    chaos: { value: 0, min: 0, max: 10, step: 1 },   // 0 = none; 10 = semitone clash, 3 kHz boost, stutters and dropouts
+    chaos: { value: 0, min: 0, max: 10, step: 1 },   // 0 = none; 10 = semitone clash, 3 kHz boost, stutters
+    siren: { value: 0, min: 0, max: 10, step: 1 },   // 0 = steady; 10 = pitch wails 4 semitones up and down, 2-7 times a second
+    speed: { value: 1, min: 1, max: 8, step: 1 },    // how fast the radar turns: 1 = 22 s per black hole, 8 = under 3 s
   },
 
   setup(ctx) {
@@ -105,11 +111,11 @@ export default {
     const m = ctx.motion, a = state.stage.area, id = m.id, t = ctx.time;
 
     // The sliders make a new sound only once they have been still for half a second (each takes most of a second).
-    const want = ['pitch', 'annoy', 'rough', 'chaos'].map((k) => Math.round(ctx.params[k])).join(':');
+    const want = ['pitch', 'annoy', 'rough', 'chaos', 'siren', 'speed'].map((k) => Math.round(ctx.params[k])).join(':');
     if (want !== state.wanted) { state.wanted = want; state.since = t; }
     if (state.pitch === null || (want !== state.pitch && t - state.since > 0.5)) state.pitch = want;
-    const [semis, annoy, rough, chaos] = state.pitch.split(':').map(Number);
-    const song = songFor(id, semis, annoy, rough, chaos);
+    const [semis, annoy, rough, chaos, siren, speed] = state.pitch.split(':').map(Number);
+    const song = songFor(id, semis, annoy, rough, chaos, siren, Math.max(1, speed));
     state.player.loop(song ? `${id}:${state.pitch}` : 'none', song, RATE);
 
     // The real Chandra picture of the ripples (bright = squeezed gas, dark = stretched; north up, east left) and the
@@ -120,7 +126,9 @@ export default {
       const px = size / (2 * o.imgHalfArcsec);
       g.save(); g.beginPath(); g.arc(cx, cy, size / 2, 0, TAU); g.clip();
       g.drawImage(img, cx - size / 2, cy - size / 2, size, size); g.restore();
-      const pos = state.player.position(), ang = (TAU * (pos ?? m.tScene)) / SCENE;   // one turn per loop
+      // one turn per loop: the sound's position (real seconds, loop SCENE / speed long) or, silent, the scene clock
+      const pos = state.player.position(), speed = Math.max(1, Math.round(ctx.params.speed));
+      const ang = pos !== null ? (TAU * pos * speed) / SCENE : (TAU * m.tScene) / SCENE;
       const grad = g.createLinearGradient(cx, cy, cx + Math.cos(ang) * o.rmax * px, cy - Math.sin(ang) * o.rmax * px);
       grad.addColorStop(0, 'rgba(140,230,255,0.2)'); grad.addColorStop(1, 'rgba(140,230,255,0.95)');
       g.strokeStyle = grad; g.lineWidth = 2.5; g.beginPath();

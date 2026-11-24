@@ -139,7 +139,7 @@ export function strainSound(strain, cols, col, n, fs, RATE) {
 // wave's would: wave speed / spacing = how many crests pass a point each second, then x 2^57 (and x 2^58, softer). A
 // "radar" turns once every `sweep` seconds and the strengths follow it, so as the ripples crowd or spread in different
 // directions the sound glides. Data: tools/blackholes/build_bh.py; see docs/wiki/sketches/blackHoleRipples.md
-export function ripplesSong(meta, table, RATE, { sweep = 20, octaves = [57, 58], mix = [1, 0.55], seed = 3, drive = 1, rough = 0, focus = 0, glitch = 0 } = {}) {
+export function ripplesSong(meta, table, RATE, { sweep = 20, octaves = [57, 58], mix = [1, 0.55], seed = 3, drive = 1, rough = 0, focus = 0, glitch = 0, siren = 0 } = {}) {
   const n = meta.n, len = Math.round(sweep * RATE), out = new Float32Array(len), r = rng(seed);
   // spacings to listen for: from 0.4x to 2.5x the published ripple wavelength (in arcseconds on the sky)
   const lam = meta.wave_kpc / meta.kpc_per_arcsec, NF = 48;
@@ -167,6 +167,18 @@ export function ripplesSong(meta, table, RATE, { sweep = 20, octaves = [57, 58],
     for (let k = 0; k < 360; k++) S[k * NF + j] = (S[k * NF + j] / med) ** 3;
   }
   const SIN = new Float32Array(4096); for (let i = 0; i < 4096; i++) SIN[i] = Math.sin((TAU * i) / 4096);
+  // `siren` (0-1): every voice's pitch wails up and down together, up to 4 semitones each way, like an air-raid siren;
+  // the wail's speed itself wanders between about 2 and 7 times a second, so it never becomes a steady rhythm.
+  // WAIL[i] multiplies the pitch at sample i (1 = unchanged; 2^(4/12) = 1.26 = four semitones up).
+  let WAIL = null;
+  if (siren > 0) {
+    WAIL = new Float32Array(len); let wp = 0;
+    for (let i = 0; i < len; i++) {
+      const t = i / RATE, rate = 4.5 + 2.5 * Math.sin(TAU * t / 3.1) * Math.sin(TAU * t / 1.3);
+      wp += (TAU * rate) / RATE;
+      WAIL[i] = 2 ** ((4 * siren * Math.sin(wp)) / 12);
+    }
+  }
   octaves.forEach((oct, v) => {
     for (let j = 0; j < NF; j++) {
       // the pitch of this spacing: crests per second = sound speed / spacing, sped up 2^oct
@@ -176,7 +188,7 @@ export function ripplesSong(meta, table, RATE, { sweep = 20, octaves = [57, 58],
       for (let i = 0; i < len; i++) {
         const deg = (360 * i) / len, k0 = Math.floor(deg) % 360, f = deg - Math.floor(deg);
         const amp = S[k0 * NF + j] + (S[((k0 + 1) % 360) * NF + j] - S[k0 * NF + j]) * f;
-        out[i] += mix[v] * amp * SIN[ph & 4095]; ph += inc; if (ph >= 4096) ph -= 4096;
+        out[i] += mix[v] * amp * SIN[ph & 4095]; ph += WAIL ? inc * WAIL[i] : inc; if (ph >= 4096) ph -= 4096;
       }
     }
   });

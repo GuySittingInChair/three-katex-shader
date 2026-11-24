@@ -111,8 +111,9 @@ The sound for one black hole, at one setting:
 
 ```js
     SONGS[key] = ripplesSong(o, BH.tables[id], RATE, {
-      sweep: SCENE, octaves: [base, base + 1, base + 2, base + 3, base + 1 / 12, base + 1 + 1 / 12],
+      sweep: SCENE / speed, octaves: [base, base + 1, base + 2, base + 3, base + 1 / 12, base + 1 + 1 / 12],
       mix: [1, 0.55, 0.7 * a, 0.5 * a, 0.9 * c, 0.5 * c], drive: 1 + 4 * a, rough: rough / 10, focus: c, glitch: c,
+      siren: siren / 10,
     });
 ```
 
@@ -128,7 +129,11 @@ pushing the sound into its rounding-off so the peaks flatten and it rasps like a
 `rough` is the roughness slider divided by 10 (see below). `c` is the chaos slider divided by 10: it turns up the
 two clashing voices (`0.9 * c`, `0.5 * c`), the 3,000 Hz boost (`focus`) and the stutters (`glitch`), explained
 after roughness.
-`sweep: SCENE` makes the radar take 22 seconds per turn.
+`siren` is the siren slider divided by 10 (below). `sweep: SCENE / speed` is how long the radar takes per turn: 22
+seconds at speed 1, 11 at speed 2, 2.75 at speed 8. The tour itself speeds up without any code here: the site runs
+a sketch's clock faster whenever it has a slider named `speed` (see [params](../params.md)), so at speed 8 each black
+hole gets 2.75 seconds and all seventeen go by in under 47 seconds. (The first try also shortened each black hole's
+turn in the sketch, on top of the site's speed-up, so speed 8 raced 64 times too fast: ten black holes in 3 seconds.)
 
 The roughness, in `src/lib/spaceSound.js`:
 
@@ -159,6 +164,19 @@ earlier version did cut to silence, and it came across as gaps rather than grati
 Measured on Centaurus A (pitch 0, annoy 10, rough 10): without chaos, 38% of the sound's energy is between 2,000
 and 5,000 Hz; with chaos at 10, 77%, and no 20-thousandths-of-a-second slice anywhere in the loop falls silent. The
 loudest peak is the same 0.8 both times: it is worse, not louder.
+
+**Siren** makes every voice's pitch wail up and down together, like an air-raid siren:
+
+```js
+      WAIL[i] = 2 ** ((4 * siren * Math.sin(wp)) / 12);
+```
+
+`Math.sin(wp)` swings between −1 and 1; times `4 * siren` that is up to 4 semitones up or down at full siren;
+divided by 12 it is in octaves, and `2 **` turns octaves into a multiplier (4 semitones up is 2^(4/12), about 1.26:
+every pitch 26% higher). The wail's own speed wanders between about 2 and 7 times a second, so it never settles into
+a rhythm. A sliding pitch is hard to ignore for a reason: it is how sirens and alarms are designed to grab attention.
+With siren 10 added to the worst setting, still no silent moment, 79% of the energy between 2,000 and 5,000 Hz, and
+the same peak.
 
 The slider:
 
@@ -221,10 +239,12 @@ that beat against each other into a buzz. Measured over one turn at the default 
 kpc) is the brightest, its sound centred around 867 Hz, then Perseus (608 Hz); MS 0735 (biggest, 134 kpc) is a
 smooth rumble centred around 46 Hz with almost all its sound in a few clean tones.
 
-**Try this:** set **hole** to 13 (Centaurus A), **pitch** to 0, and **annoy**, **rough** and **chaos** all to 10:
+**Try this:** set **hole** to 13 (Centaurus A), **pitch** to 0, and **annoy**, **rough**, **chaos** and **siren**
+all to 10:
 the most grating sound the sketch can make, a 3,300 Hz overdriven rasp right where your ears are most sensitive (your ear
 canal resonates near 3,000 to 4,000 Hz, which is also where smoke alarms and crying babies sit), chopped 70 times a
-second, clashing with itself, stuttering. Keep the volume moderate: harsh, distorted sound played loud can damage hearing. Then set
+second, clashing with itself, stuttering, wailing. Then set **hole** to 0 and **speed** to 8 to race through all
+seventeen black holes in under a minute. Keep the volume moderate: harsh, distorted sound played loud can damage hearing. Then set
 **hole** to 5 (NGC 5813) and watch the radar cross its rings: three outbursts left three nested
 shells, and the sound changes as the line passes each. Then drag **pitch** to 24: two octaves down, everything is a
 quarter of NASA's pitch (Perseus's middle note about 124 Hz), a low rumble. Drag it to 0 for NASA's own pitch.
