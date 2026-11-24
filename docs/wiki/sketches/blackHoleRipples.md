@@ -134,7 +134,7 @@ The roughness, in `src/lib/spaceSound.js`:
 
 ```js
       const chop = 0.5 + 0.5 * Math.tanh(4 * Math.sin(ph));        // a softened on/off square wave
-      out[i] *= 1 - rough * chop;
+      out[i] *= 1 - 0.8 * rough * chop;                            // dips to a fifth, never to silence
 ```
 
 Scientists who study how sounds feel (*psychoacoustics*) have a name for the grating quality of a buzzing alarm or
@@ -142,8 +142,9 @@ a dentist's drill: *roughness*. It is strongest when a sound's loudness flutters
 and you hear separate pulses, faster and it blurs into a steady tone. `ph` goes round 70 times a second (wandering
 12% either way, so your ear can't get used to it). `Math.sin(ph)` swings between −1 and 1; `Math.tanh(4 * …)`
 squashes that into something close to an on/off switch; `0.5 + 0.5 * …` turns it into 0 (off) to 1 (on). Then
-`1 - rough * chop`: at roughness 10 (`rough` 1) the sound is cut to silence 70 times a second; at 5 it dips to half;
-at 0 nothing changes. Measured on Centaurus A at full roughness, the loudness flutter peaks at 78 times a second.
+`1 - 0.8 * rough * chop`: at roughness 10 (`rough` 1) the sound dips to a fifth of its loudness 70 times a second; at
+5 it dips to 60%; at 0 nothing changes. It never dips to silence: a silent moment would be a rest from it (an
+earlier version did cut to silence, and it came across as gaps rather than grating). Measured on Centaurus A at full roughness, the loudness flutter peaks at 78 times a second.
 
 **Chaos** does three more things that make a sound unpleasant without making it louder:
 - *Dissonance.* The two extra voices are one semitone above the main two: two notes as close as neighbouring piano
@@ -152,12 +153,12 @@ at 0 nothing changes. Measured on Centaurus A at full roughness, the loudness fl
   resonates (like blowing across a bottle) and hearing is sharpest, and adds it back on top, two and a half times
   over. A nail on a chalkboard puts most of its energy in this band.
 - *Glitches.* The sound is cut into pieces 30 to 120 thousandths of a second long, and at random a piece becomes a
-  repeat of the last one (a stutter, like a skipping CD) or silence (a dropout). You can't predict them, so you
-  can't stop noticing.
+  repeat of the last one (a stutter, like a skipping CD), sometimes played backwards. You can't predict them, so you
+  can't stop noticing. (An earlier version also dropped pieces to silence; those were heard as gaps, so they went.)
 
 Measured on Centaurus A (pitch 0, annoy 10, rough 10): without chaos, 38% of the sound's energy is between 2,000
-and 5,000 Hz; with chaos at 10, 78%, with dropouts in about 28% of moments. The loudest peak is the same 0.8 both
-times: it is worse, not louder.
+and 5,000 Hz; with chaos at 10, 77%, and no 20-thousandths-of-a-second slice anywhere in the loop falls silent. The
+loudest peak is the same 0.8 both times: it is worse, not louder.
 
 The slider:
 

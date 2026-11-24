@@ -201,23 +201,26 @@ export function ripplesSong(meta, table, RATE, { sweep = 20, octaves = [57, 58],
   for (let i = 0; i < len; i++) out[i] = 0.8 * Math.tanh((1.1 * drive * out[i]) / p98);
   // `rough` (0-1): chop the loudness on and off about 70 times a second, the flutter rate people find harshest
   // (psychoacoustic "roughness" peaks near 70 Hz: the grate in a buzzing alarm or a dentist's drill). The rate wanders
-  // a little so the ear can't settle into it.
+  // a little so the ear can't settle into it. Even at full strength it only dips, so there is no silence to rest in.
   if (rough > 0) {
     let ph = 0;
     for (let i = 0; i < len; i++) {
       ph += (TAU * 70 * (1 + 0.12 * Math.sin((TAU * i) / RATE / 1.7))) / RATE;
       const chop = 0.5 + 0.5 * Math.tanh(4 * Math.sin(ph));        // a softened on/off square wave
-      out[i] *= 1 - rough * chop;
+      out[i] *= 1 - 0.8 * rough * chop;                            // dips to a fifth, never to silence
     }
   }
   // `glitch` (0-1): break the sound into 30-120 ms pieces; at random, a piece is replaced by a repeat of the one before
-  // (a stutter, like a skipping CD) or by silence (a dropout). Unpredictable, so the ear can never settle into it.
+  // (a stutter, like a skipping CD), sometimes played backwards. Unpredictable, so the ear can never settle into it,
+  // but never silent: a gap would be a rest from it.
   if (glitch > 0) {
     let i = 0, prev = 0, prevLen = 0;
     while (i < len) {
       const n = Math.round((0.03 + 0.09 * r()) * RATE), roll = r();
-      if (prevLen && roll < 0.35 * glitch) for (let k = 0; k < n && i + k < len; k++) out[i + k] = out[prev + (k % prevLen)];
-      else if (roll < 0.5 * glitch) for (let k = 0; k < n && i + k < len; k++) out[i + k] = 0;
+      if (prevLen && roll < 0.45 * glitch) {
+        const back = roll < 0.15 * glitch;
+        for (let k = 0; k < n && i + k < len; k++) out[i + k] = out[prev + (back ? prevLen - 1 - (k % prevLen) : k % prevLen)];
+      }
       prev = i; prevLen = n; i += n;
     }
   }
