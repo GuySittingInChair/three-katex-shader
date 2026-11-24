@@ -106,10 +106,13 @@ colleagues (2003) for Perseus, Jeremy Sanders and Andrew Fabian (2008) for Centa
 The sound for one black hole, at one setting:
 
 ```js
-    const o = BH.meta[id], base = (o.octave ?? 57) - semis / 12, a = annoy / 10;
+    const o = BH.meta[id], base = (o.octave ?? 57) - semis / 12, a = annoy / 10, c = chaos / 10;
+```
+
+```js
     SONGS[key] = ripplesSong(o, BH.tables[id], RATE, {
-      sweep: SCENE, octaves: [base, base + 1, base + 2, base + 3], mix: [1, 0.55, 0.7 * a, 0.5 * a], drive: 1 + 4 * a,
-      rough: rough / 10,
+      sweep: SCENE, octaves: [base, base + 1, base + 2, base + 3, base + 1 / 12, base + 1 + 1 / 12],
+      mix: [1, 0.55, 0.7 * a, 0.5 * a, 0.9 * c, 0.5 * c], drive: 1 + 4 * a, rough: rough / 10, focus: c, glitch: c,
     });
 ```
 
@@ -117,11 +120,14 @@ The sound for one black hole, at one setting:
 octave. `base` is how many octaves to raise it: the black hole's own `octave` from the data (only Sagittarius A* has
 one, 47), or NASA's 57 (`?? 57` means "if there isn't one, use 57"), lowered by the pitch slider's semitones divided
 by 12, because 12 semitones make one octave: 5 semitones is 5/12 = 0.42 of an octave, so for most black holes the
-voices sit at 2^56.58, 2^57.58 and so on. `octaves` lists four voices, `base` and the three octaves above it. `mix` says how loud each voice is: the
+voices sit at 2^56.58, 2^57.58 and so on. `octaves` lists six voices: `base` and the three octaves above it, then
+two more `1 / 12` of an octave (one semitone) above the first two, for chaos (below). `mix` says how loud each voice is: the
 first two always 1 and 0.55; the shrill two are multiplied by `a`, the annoy slider divided by 10, so at annoy 0
 they are silent and at 10 they are at 0.7 and 0.5. `drive` is the overdrive: 1 at annoy 0 (clean), 5 at annoy 10,
 pushing the sound into its rounding-off so the peaks flatten and it rasps like a guitar amp turned all the way up.
-`rough` is the roughness slider divided by 10 (see below).
+`rough` is the roughness slider divided by 10 (see below). `c` is the chaos slider divided by 10: it turns up the
+two clashing voices (`0.9 * c`, `0.5 * c`), the 3,000 Hz boost (`focus`) and the stutters (`glitch`), explained
+after roughness.
 `sweep: SCENE` makes the radar take 22 seconds per turn.
 
 The roughness, in `src/lib/spaceSound.js`:
@@ -138,6 +144,20 @@ and you hear separate pulses, faster and it blurs into a steady tone. `ph` goes 
 squashes that into something close to an on/off switch; `0.5 + 0.5 * …` turns it into 0 (off) to 1 (on). Then
 `1 - rough * chop`: at roughness 10 (`rough` 1) the sound is cut to silence 70 times a second; at 5 it dips to half;
 at 0 nothing changes. Measured on Centaurus A at full roughness, the loudness flutter peaks at 78 times a second.
+
+**Chaos** does three more things that make a sound unpleasant without making it louder:
+- *Dissonance.* The two extra voices are one semitone above the main two: two notes as close as neighbouring piano
+  keys, the clash horror films use. Their slight difference makes them beat against each other constantly.
+- *A 3,000 Hz spike.* A band-pass filter picks out the part of the sound near 3,000 Hz, where your ear canal
+  resonates (like blowing across a bottle) and hearing is sharpest, and adds it back on top, two and a half times
+  over. A nail on a chalkboard puts most of its energy in this band.
+- *Glitches.* The sound is cut into pieces 30 to 120 thousandths of a second long, and at random a piece becomes a
+  repeat of the last one (a stutter, like a skipping CD) or silence (a dropout). You can't predict them, so you
+  can't stop noticing.
+
+Measured on Centaurus A (pitch 0, annoy 10, rough 10): without chaos, 38% of the sound's energy is between 2,000
+and 5,000 Hz; with chaos at 10, 78%, with dropouts in about 28% of moments. The loudest peak is the same 0.8 both
+times: it is worse, not louder.
 
 The slider:
 
@@ -200,10 +220,10 @@ that beat against each other into a buzz. Measured over one turn at the default 
 kpc) is the brightest, its sound centred around 867 Hz, then Perseus (608 Hz); MS 0735 (biggest, 134 kpc) is a
 smooth rumble centred around 46 Hz with almost all its sound in a few clean tones.
 
-**Try this:** set **hole** to 13 (Centaurus A), **pitch** to 0, **annoy** to 10 and **rough** to 10: the most
-grating sound the sketch can make, a 3,300 Hz overdriven rasp right where your ears are most sensitive (your ear
+**Try this:** set **hole** to 13 (Centaurus A), **pitch** to 0, and **annoy**, **rough** and **chaos** all to 10:
+the most grating sound the sketch can make, a 3,300 Hz overdriven rasp right where your ears are most sensitive (your ear
 canal resonates near 3,000 to 4,000 Hz, which is also where smoke alarms and crying babies sit), chopped 70 times a
-second. Keep the volume moderate: harsh, distorted sound played loud can damage hearing. Then set
+second, clashing with itself, stuttering. Keep the volume moderate: harsh, distorted sound played loud can damage hearing. Then set
 **hole** to 5 (NGC 5813) and watch the radar cross its rings: three outbursts left three nested
 shells, and the sound changes as the line passes each. Then drag **pitch** to 24: two octaves down, everything is a
 quarter of NASA's pitch (Perseus's middle note about 124 Hz), a low rumble. Drag it to 0 for NASA's own pitch.

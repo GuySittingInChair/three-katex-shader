@@ -139,7 +139,7 @@ export function strainSound(strain, cols, col, n, fs, RATE) {
 // wave's would: wave speed / spacing = how many crests pass a point each second, then x 2^57 (and x 2^58, softer). A
 // "radar" turns once every `sweep` seconds and the strengths follow it, so as the ripples crowd or spread in different
 // directions the sound glides. Data: tools/blackholes/build_bh.py; see docs/wiki/sketches/blackHoleRipples.md
-export function ripplesSong(meta, table, RATE, { sweep = 20, octaves = [57, 58], mix = [1, 0.55], seed = 3, drive = 1, rough = 0 } = {}) {
+export function ripplesSong(meta, table, RATE, { sweep = 20, octaves = [57, 58], mix = [1, 0.55], seed = 3, drive = 1, rough = 0, focus = 0, glitch = 0 } = {}) {
   const n = meta.n, len = Math.round(sweep * RATE), out = new Float32Array(len), r = rng(seed);
   // spacings to listen for: from 0.4x to 2.5x the published ripple wavelength (in arcseconds on the sky)
   const lam = meta.wave_kpc / meta.kpc_per_arcsec, NF = 48;
@@ -180,6 +180,20 @@ export function ripplesSong(meta, table, RATE, { sweep = 20, octaves = [57, 58],
       }
     }
   });
+  // `focus` (0-1): pile extra sound into a narrow band around 3,000 Hz, where the ear canal resonates and hearing is
+  // most sensitive (and where a nail on a chalkboard puts most of its energy). A band-pass filter (a "biquad", the
+  // standard two-step recipe) picks out that band from the sound itself, and it is added back on top.
+  if (focus > 0) {
+    const w0 = (TAU * 3000) / RATE, al = Math.sin(w0) / (2 * 2.5), b0 = al, a0 = 1 + al, a1 = -2 * Math.cos(w0), a2 = 1 - al;
+    let x1 = 0, x2 = 0, y1 = 0, y2 = 0, pk = 0;
+    const bp = new Float32Array(len);
+    for (let i = 0; i < len; i++) {
+      const y = (b0 * out[i] - b0 * x2 - a1 * y1 - a2 * y2) / a0;
+      x2 = x1; x1 = out[i]; y2 = y1; y1 = y; bp[i] = y;
+    }
+    let po = 0; for (let i = 0; i < len; i++) { pk = Math.max(pk, Math.abs(bp[i])); po = Math.max(po, Math.abs(out[i])); }
+    for (let i = 0; i < len; i++) out[i] += focus * 2.5 * bp[i] * (po / (pk || 1));
+  }
   // loudness: set by the typical level (98th percentile), not the single loudest moment, then rounded off gently
   // (tanh) so the rare loud bursts don't clip -- otherwise a few strong directions leave the rest nearly silent.
   // `drive` above 1 pushes harder into that rounding: overdrive, like a guitar amp turned up, adding rasp
@@ -194,6 +208,17 @@ export function ripplesSong(meta, table, RATE, { sweep = 20, octaves = [57, 58],
       ph += (TAU * 70 * (1 + 0.12 * Math.sin((TAU * i) / RATE / 1.7))) / RATE;
       const chop = 0.5 + 0.5 * Math.tanh(4 * Math.sin(ph));        // a softened on/off square wave
       out[i] *= 1 - rough * chop;
+    }
+  }
+  // `glitch` (0-1): break the sound into 30-120 ms pieces; at random, a piece is replaced by a repeat of the one before
+  // (a stutter, like a skipping CD) or by silence (a dropout). Unpredictable, so the ear can never settle into it.
+  if (glitch > 0) {
+    let i = 0, prev = 0, prevLen = 0;
+    while (i < len) {
+      const n = Math.round((0.03 + 0.09 * r()) * RATE), roll = r();
+      if (prevLen && roll < 0.35 * glitch) for (let k = 0; k < n && i + k < len; k++) out[i + k] = out[prev + (k % prevLen)];
+      else if (roll < 0.5 * glitch) for (let k = 0; k < n && i + k < len; k++) out[i + k] = 0;
+      prev = i; prevLen = n; i += n;
     }
   }
   return out;
