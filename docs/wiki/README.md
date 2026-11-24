@@ -204,7 +204,7 @@ sketches, with which ones are done, is at the end of [Survey of the project](_su
 | [Hawks and Boids](sketches/hawksAndBoids.md) | Leaderless flocks from three simple rules, split and regrouped by three hunting hawks |
 | [Dark Saturn](sketches/darkSaturn.md) | A black hole inside a black ring, in five-dimensional spacetime (black Saturn), with every number from the exact solution |
 | [Sounds of Space](sketches/soundsOfSpace.md) | Pulsars clicking, the Sun ringing, black holes merging and humming: real sounds of space from real numbers |
-| [Black Hole Ripples](sketches/blackHoleRipples.md) | Two giant black holes humming through hot gas, from real Chandra X-ray data, played the NASA way and pitched down a little |
+| [Black Hole Ripples](sketches/blackHoleRipples.md) | Twelve giant black holes humming through hot gas, from real Chandra X-ray data, played the NASA way and pitched down a little |
 
 ## 16. [Glossary](glossary.md)
 

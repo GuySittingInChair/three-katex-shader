@@ -1,5 +1,5 @@
 ---
-summary: Two giant black holes humming through the hot gas of their galaxy clusters, from real Chandra X-ray data, played the NASA way and pitched down a little.
+summary: Twelve giant black holes humming through the hot gas around them, from real Chandra X-ray data, played the NASA way and pitched down a little.
 added: 2026-11-23
 tags: astronomy
 ---
@@ -12,7 +12,7 @@ Astronomy
 **What you see:** a real X-ray picture of the gas around a giant black hole, bright where the gas is squeezed and
 dark where it is stretched, with a glowing "radar" line turning slowly over it. Below it, a wavy line: an
 *oscilloscope* trace of the sound itself, the very numbers your speakers are playing. After 22 seconds (one full
-turn of the radar) it moves from the Perseus cluster to the Centaurus cluster and back. Press **Sound** to hear it.
+turn of the radar) it moves on to the next of twelve black holes; the **hole** slider stops the tour on one. Press **Sound** to hear it.
 
 **The idea behind it:** this is the black hole idea from [Sounds of Space](soundsOfSpace.md), on its own, bigger,
 slower, and a little deeper. A *galaxy cluster* is a swarm of hundreds of galaxies sitting in one huge cloud of gas
@@ -25,9 +25,35 @@ sound: read the ripples along lines out from the middle, sweep the lines round l
 58 octaves. Then this sketch lowers it by a few *semitones* (the step between neighbouring piano keys; 12 make an
 octave), 5 by default, for a deeper growl.
 
+**Two kinds of black hole.** Only two places are known to have a steady *train* of ripples, one after another
+like the rings from a dripping tap: the Perseus and Centaurus clusters (numbers 1 and 2 on the slider). The other
+ten (3 to 12) are famous for a black hole visibly shoving its gas around, but in single events: *shock fronts*
+(one sharp pressure jump racing outwards, more a thunderclap than a hum) and *bubbles* (cavities blown in the gas
+by the black hole's jets). Those are real pressure waves too, but nobody has measured a ripple spacing for them,
+so this sketch measures a typical size from the picture itself (see step 5 below). Their pitch is this sketch's
+rough reading, not a discovery, and the equation says so.
+
+| slider | black hole | kind | known for |
+|---|---|---|---|
+| 1 | Perseus cluster | ripples | the original "B♭ 57 octaves down" |
+| 2 | Centaurus cluster | ripples | the only other ripple train found |
+| 3 | M87, Virgo cluster | shocks | the Event Horizon Telescope's black hole; a shock ring and bubbles |
+| 4 | Abell 2052 | shocks | bubbles inside shells of shocked gas |
+| 5 | NGC 5813 | shocks | three outbursts, three pairs of shock fronts |
+| 6 | Hydra A | shocks | one of the largest shock fronts known |
+| 7 | MS 0735.6+7421 | shocks | one of the most powerful outbursts ever seen |
+| 8 | Abell 2199 | shocks | a shock and bubbles |
+| 9 | NGC 5044 | shocks | a galaxy group full of cavities |
+| 10 | 2A 0335+096 | shocks | a stirred-up core full of bubbles |
+| 11 | Abell 262 | shocks | bubbles blown by radio jets |
+| 12 | Cygnus A | shocks | a jet-blown cocoon edged by a shock |
+
 **Where the data comes from:** `public/data/blackholes/`, made by
 `tools/blackholes/build_bh.py` from Chandra's public archive (Perseus: observations 3209 and 4289; Centaurus: 4954,
-4955 and 5310). The ripple spacings and wave speeds in the equation come from the discovery papers: Andrew Fabian and
+4955 and 5310). For the other ten, `tools/blackholes/bh_fetch.py` searches the archive by name and takes the deepest
+plain-camera observations, longest first, until about 150 thousand seconds (about 42 hours); their sound speed comes
+from the gas temperature (hotter gas carries sound faster) and their distance from their *redshift* (how much the
+universe's expansion has stretched their light). The ripple spacings and wave speeds in the equation come from the discovery papers: Andrew Fabian and
 colleagues (2003) for Perseus, Jeremy Sanders and Andrew Fabian (2008) for Centaurus.
 
 **How it's built:**
@@ -52,6 +78,10 @@ colleagues (2003) for Perseus, Jeremy Sanders and Andrew Fabian (2008) for Centa
   7. *Sweep.* The radar turns once every 22 seconds, and the sound follows whatever the line under it holds,
      so where ripples crowd together the pitch rises and where they spread out it falls.
   8. *Lower it.* Everything is then lowered by the pitch slider's semitones (see the tour below).
+  For the shock-and-bubble black holes, step 5 also *measures* the spacing: it averages, over all 360 lines,
+  how strongly each size repeats, evens out the fact that gas is always lumpier at bigger sizes, and takes the
+  size that stands out most. For many of the ten it lands on the largest size allowed (a third of the distance
+  read), which really means "about the size of the biggest bubbles": treat their pitch as rough.
 - The data is fetched once when the sketch opens ([promises and fetch](../js-promises-and-fetch.md)).
 - The sound is made by the function `ripplesSong` in `src/lib/spaceSound.js`, and played on a loop by the [sound player](../sketch-sound.md).
 - The picture and radar line are drawn on the [2D stage](../stage-2d.md) every frame; the radar's angle comes
@@ -93,24 +123,41 @@ before is instant.
 
 ## Numbers worth knowing
 
-| | Perseus | Centaurus |
-|---|---|---|
-| distance | about 240 million light-years | about 150 million light-years |
-| ripple spacing | 11 kpc (36,000 light-years) | 9 kpc (29,000 light-years) |
-| speed of sound in the gas | 1,170 km/s | 880 km/s |
-| true frequency | 3.45 × 10⁻¹⁵ Hz (one crest per 9.2 million years) | 3.17 × 10⁻¹⁵ Hz (one per 10 million years) |
-| NASA's pitch (2⁵⁷) | 497 Hz | 457 Hz |
-| this sketch (5 semitones down) | 372 Hz | 342 Hz |
+λ is the spacing (for 1–2 published; for 3–12 measured here, rough), c_s the speed of sound in the gas. The pitch
+is c_s ÷ λ raised 57 octaves (NASA's), then 5 semitones down (this sketch's default).
+
+| | black hole | distance | λ (kpc) | c_s (km/s) | NASA pitch | default here |
+|---|---|---|---|---|---|---|
+| 1 | Perseus | 240 million light-years | 11 | 1,170 | 497 Hz | 372 Hz |
+| 2 | Centaurus | 150 million light-years | 9 | 880 | 457 Hz | 342 Hz |
+| 3 | M87 | 54 million light-years | 4.6 | 729 | 739 Hz | 553 Hz |
+| 4 | Abell 2052 | 500 million light-years | 33 | 893 | 126 Hz | 94 Hz |
+| 5 | NGC 5813 | 110 million light-years | 10.5 | 432 | 192 Hz | 144 Hz |
+| 6 | Hydra A | 770 million light-years | 81 | 965 | 55 Hz | 41 Hz |
+| 7 | MS 0735.6+7421 | 3.0 billion light-years | 134 | 1,153 | 40 Hz | 30 Hz |
+| 8 | Abell 2199 | 420 million light-years | 32 | 1,032 | 149 Hz | 111 Hz |
+| 9 | NGC 5044 | 100 million light-years | 7.9 | 516 | 305 Hz | 229 Hz |
+| 10 | 2A 0335+096 | 490 million light-years | 37 | 816 | 102 Hz | 77 Hz |
+| 11 | Abell 262 | 230 million light-years | 18 | 729 | 191 Hz | 143 Hz |
+| 12 | Cygnus A | 780 million light-years | 46 | 1,210 | 124 Hz | 93 Hz |
+
+Big bubbles mean a long spacing, and a long spacing means a low note: MS 0735's outburst blew cavities hundreds of
+thousands of light-years across, so it comes out at a 30 Hz rumble that small speakers can barely play (try pitch 0,
+or headphones). The papers describing each one's shocks and bubbles: Fabian et al. 2003; Sanders & Fabian 2008;
+Forman et al. 2007; Blanton et al. 2011; Randall et al. 2015; Nulsen et al. 2005; McNamara et al. 2005; Nulsen et al.
+2013; David et al. 2009; Sanders et al. 2009; Blanton et al. 2004; Snios et al. 2018.
 
 A *kpc* (kiloparsec) is about 3,260 light-years. Five semitones down multiplies every frequency by 2^(−5/12), about
 0.75: 497 × 0.75 = 372.
 
-**Try this:** drag **pitch** to 24. Two octaves down, everything is a quarter of NASA's pitch (Perseus's middle note
-about 124 Hz), a low rumble. Then drag it to 0 to hear NASA's own pitch.
+**Try this:** set **hole** to 5 (NGC 5813) and watch the radar cross its rings: three outbursts left three nested
+shells, and the sound changes as the line passes each. Then drag **pitch** to 24: two octaves down, everything is a
+quarter of NASA's pitch (Perseus's middle note about 124 Hz), a low rumble. Drag it to 0 for NASA's own pitch.
 
 **Words on this page:** [galaxy cluster](../glossary.md#galaxy-cluster), [Chandra](../glossary.md#chandra),
 [X-ray](../glossary.md#x-ray), [sonification](../glossary.md#sonification), [octave](../glossary.md#octave),
 [semitone](../glossary.md#semitone), [frequency](../glossary.md#frequency),
-[kiloparsec](../glossary.md#kiloparsec), [speed of sound](../glossary.md#speed-of-sound), [arcsecond](../glossary.md#arcsecond),
+[kiloparsec](../glossary.md#kiloparsec), [speed of sound](../glossary.md#speed-of-sound), [shock
+front](../glossary.md#shock-front), [redshift](../glossary.md#redshift), [arcsecond](../glossary.md#arcsecond),
 [exposure map](../glossary.md#exposure-map), [point source](../glossary.md#point-source), [fractional
 residual](../glossary.md#fractional-residual), [Fourier transform](../glossary.md#fourier-transform)

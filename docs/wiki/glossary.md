@@ -527,6 +527,9 @@ don't exist yet; until then the link goes to the closest page that does.
   is this pixel?". → [Shaders: two questions](shaders.md)
 - **shell galaxy**: a big round galaxy with thin arcs of stars round it: the remains of a small galaxy that
   fell straight in and was torn apart. → [Galaxy motions and the shapes they leave](galaxy-motions.md)
+- **shock front**: a single sharp jump in pressure racing outwards faster than sound, like the bang from an
+  explosion; around black holes, it marks where an outburst slammed into the gas. → [Black Hole Ripples: in
+  plain English](sketches/blackHoleRipples.md)
 - **sidereal day**: one turn of the Earth measured against the stars: 23 h 56 min, a little shorter than a day
   measured by the Sun. → [Foucault's Pendulum: in plain English](sketches/foucaultPendulum.md)
 - **sine (`sin`)**: a calculation that turns a steadily growing number into a smooth wave between −1 and +1;

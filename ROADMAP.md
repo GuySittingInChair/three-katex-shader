@@ -301,3 +301,13 @@ files, pitched down 5 semitones by default (slider). Data: `tools/blackholes/bui
 (add a black hole = one entry in its `BH` list). Known flaw: a camera seam in Perseus (straight dark line, south of
 the core) isn't masked; a straight-line finder masked real gas, so it was dropped. Possible next: M87 / Abell 2052 /
 NGC 5813 as single shock "booms", labelled as such.
+
+## Added 2026-11-23 at the owner's request: ten more black holes
+
+Black Hole Ripples now has 12: Perseus and Centaurus (published ripple trains) plus M87, Abell 2052, NGC 5813, Hydra
+A, MS 0735.6+7421, Abell 2199, NGC 5044, 2A 0335+096, Abell 262 and Cygnus A (kind 'shocks': shock fronts and
+bubbles, no ripple train). `tools/blackholes/bh_fetch.py` picks and downloads their deepest ACIS observations (~150
+ks each); `build_bh.py` centres on the X-ray peak, takes c_s from the gas temperature and the scale from redshift or
+distance, and measures a spacing from the profiles. Honest caveat: for most of the ten the measured spacing hits the
+upper limit (a third of the radius range), i.e. it is "the size of the biggest bubbles", so their pitches are rough
+and labelled so. Citations trimmed to author + year (volumes/pages were from memory, unverified). New `hole` slider.

@@ -3,9 +3,10 @@ import { createStage } from '../lib/stage2d.js';
 import { createSoundPlayer, ripplesSong } from '../lib/spaceSound.js';
 import { caption } from '../lib/bit.js';
 
-// Black Hole Ripples. The black holes from Sounds of Space on their own, bigger and slower, and pitched down a little.
-// Two giant black holes, in the Perseus and Centaurus galaxy clusters, send pressure waves (real sound) through the hot
-// gas around them; Chandra photographed the ripples in X-rays. The sound is made the way NASA/CXC made their 2022
+// Black Hole Ripples. Giant black holes in galaxy clusters push pressure waves (real sound) through the hot gas around
+// them, and Chandra photographs them in X-rays. Two, Perseus and Centaurus, show a steady train of ripples; ten more
+// show single shock fronts and bubbles instead (kind 'shocks' in the data: their main spacing is measured from the
+// picture, not published, so their pitch is this sketch's reading, not a discovery). The sound is made the way NASA/CXC made their 2022
 // Perseus sonification: the ripples read along lines out from the centre, a radar sweeping round, each ripple spacing
 // played at its true rate raised 57 and 58 octaves (ripplesSong in lib/spaceSound.js) -- then lowered by `pitch`
 // semitones (default 5, a musical fourth) for a deeper sound. Data: public/data/blackholes, made by
@@ -14,10 +15,10 @@ import { caption } from '../lib/bit.js';
 
 const RATE = 22050;
 const SCENE = 22;                                   // seconds per black hole = one full turn of the radar
-const IDS = ['perseus', 'centaurus'];
-// published ripple spacing (kpc) and sound speed (km/s): Fabian et al. 2003; Sanders & Fabian 2008 (9 kpc / 10 Myr)
-const PAPER = { perseus: { cluster: 'Perseus', lam: 11, cs: 1170 }, centaurus: { cluster: 'Centaurus', lam: 9, cs: 880 } };
 const KPC_M = 3.0857e19;
+// The black holes, in the data's order (the list grows when tools/blackholes/build_bh.py gets a new entry). Until
+// the data arrives, the two with published ripples.
+let IDS = ['perseus', 'centaurus'];
 
 // The data, fetched once (see docs/wiki/js-promises-and-fetch.md): ripple tables + pictures.
 const BH = { meta: null, tables: {}, imgs: {} };
@@ -26,6 +27,7 @@ function load() {
   BH.meta = 'loading';
   fetch('/data/blackholes/meta.json').then((r) => r.json()).then((meta) => {
     BH.meta = Object.fromEntries(meta.objects.map((o) => [o.id, o]));
+    IDS = meta.objects.map((o) => o.id);
     for (const o of meta.objects) {
       fetch(`/data/blackholes/${o.id}.prof`).then((r) => r.arrayBuffer()).then((b) => { BH.tables[o.id] = new Int8Array(b); });
       const im = new Image(); im.src = `/data/blackholes/${o.id}.jpg`; BH.imgs[o.id] = im;
@@ -48,25 +50,30 @@ function songFor(id, semis) {
 export default {
   name: 'Black Hole Ripples',
   description:
-    'Two giant black holes, in the Perseus and Centaurus galaxy clusters, humming through the hot gas around them: ' +
-    'real sound waves photographed by the Chandra X-ray telescope, played the way NASA made its famous black hole ' +
-    'sound (57 octaves up), then pitched down a little for a deeper growl. A radar sweeps the real X-ray picture ' +
-    'and you hear what it reads. Sound on.',
+    'Twelve giant black holes humming through the hot gas of their galaxy clusters, from real Chandra X-ray data: ' +
+    'Perseus and Centaurus with their famous sound-wave ripples, and ten more, from M87 to Cygnus A, with shock ' +
+    'fronts and bubbles. Played the way NASA made its black hole sound (57 octaves up), then pitched down a little. ' +
+    'A radar sweeps each real X-ray picture and you hear what it reads. Sound on.',
   tags: ['astronomy', 'sound', 'sonification', 'black holes', 'galaxy clusters', 'X-ray', 'real data'],
   category: 'Astronomy',
   mode: '3d',
   sound: 'live',
 
-  motion(t) {
-    const k = Math.floor(t / SCENE) % IDS.length;
+  // hole 0 = a tour, 22 s each; 1, 2, 3 … = stay on that black hole
+  motion(t, params) {
+    const pick = Math.round(params?.hole ?? 0);
+    const k = pick > 0 ? Math.min(pick, IDS.length) - 1 : Math.floor(t / SCENE) % IDS.length;
     return { id: IDS[k], tScene: t % SCENE };
   },
 
   latex: (params, hl, m) => {
-    const P = PAPER[m.id], f0 = (P.cs * 1e3) / (P.lam * KPC_M), oct = 57 - params.pitch / 12, f = f0 * 2 ** oct;
+    const o = BH.meta?.[m.id];
+    if (!o) return '\\text{loading the Chandra data…}';
+    const f0 = (o.cs_kms * 1e3) / (o.wave_kpc * KPC_M), oct = 57 - params.pitch / 12, f = f0 * 2 ** oct;
+    const how = o.kind === 'shocks' ? 'shocks and bubbles; size measured here, rough' : 'published ripples';
     return '\\begin{aligned}' +
-      `&\\text{The ${P.cluster} cluster's black hole (Chandra X-ray data)} \\\\` +
-      `&f = c_s/\\lambda = ${P.cs}\\ \\text{km/s} \\,/\\, ${P.lam}\\ \\text{kpc} = ${hl(f0 * 1e15, 2)} \\times 10^{-15}\\ \\text{Hz} \\\\` +
+      `&\\text{${o.name} (${how})} \\\\` +
+      `&f = c_s/\\lambda = ${o.cs_kms}\\ \\text{km/s} \\,/\\, ${hl(o.wave_kpc, 1)}\\ \\text{kpc} = ${hl(f0 * 1e15, 2)} \\times 10^{-15}\\ \\text{Hz} \\\\` +
       `&\\times 2^{57} \\text{, down } ${hl(params.pitch, 0)} \\text{ semitones} = \\times 2^{${hl(oct, 2)}}:\\ ${hl(f, 0)}\\ \\text{Hz} \\\\` +
       '&' + caption('Sound button on to hear it. The line is the radar; the wave below is the sound itself.') +
       '\\end{aligned}';
@@ -74,6 +81,7 @@ export default {
 
   params: {
     pitch: { value: 5, min: 0, max: 24, step: 1 },   // semitones lower than NASA's 57 octaves (12 = one octave)
+    hole: { value: 0, min: 0, max: 12, step: 1 },    // 0 = tour all of them; 1-12 = stay on one (in the data's order)
   },
 
   setup(ctx) {
