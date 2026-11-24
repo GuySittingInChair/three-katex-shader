@@ -109,6 +109,7 @@ The sound for one black hole, at one setting:
     const o = BH.meta[id], base = (o.octave ?? 57) - semis / 12, a = annoy / 10;
     SONGS[key] = ripplesSong(o, BH.tables[id], RATE, {
       sweep: SCENE, octaves: [base, base + 1, base + 2, base + 3], mix: [1, 0.55, 0.7 * a, 0.5 * a], drive: 1 + 4 * a,
+      rough: rough / 10,
     });
 ```
 
@@ -120,7 +121,23 @@ voices sit at 2^56.58, 2^57.58 and so on. `octaves` lists four voices, `base` an
 first two always 1 and 0.55; the shrill two are multiplied by `a`, the annoy slider divided by 10, so at annoy 0
 they are silent and at 10 they are at 0.7 and 0.5. `drive` is the overdrive: 1 at annoy 0 (clean), 5 at annoy 10,
 pushing the sound into its rounding-off so the peaks flatten and it rasps like a guitar amp turned all the way up.
+`rough` is the roughness slider divided by 10 (see below).
 `sweep: SCENE` makes the radar take 22 seconds per turn.
+
+The roughness, in `src/lib/spaceSound.js`:
+
+```js
+      const chop = 0.5 + 0.5 * Math.tanh(4 * Math.sin(ph));        // a softened on/off square wave
+      out[i] *= 1 - rough * chop;
+```
+
+Scientists who study how sounds feel (*psychoacoustics*) have a name for the grating quality of a buzzing alarm or
+a dentist's drill: *roughness*. It is strongest when a sound's loudness flutters about 70 times a second: slower
+and you hear separate pulses, faster and it blurs into a steady tone. `ph` goes round 70 times a second (wandering
+12% either way, so your ear can't get used to it). `Math.sin(ph)` swings between −1 and 1; `Math.tanh(4 * …)`
+squashes that into something close to an on/off switch; `0.5 + 0.5 * …` turns it into 0 (off) to 1 (on). Then
+`1 - rough * chop`: at roughness 10 (`rough` 1) the sound is cut to silence 70 times a second; at 5 it dips to half;
+at 0 nothing changes. Measured on Centaurus A at full roughness, the loudness flutter peaks at 78 times a second.
 
 The slider:
 
@@ -183,8 +200,10 @@ that beat against each other into a buzz. Measured over one turn at the default 
 kpc) is the brightest, its sound centred around 867 Hz, then Perseus (608 Hz); MS 0735 (biggest, 134 kpc) is a
 smooth rumble centred around 46 Hz with almost all its sound in a few clean tones.
 
-**Try this:** set **hole** to 13 (Centaurus A), **pitch** to 0 and **annoy** to 10: the most grating sound the
-sketch can make, a 3,300 Hz rasp right where your ears are most sensitive. Then set
+**Try this:** set **hole** to 13 (Centaurus A), **pitch** to 0, **annoy** to 10 and **rough** to 10: the most
+grating sound the sketch can make, a 3,300 Hz overdriven rasp right where your ears are most sensitive (your ear
+canal resonates near 3,000 to 4,000 Hz, which is also where smoke alarms and crying babies sit), chopped 70 times a
+second. Keep the volume moderate: harsh, distorted sound played loud can damage hearing. Then set
 **hole** to 5 (NGC 5813) and watch the radar cross its rings: three outbursts left three nested
 shells, and the sound changes as the line passes each. Then drag **pitch** to 24: two octaves down, everything is a
 quarter of NASA's pitch (Perseus's middle note about 124 Hz), a low rumble. Drag it to 0 for NASA's own pitch.
@@ -193,6 +212,7 @@ quarter of NASA's pitch (Perseus's middle note about 124 Hz), a low rumble. Drag
 [X-ray](../glossary.md#x-ray), [sonification](../glossary.md#sonification), [octave](../glossary.md#octave),
 [semitone](../glossary.md#semitone), [frequency](../glossary.md#frequency),
 [kiloparsec](../glossary.md#kiloparsec), [speed of sound](../glossary.md#speed-of-sound), [shock
-front](../glossary.md#shock-front), [redshift](../glossary.md#redshift), [arcsecond](../glossary.md#arcsecond),
+front](../glossary.md#shock-front), [redshift](../glossary.md#redshift), [roughness](../glossary.md#roughness),
+[psychoacoustics](../glossary.md#psychoacoustics), [arcsecond](../glossary.md#arcsecond),
 [exposure map](../glossary.md#exposure-map), [point source](../glossary.md#point-source), [fractional
 residual](../glossary.md#fractional-residual), [Fourier transform](../glossary.md#fourier-transform)

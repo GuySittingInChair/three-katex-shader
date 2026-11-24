@@ -39,13 +39,14 @@ function load() {
 // octave). `annoy` (0-10) stacks two shriller voices on top, 59 and 60 octaves up, and overdrives the result.
 // Making it takes most of a second, so each one is kept once made.
 const SONGS = {};
-function songFor(id, semis, annoy) {
-  const key = `${id}:${semis}:${annoy}`;
+function songFor(id, semis, annoy, rough) {
+  const key = `${id}:${semis}:${annoy}:${rough}`;
   if (!SONGS[key] && BH.meta?.[id] && BH.tables[id]) {
     // (most are raised 57 octaves like NASA's; one whose structures are tiny, Sagittarius A*, says fewer in its data)
     const o = BH.meta[id], base = (o.octave ?? 57) - semis / 12, a = annoy / 10;
     SONGS[key] = ripplesSong(o, BH.tables[id], RATE, {
       sweep: SCENE, octaves: [base, base + 1, base + 2, base + 3], mix: [1, 0.55, 0.7 * a, 0.5 * a], drive: 1 + 4 * a,
+      rough: rough / 10,
     });
   }
   return SONGS[key] || null;
@@ -88,6 +89,7 @@ export default {
     pitch: { value: 5, min: 0, max: 24, step: 1 },   // semitones lower than NASA's 57 octaves (12 = one octave)
     hole: { value: 0, min: 0, max: 17, step: 1 },    // 0 = tour all of them; 1, 2, 3 … = stay on one (in the data's order)
     annoy: { value: 0, min: 0, max: 10, step: 1 },   // 0 = as measured; 10 = two shrill octaves on top, overdriven
+    rough: { value: 0, min: 0, max: 10, step: 1 },   // 0 = smooth; 10 = chopped on and off ~70 times a second
   },
 
   setup(ctx) {
@@ -100,11 +102,11 @@ export default {
     const m = ctx.motion, a = state.stage.area, id = m.id, t = ctx.time;
 
     // The sliders make a new sound only once they have been still for half a second (each takes most of a second).
-    const want = `${Math.round(ctx.params.pitch)}:${Math.round(ctx.params.annoy)}`;
+    const want = `${Math.round(ctx.params.pitch)}:${Math.round(ctx.params.annoy)}:${Math.round(ctx.params.rough)}`;
     if (want !== state.wanted) { state.wanted = want; state.since = t; }
     if (state.pitch === null || (want !== state.pitch && t - state.since > 0.5)) state.pitch = want;
-    const [semis, annoy] = state.pitch.split(':').map(Number);
-    const song = songFor(id, semis, annoy);
+    const [semis, annoy, rough] = state.pitch.split(':').map(Number);
+    const song = songFor(id, semis, annoy, rough);
     state.player.loop(song ? `${id}:${state.pitch}` : 'none', song, RATE);
 
     // The real Chandra picture of the ripples (bright = squeezed gas, dark = stretched; north up, east left) and the

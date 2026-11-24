@@ -139,7 +139,7 @@ export function strainSound(strain, cols, col, n, fs, RATE) {
 // wave's would: wave speed / spacing = how many crests pass a point each second, then x 2^57 (and x 2^58, softer). A
 // "radar" turns once every `sweep` seconds and the strengths follow it, so as the ripples crowd or spread in different
 // directions the sound glides. Data: tools/blackholes/build_bh.py; see docs/wiki/sketches/blackHoleRipples.md
-export function ripplesSong(meta, table, RATE, { sweep = 20, octaves = [57, 58], mix = [1, 0.55], seed = 3, drive = 1 } = {}) {
+export function ripplesSong(meta, table, RATE, { sweep = 20, octaves = [57, 58], mix = [1, 0.55], seed = 3, drive = 1, rough = 0 } = {}) {
   const n = meta.n, len = Math.round(sweep * RATE), out = new Float32Array(len), r = rng(seed);
   // spacings to listen for: from 0.4x to 2.5x the published ripple wavelength (in arcseconds on the sky)
   const lam = meta.wave_kpc / meta.kpc_per_arcsec, NF = 48;
@@ -185,5 +185,16 @@ export function ripplesSong(meta, table, RATE, { sweep = 20, octaves = [57, 58],
   // `drive` above 1 pushes harder into that rounding: overdrive, like a guitar amp turned up, adding rasp
   const mags = Array.from(out, Math.abs).sort((x, y) => x - y), p98 = mags[Math.floor(mags.length * 0.98)] || 1;
   for (let i = 0; i < len; i++) out[i] = 0.8 * Math.tanh((1.1 * drive * out[i]) / p98);
+  // `rough` (0-1): chop the loudness on and off about 70 times a second, the flutter rate people find harshest
+  // (psychoacoustic "roughness" peaks near 70 Hz: the grate in a buzzing alarm or a dentist's drill). The rate wanders
+  // a little so the ear can't settle into it.
+  if (rough > 0) {
+    let ph = 0;
+    for (let i = 0; i < len; i++) {
+      ph += (TAU * 70 * (1 + 0.12 * Math.sin((TAU * i) / RATE / 1.7))) / RATE;
+      const chop = 0.5 + 0.5 * Math.tanh(4 * Math.sin(ph));        // a softened on/off square wave
+      out[i] *= 1 - rough * chop;
+    }
+  }
   return out;
 }

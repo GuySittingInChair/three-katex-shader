@@ -447,6 +447,8 @@ don't exist yet; until then the link goes to the closest page that does.
   `Promise`, `await`)](js-promises-and-fetch.md)
 - **proportional navigation**: homing by steering to keep the target's direction from changing. →
   [Anti-Aircraft Contraception: in plain English](sketches/antiAircraftContraception.md)
+- **psychoacoustics**: the science of how sounds feel to people: loud, sharp, rough or pleasant, rather than how
+  they measure. → [Black Hole Ripples: in plain English](sketches/blackHoleRipples.md)
 - **pulsar**: a spinning neutron star, about 20 km across, sweeping a beam of radio waves past us once per
   turn, like a lighthouse. → [Sounds of Space: in plain English](sketches/soundsOfSpace.md)
 - **quantum eraser**: an experiment where which-path information is recorded and then erased; sorting the
@@ -499,6 +501,8 @@ don't exist yet; until then the link goes to the closest page that does.
 - **rotating frame**: describing motion from a viewpoint that turns (like standing on the Earth), where extra
   apparent pushes (centrifugal, Coriolis) appear. → [Foucault's Pendulum: in plain
   English](sketches/foucaultPendulum.md)
+- **roughness**: (sound) the grating feel of a sound whose loudness flutters about 70 times a second, like a
+  buzzing alarm or a dentist's drill. → [Black Hole Ripples: in plain English](sketches/blackHoleRipples.md)
 - **rounding error**: the tiny mistake (about 1 part in 10 million billion) a computer makes on every sum. →
   [Kuramoto–Sivashinsky: the bug that froze the flame](sketches/kuramotoSivashinsky-fix.md)
 - **rubble pile**: a moon or asteroid made of loose boulders held together only by their own gravity. → [Roche
