@@ -1,0 +1,52 @@
+{
+ "source": "Chandra X-ray Center archive (public); method after NASA/CXC 2022 Perseus sonification",
+ "objects": [
+  {
+   "id": "perseus",
+   "name": "The black hole in the Perseus cluster",
+   "galaxy": "NGC 1275",
+   "obsids": [
+    3209,
+    4289
+   ],
+   "kpc_per_arcsec": 0.37037037037037035,
+   "cs_kms": 1170,
+   "wave_kpc": 11,
+   "period_yr": 9600000.0,
+   "rmin": 45,
+   "rmax": 200,
+   "dist": "240 million light-years",
+   "ref": "Fabian et al. 2003, MNRAS 344, L43",
+   "note": "ripples 36,000 light-years apart",
+   "n": 156,
+   "secPerArcsec": 9767964545742.322,
+   "clipFrac": 0.0981,
+   "cover": 0.973,
+   "imgHalfArcsec": 240
+  },
+  {
+   "id": "centaurus",
+   "name": "The black hole in the Centaurus cluster",
+   "galaxy": "NGC 4696",
+   "obsids": [
+    4954,
+    4955,
+    5310
+   ],
+   "kpc_per_arcsec": 0.213,
+   "cs_kms": 880,
+   "wave_kpc": 9,
+   "period_yr": 10000000.0,
+   "rmin": 20,
+   "rmax": 220,
+   "dist": "150 million light-years",
+   "ref": "Sanders & Fabian 2008, MNRAS 390, L93",
+   "note": "ripples 29,000 light-years apart",
+   "n": 201,
+   "secPerArcsec": 7468796590909.091,
+   "clipFrac": 0.2116,
+   "cover": 0.938,
+   "imgHalfArcsec": 260
+  }
+ ]
+}

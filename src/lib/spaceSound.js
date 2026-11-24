@@ -130,3 +130,59 @@ export function strainSound(strain, cols, col, n, fs, RATE) {
   }
   return out;
 }
+
+// Ripples in a galaxy cluster's hot gas, as sound: after NASA/CXC's 2022 Perseus sonification, which "extracted the
+// sound waves in radial directions" and "resynthesized" them 57 and 58 octaves up. `table` holds 360 radial profiles
+// (one per degree, int8, n samples 1" apart from rmin outwards) of how much brighter or dimmer the X-ray gas is than its
+// smooth glow: the pressure waves the black hole sends out. For each direction we measure which ripple spacings are
+// present (a Fourier transform of the profile: how strong each spacing is). A spacing becomes a pitch the way a real
+// wave's would: wave speed / spacing = how many crests pass a point each second, then x 2^57 (and x 2^58, softer). A
+// "radar" turns once every `sweep` seconds and the strengths follow it, so as the ripples crowd or spread in different
+// directions the sound glides. Data: tools/blackholes/build_bh.py; see docs/wiki/sketches/blackHoleRipples.md
+export function ripplesSong(meta, table, RATE, { sweep = 20, octaves = [57, 58], mix = [1, 0.55], seed = 3 } = {}) {
+  const n = meta.n, len = Math.round(sweep * RATE), out = new Float32Array(len), r = rng(seed);
+  // spacings to listen for: from 0.4x to 2.5x the published ripple wavelength (in arcseconds on the sky)
+  const lam = meta.wave_kpc / meta.kpc_per_arcsec, NF = 48;
+  const lams = Array.from({ length: NF }, (_, j) => lam * 0.4 * (2.5 / 0.4) ** (j / (NF - 1)));
+  // strength of each spacing in each direction (Hann-windowed profile, one Fourier coefficient per spacing)
+  const A = new Float32Array(360 * NF);
+  for (let k = 0; k < 360; k++) for (let j = 0; j < NF; j++) {
+    let re = 0, im = 0;
+    for (let i = 0; i < n; i++) {
+      const w = Math.sin((Math.PI * i) / (n - 1)) ** 2, v = (table[k * n + i] / 127) * w, ph = (TAU * i) / lams[j];
+      re += v * Math.cos(ph); im += v * Math.sin(ph);
+    }
+    A[k * NF + j] = Math.hypot(re, im) / n;
+  }
+  // a little smoothing across neighbouring directions (the profiles are already 6 degree wedges)
+  const S = new Float32Array(A.length);
+  for (let k = 0; k < 360; k++) for (let j = 0; j < NF; j++) {
+    let s = 0; for (let d = -2; d <= 2; d++) s += A[((k + d + 360) % 360) * NF + j] * [0.1, 0.2, 0.4, 0.2, 0.1][d + 2];
+    S[k * NF + j] = s;
+  }
+  // the gas is lumpy at every size; the ripples are the spacings that stand out. Compare each spacing with its own
+  // typical strength over all directions, and sharpen (power 3), so the clear ripple tones sing and the lumps fade
+  for (let j = 0; j < NF; j++) {
+    const col = Array.from({ length: 360 }, (_, k) => S[k * NF + j]).sort((x, y) => x - y), med = col[180] || 1e-9;
+    for (let k = 0; k < 360; k++) S[k * NF + j] = (S[k * NF + j] / med) ** 3;
+  }
+  const SIN = new Float32Array(4096); for (let i = 0; i < 4096; i++) SIN[i] = Math.sin((TAU * i) / 4096);
+  octaves.forEach((oct, v) => {
+    for (let j = 0; j < NF; j++) {
+      // the pitch of this spacing: crests per second = sound speed / spacing, sped up 2^oct
+      const hz = (2 ** oct) / (lams[j] * meta.secPerArcsec);
+      if (hz > RATE * 0.45) continue;
+      const inc = (hz / RATE) * 4096; let ph = r() * 4096;
+      for (let i = 0; i < len; i++) {
+        const deg = (360 * i) / len, k0 = Math.floor(deg) % 360, f = deg - Math.floor(deg);
+        const amp = S[k0 * NF + j] + (S[((k0 + 1) % 360) * NF + j] - S[k0 * NF + j]) * f;
+        out[i] += mix[v] * amp * SIN[ph & 4095]; ph += inc; if (ph >= 4096) ph -= 4096;
+      }
+    }
+  });
+  // loudness: set by the typical level (98th percentile), not the single loudest moment, then rounded off gently
+  // (tanh) so the rare loud bursts don't clip -- otherwise a few strong directions leave the rest nearly silent
+  const mags = Array.from(out, Math.abs).sort((x, y) => x - y), p98 = mags[Math.floor(mags.length * 0.98)] || 1;
+  for (let i = 0; i < len; i++) out[i] = 0.8 * Math.tanh((1.1 * out[i]) / p98);
+  return out;
+}

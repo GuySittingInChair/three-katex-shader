@@ -84,6 +84,8 @@ don't exist yet; until then the link goes to the closest page that does.
   [Conway's Game of Life: in plain English](sketches/gameOfLife.md)
 - **centrifugal effect**: in a turning frame, the apparent outward push felt by everything, like on a
   roundabout. → [Lagrange Point Parking: in plain English](sketches/lagrangeParking.md)
+- **Chandra**: NASA's X-ray space telescope, in orbit since 1999; it photographs X-rays from hot gas and other
+  violent places. → [Sounds of Space: in plain English](sketches/soundsOfSpace.md)
 - **chaos**: behaviour that never settles and where tiny changes lead to completely different results. →
   [Bifurcation Diagram: in plain English](sketches/bifurcationDiagram.md)
 - **clamp**: keep a number between a lowest and highest value. → [GLSL basics: reading a
@@ -169,12 +171,16 @@ don't exist yet; until then the link goes to the closest page that does.
   [Audio-Reactive Julia Set: in plain English](sketches/audioReactiveJulia.md)
 - **Euler's method**: the simplest way to step a simulation forward: new value = old value + speed × time
   step. → [Kuramoto–Sivashinsky: in plain English](sketches/kuramotoSivashinsky.md)
+- **event file**: an X-ray telescope's raw data: a list of every single X-ray particle that hit the camera, with
+  where, when and how energetic. → [Sounds of Space: in plain English](sketches/soundsOfSpace.md)
 - **event horizon**: the point of no return round a black hole; nothing that crosses it comes back out. →
   [Black Hole Lensing: in plain English](sketches/blackHoleLensing.md)
 - **excitable**: quiet until sparked, then it fires a wave and needs time to recover. → [Belousov–Zhabotinsky:
   in plain English](sketches/belousovZhabotinsky.md)
 - **exoplanet**: a planet orbiting a star other than the Sun. The first were confirmed in 1992; over 6,000 are
   known now. → [Six Thousand Worlds: in plain English](sketches/exoplanets.md)
+- **exposure map**: how long each spot of the sky was really watched in an observation, so gaps between camera
+  chips don't look like dark sky. → [Sounds of Space: in plain English](sketches/soundsOfSpace.md)
 - **extra dimensions**: directions of space beyond the three we know; physicists study what gravity would do
   with more of them. → [Dark Saturn: in plain English](sketches/darkSaturn.md)
 - **fbm**: noise stacked in layers, each twice as detailed and half as strong. → [Noise: randomness that looks
@@ -198,6 +204,8 @@ don't exist yet; until then the link goes to the closest page that does.
   bass and treble. → [Kuramoto–Sivashinsky: the bug that froze the flame](sketches/kuramotoSivashinsky-fix.md)
 - **fractal**: a shape with detail at every zoom level, often made by repeating one simple step many times. →
   [Life-Warped Fractal: in plain English](sketches/lifeWarpedFractal.md)
+- **fractional residual**: how much brighter or dimmer each spot is than its smooth surroundings (0.05 = 5%
+  brighter); it makes faint ripples visible. → [Sounds of Space: in plain English](sketches/soundsOfSpace.md)
 - **fragment shader**: the shader that picks the colour of each pixel. → [Shaders: two questions](shaders.md)
 - **frame**: one picture of the animation; about 60 are drawn each second. → [The frame loop: setup, update,
   dispose](frame-loop.md)
@@ -211,6 +219,8 @@ don't exist yet; until then the link goes to the closest page that does.
   arrows (`=>`)](js-functions.md)
 - **gain**: multiplying brightness up, like a microphone's gain knob. → [Colour 2: blending, adding, dimming
   and gain](colour-blending-and-gain.md)
+- **galaxy cluster**: hundreds to thousands of galaxies held together by gravity, all bathed in one huge cloud
+  of gas at tens of millions of degrees. → [Sounds of Space: in plain English](sketches/soundsOfSpace.md)
 - **Gaussian curvature**: how strongly a surface curves at a spot, in a way bending without stretching can't
   change. → [Helicoid ↔ Catenoid: in plain English](sketches/helicoidCatenoid.md)
 - **gene**: in a genetic algorithm, one number of a candidate's recipe (a size, a timing, a grip) that its
@@ -289,6 +299,8 @@ don't exist yet; until then the link goes to the closest page that does.
 - **Kepler's laws**: three rules for orbits found by Johannes Kepler (1609, 1619): orbits are ellipses; equal
   areas are swept in equal times; the time per orbit squared equals the size cubed (T² = a³, in years and AU).
   → [Kepler's Pizza: in plain English](sketches/keplersPizza.md)
+- **kiloparsec**: (kpc) a thousand parsecs, about 3,260 light-years; a handy ruler for the insides of galaxies
+  and clusters. → [Sounds of Space: in plain English](sketches/soundsOfSpace.md)
 - **Klein bottle**: a bottle whose inside is its outside; in three dimensions it must pass through itself. →
   [Klein Bottle: in plain English](sketches/kleinBottle.md)
 - **Kuramoto–Sivashinsky equation**: the classic equation for a wrinkling flame front that never settles. →
@@ -415,6 +427,8 @@ don't exist yet; until then the link goes to the closest page that does.
 - **pixel**: one tiny dot of the screen. → [Shaders: two questions](shaders.md)
 - **Poincaré disk**: a round map of hyperbolic space where things shrink towards a rim that's infinitely far
   away. → [Hyperbolic Tiling: in plain English](sketches/hyperbolicTiling.md)
+- **point source**: something so far away or small it shows as a dot, like a star or a distant galaxy, rather
+  than a spread-out glow. → [Sounds of Space: in plain English](sketches/soundsOfSpace.md)
 - **points (`THREE.Points`)**: a cloud of dots, for stars, sparks and data. → [Drawing in 3D 3: lines and
   points](lines-and-points.md)
 - **polarisation (flocking)**: how much a group moves as one: the length of the average of everyone's heading,
@@ -502,6 +516,9 @@ don't exist yet; until then the link goes to the closest page that does.
   hot to cold, not back. → [Maxwell's Demon: in plain English](sketches/maxwellsDemon.md)
 - **seed**: a starting number that makes "random" results come out the same every time. → [Random numbers, and
   seeds that make them repeatable](randomness.md)
+- **semitone**: the smallest step in Western music, from one piano key to the very next (white or black); 12
+  make an octave, and each multiplies the pitch by about 1.06. → [Black Hole Ripples: in plain
+  English](sketches/blackHoleRipples.md)
 - **sequential scale**: a colour scale running dark to light in one direction, for "how much". → [Colour 4:
   colour scales for data, and how they are chosen](colour-scales.md)
 - **setup**: the build-once step when a sketch starts. → [The frame loop: setup, update,
@@ -539,6 +556,8 @@ don't exist yet; until then the link goes to the closest page that does.
   [Hilbert's Infinite Noodle: in plain English](sketches/hilbertNoodle.md)
 - **spectrum**: how loud each pitch in a sound is, from low to high. → [Audio-Reactive Mesh: in plain
   English](sketches/audioReactiveMesh.md)
+- **speed of sound**: how fast a pressure wave crosses a material; faster in hotter gas (about 343 m/s in room
+  air, over 1,000 km/s in a cluster's gas). → [Sounds of Space: in plain English](sketches/soundsOfSpace.md)
 - **state**: the things `setup` built, handed back to `update` on every frame. → [The frame loop: setup,
   update, dispose](frame-loop.md)
 - **stereographic projection**: a shadow map of a sphere, as if lit by a lamp at its pole; circles stay
@@ -623,5 +642,7 @@ don't exist yet; until then the link goes to the closest page that does.
 - **Web Worker**: a separate helper inside the browser that runs code in parallel with the drawing. → [Fly
   Connectome: in plain English](sketches/flyConnectome.md)
 
+- **X-ray**: light with about a thousand times more energy than visible light; our eyes can't see it, and air
+  blocks it, so X-ray telescopes fly in space. → [Sounds of Space: in plain English](sketches/soundsOfSpace.md)
 - **Zel'dovich approximation**: a shortcut for gravity's growth of structure: every bit of matter moves along
   a straight line, further as time goes on. → [Galaxy motions and the shapes they leave](galaxy-motions.md)

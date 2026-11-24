@@ -56,7 +56,7 @@ Audio-Reactive Fractal, Audio-Reactive, 4D and 3D.
 | Textures: pictures a shader looks things up in | many | [Textures: pictures a shader can look things up in](textures.md) |
 | Drawing on a hidden 2D canvas (`CanvasTexture`) | 12 | *(planned: drawing in 2D)* |
 | The 2D stage: a glowing full-screen canvas (`src/lib/stage2d.js`) | 23 | [The 2D stage](stage-2d.md) |
-| Sound made in code (`sound: 'live'`, `src/lib/spaceSound.js`) | 4 (Sounds of Space, Dark Saturn, Lighthouses of the Galaxy, The First Chirp) | [Sketch sound](sketch-sound.md) |
+| Sound made in code (`sound: 'live'`, `src/lib/spaceSound.js`) | 5 (Sounds of Space, Black Hole Ripples, Dark Saturn, Lighthouses of the Galaxy, The First Chirp) | [Sketch sound](sketch-sound.md) |
 | Grids of numbers stored as a picture (`DataTexture`) | 15 | [Textures: pictures a shader can look things up in](textures.md) |
 | Simulating on the GPU by rendering back and forth (`WebGLRenderTarget`) | 5 | [Simulating on the graphics chip: render targets and ping-pong](render-targets.md) |
 | Ray marching distance fields (3D shapes drawn by a shader) | 14 | *(planned: shaders, part 2)* |
@@ -123,6 +123,7 @@ Every data set lives in `public/data/<folder>/` and is made once, on this comput
 | `kepler` | `keplerEleven.js` | Kepler-11 light curve | NASA Kepler mission, via MAST |
 | `pulsars` | `pulsars.js` | ATNF Pulsar Catalogue v2.6.1 | CSIRO Australia Telescope National Facility |
 | `gw` | `gwChirp.js` | LIGO strain data for GW150914 | LIGO / GWOSC |
+| `blackholes` | `blackHoleRipples.js` | Chandra X-ray event files: Perseus (ObsIDs 3209, 4289), Centaurus (4954, 4955, 5310); ripple spacings from Fabian et al. 2003, Sanders & Fabian 2008 | NASA Chandra X-ray Center archive |
 | `sn` | `snAcceleration.js` | Pantheon+ supernova distances | Scolnic, Brout et al. 2022 (public release) |
 | `sparc` | `missingMass.js` | SPARC galaxy rotation curves | Lelli, McGaugh & Schombert 2016 |
 | `sdss` | `sdssCosmicWeb.js` | SDSS DR18 galaxy spectra | Sloan Digital Sky Survey |
@@ -368,3 +369,4 @@ day. "Walkthrough" links to the plain-English page where one exists.
 | 2026-11-20 | `hawksAndBoids.js` | Hawks and Boids | 3d | Emergence | [walkthrough](sketches/hawksAndBoids.md) |
 | 2026-11-21 | `darkSaturn.js` | Dark Saturn | 3d | Physics | [walkthrough](sketches/darkSaturn.md) |
 | 2026-11-21 | `soundsOfSpace.js` | Sounds of Space | 3d | Astronomy | [walkthrough](sketches/soundsOfSpace.md) |
+| 2026-11-23 | `blackHoleRipples.js` | Black Hole Ripples | 3d | Astronomy | [walkthrough](sketches/blackHoleRipples.md) |

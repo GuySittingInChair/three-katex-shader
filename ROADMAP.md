@@ -292,3 +292,12 @@ from its exact formulas, with a sonification of the two horizons' spins; the own
 for both, new concept page `sketch-sound.md`. Possible next: more sources (Jupiter's radio, Saturn's kilometric
 radiation) need recordings, not models.
 
+
+## Added 2026-11-23 at the owner's request: Black Hole Ripples
+
+New sketch: the Perseus and Centaurus black holes' sound-wave ripples, rebuilt the way NASA/CXC made its 2022 Perseus
+sonification (radial lines through the Chandra ripple image, radar sweep, 57 + 58 octaves), from raw Chandra event
+files, pitched down 5 semitones by default (slider). Data: `tools/blackholes/build_bh.py` → `public/data/blackholes/`
+(add a black hole = one entry in its `BH` list). Known flaw: a camera seam in Perseus (straight dark line, south of
+the core) isn't masked; a straight-line finder masked real gas, so it was dropped. Possible next: M87 / Abell 2052 /
+NGC 5813 as single shock "booms", labelled as such.
