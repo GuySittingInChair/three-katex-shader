@@ -129,6 +129,7 @@ export const CODE_CONCEPTS = [
   { page: 'cosine-palette', label: 'Cosine palette', re: /\bpalette\(|6\.2831\d*/g },
   { page: 'colour-scales', label: 'Colour scales', re: /\b(?:inferno|viridis|magma|plasma|turbo)\w*\b/gi },
   { page: 'noise', label: 'Noise', re: /\b(?:s?noise|fbm|simplex|perlin|curl)\w*\(/gi },
+  { page: 'spatial-hash', label: 'Spatial hashing', re: /\bcellKey\b|\bcellStart\b|\bbuildGrid\b/g },
   { page: 'adaptive-landscape', label: 'Adaptive landscapes', re: /\bG_SEL\b|\bD_DRIFT\b|\bland\(|\bevansMax\w*/g },
   { page: 'randomness', label: 'Randomness and seeds', re: /\bMath\.random\b|\bhash\w*\(|\brand(?:om)?\w*\(|\bseed\w*\b|\bmulberry\w*/g },
   { page: 'colour-blending-and-gain', label: 'Blending and gain', re: /\bmix\(|\bTHREE\.\w*Blending\b|\bblending\b|\btoneMapping\w*/g },

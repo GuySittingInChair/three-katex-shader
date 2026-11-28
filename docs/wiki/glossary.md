@@ -157,6 +157,8 @@ don't exist yet; until then the link goes to the closest page that does.
   → [Fluid Dye: in plain English](sketches/fluidDye.md)
 - **Doppler effect**: a moving source looks bluer and brighter coming towards you and redder going away, like
   a passing siren's pitch. → [Black Hole Lensing: in plain English](sketches/blackHoleLensing.md)
+- **dot product**: multiply two arrows' matching parts and add: big and positive when they point the same way,
+  negative when opposite. → [Hawks and Boids: in plain English](sketches/hawksAndBoids.md)
 - **eccentricity**: how stretched an oval orbit is: 0 is a circle, near 1 a very long thin oval. → [Kepler's
   Pizza: in plain English](sketches/keplersPizza.md)
 - **ecological incumbency**: whoever already holds a way of life keeps it, because newcomers must out-compete an
@@ -285,6 +287,8 @@ don't exist yet; until then the link goes to the closest page that does.
 - **infinity (point at)**: in the complex plane drawn on a sphere, the single extra point where everything far
   away meets; it is the top of the sphere. → [Stereographic Projection: in plain
   English](sketches/stereographicMobius.md)
+- **information cascade**: people copying what those around them do instead of checking for themselves, so one
+  belief sweeps a crowd. → [Hawks and Boids: in plain English](sketches/hawksAndBoids.md)
 - **instancing**: drawing many copies of one shape in a single go. → [Drawing in 3D 6: many copies of one
   shape (instancing)](instancing.md)
 - **integral**: in calculus, a running total; the integral of a wave is another, shifted wave. → [Radian628
@@ -367,6 +371,8 @@ don't exist yet; until then the link goes to the closest page that does.
   English](sketches/emptyThrone.md)
 - **mesh**: a visible solid object: geometry plus material. → [Drawing in 3D 2: mesh, geometry and
   material](mesh-geometry-material.md)
+- **metric neighbours**: everyone within a fixed distance counts as a neighbour (Reynolds's 1987 rule). → [Hawks
+  and Boids: in plain English](sketches/hawksAndBoids.md)
 - **microlensing**: a star's gravity (and its planet's) bending and briefly brightening the light of a more
   distant star behind it. → [Six Thousand Worlds: in plain English](sketches/exoplanets.md)
 - **minimal surface**: a surface as small as possible for its edges, like a soap film. → [Enneper Surface: in
@@ -375,6 +381,8 @@ don't exist yet; until then the link goes to the closest page that does.
   [Slime Mould Rail Planner: in plain English](sketches/physarumRail.md)
 - **mirage**: an image displaced by light bending through layers of air at different temperatures: a 'puddle'
   on a hot road, or ships looming over a cold sea. → [Mirage: in plain English](sketches/mirage.md)
+- **murmuration**: a huge flock of starlings swirling as one at dusk. → [Hawks and Boids: in plain
+  English](sketches/hawksAndBoids.md)
 - **Möbius strip**: a strip with a half-twist taped into a loop: it has only one side. → [Klein Bottle: in
   plain English](sketches/kleinBottle.md)
 - **mode**: `'shader'` (one flat picture) or `'3d'` (a scene). → [What a sketch is](what-is-a-sketch.md)
@@ -575,6 +583,8 @@ don't exist yet; until then the link goes to the closest page that does.
   English](sketches/darkSaturn.md)
 - **space-filling curve**: a curve that, refined over and over, passes through every point of an area. →
   [Hilbert's Infinite Noodle: in plain English](sketches/hilbertNoodle.md)
+- **spatial hash**: sorting things into numbered buckets by position so each only checks nearby buckets for
+  neighbours. → [Spatial hashing: finding neighbours fast](spatial-hash.md)
 - **spectrum**: how loud each pitch in a sound is, from low to high. → [Audio-Reactive Mesh: in plain
   English](sketches/audioReactiveMesh.md)
 - **speed of sound**: how fast a pressure wave crosses a material; faster in hotter gas (about 343 m/s in room
@@ -604,6 +614,8 @@ don't exist yet; until then the link goes to the closest page that does.
   [Anti-Aircraft Contraception: in plain English](sketches/antiAircraftContraception.md)
 - **texture**: a picture a shader can look things up in; often data in disguise. → [Textures: pictures a
   shader can look things up in](textures.md)
+- **thermal**: a rising column of warm air that birds ride upwards without flapping. → [Hawks and Boids: in plain
+  English](sketches/hawksAndBoids.md)
 - **thin-film interference**: the colours of soap bubbles and oil films: light reflecting off a film's front
   and back surfaces adds up for some wavelengths and cancels for others, depending on the thickness. → [Soap
   Film Colours: in plain English](sketches/soapFilmColours.md)
@@ -620,6 +632,8 @@ don't exist yet; until then the link goes to the closest page that does.
   Tiling: in plain English](sketches/hyperbolicTiling.md)
 - **tone map**: squeezing very bright colours back into what a screen can show, like a camera does. →
   [Radian628 — Abyssal Bloom: in plain English](sketches/chatgpt-quantum.md)
+- **topological neighbours**: a fixed number of nearest others count as neighbours, however far away (real
+  starlings use about 7). → [Hawks and Boids: in plain English](sketches/hawksAndBoids.md)
 - **topology**: the study of shapes that only cares about what's joined to what, not about size or angles. →
   [Boy's Surface: in plain English](sketches/boysSurface.md)
 - **total internal reflection**: light inside glass or water meeting the surface too steeply to get out, and

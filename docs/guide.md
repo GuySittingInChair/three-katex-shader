@@ -3188,7 +3188,38 @@ scale). Tap a dot to select it (screen-space nearest within 28 px).
 
 Plain-English version: `docs/wiki/sketches/emptyThrone.md`.
 
-## 76. My notes
+## 76. Hawks and Boids, annotated
+
+File: `src/sketches/hawksAndBoids.js`
+
+Reynolds's boids (1987) rebuilt in 3D for up to 4,000 agents. Neighbour search is a CPU spatial hash (1.6 m
+cells, 16,384 buckets, counting sort per step); each bird keeps its k = 7 nearest by insertion (topological
+interaction, Ballerini et al. 2008), or everyone within 3 m (metric, Reynolds) via a slider. A rear blind cone
+(default 60°) filters neighbours and hawks. Steering: separation (1/d² inside 1 m), alignment to mean velocity,
+cohesion to mean offset, a weak pull to the global centroid beyond 4 m (keeps one murmuration after attacks),
+roost and ground bounds, painted wind gusts (Gaussian blobs), thermals (updraft + swirl). Acceleration capped at
+38 m/s² (×1.6 when alarmed); speeds 8–13 m/s.
+
+**Panic contagion.** a_i ← max(sighting, c·max_{j∈N(i)} a_j) approached with reaction time 0.08 s, decaying
+with τ = 1.4 s; non-witnesses inherit the alarm-weighted mean escape direction of their neighbours. Witnesses
+flee mostly perpendicular to the hawk's velocity, partly radially and slightly backward: the fountain. Live
+counts separate witnesses ("saw it") from secondhand panic.
+
+**Hawks.** Cruise 15 / attack 20 m/s, lateral acceleration 24·agility m/s². Strategies: nearest; lead pursuit
+(aim at p + v·t_go, t_go = d/v_attack ≤ 1.5 s); straggler (max distance to 7th neighbour within 45 m, 3 s lock).
+Catch radius 1 m, 2.5 s recovery. Decoys within 60 m override. Wakes: last 110 positions advected along an
+analytic curl field (divergence-free), displacement ∝ age².
+
+**Drawing.** One InstancedMesh per flock; per-instance phase/amplitude/alarm attributes; wings rotated in the
+vertex shader, amplitude from tangential acceleration + climb rate; bank = atan(a_lat/g). Three looks share the
+simulation: starlings at dusk, sardines and dolphins, and a rumour mill (information cascade).
+
+**Measured** (≈85 simulated s each): polarisation 0.97 with no hawks; with 2 hawks 0.64 / 0.51 / 0.28 and
+9.7 / 7.0 / 2.0 catches per minute for nearest / lead / straggler.
+
+Plain-English version: `docs/wiki/sketches/hawksAndBoids.md`.
+
+## 77. My notes
 
 Add your own findings, questions and discoveries here.
 

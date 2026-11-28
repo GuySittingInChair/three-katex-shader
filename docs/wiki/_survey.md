@@ -22,7 +22,7 @@ There are two **modes**, which decide how a sketch draws:
 
 A `2d` mode is reserved in `src/core/SketchRunner.js`, but no sketch uses it. Flat drawing happens in three
 other ways: `shader` mode; drawing onto a hidden 2D canvas that is then used as a picture ("canvas textures",
-12 sketches); and the 2D stage (`src/lib/stage2d.js`, 23 sketches), a full-screen 2D canvas with a soft glow,
+12 sketches); and the 2D stage (`src/lib/stage2d.js`, 22 sketches), a full-screen 2D canvas with a soft glow,
 used by the sketches added on 2026-11-20 (see [The 2D stage](stage-2d.md)).
 
 **Categories.** Each sketch names one category, and `src/core/taxonomy.js` sorts categories into seven groups
@@ -50,14 +50,15 @@ Audio-Reactive Fractal, Audio-Reactive, 4D and 3D.
 | Meshes, geometry and materials | all `3d` sketches | [Drawing in 3D 2: mesh, geometry and material](mesh-geometry-material.md) |
 | Screen-width lines and dots (`src/lib/fatLines.js`) | 41 | [Drawing in 3D 3: lines and points](lines-and-points.md) |
 | Clouds of points (`THREE.Points`) | 20 | [Drawing in 3D 3: lines and points](lines-and-points.md) |
-| Many copies of one shape (`InstancedMesh`) | 12 | [Drawing in 3D 6: many copies of one shape (instancing)](instancing.md) |
+| Many copies of one shape (`InstancedMesh`) | 13 | [Drawing in 3D 6: many copies of one shape (instancing)](instancing.md) |
 | Lights | 13 | [Drawing in 3D 4: lights](lights.md) |
-| Orbit camera you can drag (`controls: 'orbit'`) | 60 | [Drawing in 3D 5: how the camera moves](camera-and-controls.md) |
+| Orbit camera you can drag (`controls: 'orbit'`) | 61 | [Drawing in 3D 5: how the camera moves](camera-and-controls.md) |
 | Textures: pictures a shader looks things up in | many | [Textures: pictures a shader can look things up in](textures.md) |
 | Drawing on a hidden 2D canvas (`CanvasTexture`) | 12 | *(planned: drawing in 2D)* |
-| The 2D stage: a glowing full-screen canvas (`src/lib/stage2d.js`) | 23 | [The 2D stage](stage-2d.md) |
+| The 2D stage: a glowing full-screen canvas (`src/lib/stage2d.js`) | 22 | [The 2D stage](stage-2d.md) |
 | Sound made in code (`sound: 'live'`, `src/lib/spaceSound.js`) | 5 (Sounds of Space, Black Hole Ripples, Dark Saturn, Lighthouses of the Galaxy, The First Chirp) | [Sketch sound](sketch-sound.md) |
 | Grids of numbers stored as a picture (`DataTexture`) | 15 | [Textures: pictures a shader can look things up in](textures.md) |
+| Finding neighbours with buckets (spatial hash) | 1 (Hawks and Boids) | [Spatial hashing: finding neighbours fast](spatial-hash.md) |
 | Simulating on the GPU by rendering back and forth (`WebGLRenderTarget`) | 5 | [Simulating on the graphics chip: render targets and ping-pong](render-targets.md) |
 | Ray marching distance fields (3D shapes drawn by a shader) | 14 | *(planned: shaders, part 2)* |
 | Escape-time fractals (repeat z → z² + c) | many of the 43 fractals | *(planned: math)* |
@@ -89,7 +90,7 @@ Depth and described in `docs/galaxy-engine.md`) are explained in that sketch's w
 - **Chaos and dynamical systems:** the logistic map and bifurcation, the Lorenz attractor, the double
   pendulum, the Kuramoto–Sivashinsky equation, synchronisation (fireflies), predator and prey.
 - **Patterns in chemistry and biology:** reaction–diffusion (Belousov–Zhabotinsky, Brusselator, Gray–Scott),
-  Liesegang rings, diffusion-limited growth, phyllotaxis (sunflowers), flocking (boids), a fruit-fly
+  Liesegang rings, diffusion-limited growth, phyllotaxis (sunflowers), flocking (boids; in 3D with 7 nearest neighbours and panic waves in Hawks and Boids), a fruit-fly
   connectome, epidemic models (SIR), evolution on an adaptive landscape with a fossil speed limit (The Empty
   Throne; see [Adaptive landscapes](adaptive-landscape.md)).
 - **Geometry and topology:** surfaces (Möbius strip, Klein bottle, Boy's surface, Enneper, helicoid, minimal
