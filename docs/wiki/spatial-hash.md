@@ -68,18 +68,22 @@ Then each step, the buckets are filled in three passes (a *counting sort*):
 3. Every bird writes its number into the next free place in its bucket's stretch of the `sorted` list.
 
 Now "who is in bucket c?" is the stretch of `sorted` from `cellStart[c]` to `cellStart[c + 1]`. To find its
-neighbours, a bird reads its own square and the 26 squares around it:
+neighbours, a bird reads its own square, then the 26 squares around it, then the next shell of 98 around those,
+and so on outward, until it has found its 7 nearest and nothing unsearched could be closer (the stopping rule is
+explained on the [Hawks and Boids walkthrough](sketches/hawksAndBoids.md)). For each square in a shell:
 
 ```js
         const c = cellKey(ix + dx, iy + dy, iz + dz);
 ```
 
+Because far-apart squares can share a bucket, a wide search can meet the same bird twice; each bird is stamped
+the first time it is looked at and skipped after that.
+
 ## Try this
 
 - In `hawksAndBoids.js`, change `const CELL = 1.6` to `0.8`. Squares half as wide hold about an eighth as many
-  birds each, but the bird only searches one square in every direction, so it now sees only 0.8 to 1.6 m around
-  it. In thick parts of the flock it still finds 7 neighbours; at the thin edges it widens the search once (the
-  second `pass`, out to about 2.4 m). Birds at the thin edges of the flock may now find fewer than 7.
+  birds each, so each square is quicker to read, but a bird now needs more shells to reach its 7th neighbour. The
+  flock behaves exactly the same (the search is exact either way); only the speed changes, one way or the other.
 - Change `MASK = (1 << 14) - 1` to `(1 << 8) - 1`: only 256 buckets. Far-apart squares now share buckets often.
   The flock behaves exactly the same (collisions are filtered out by distance) but each bird checks many more
   birds, so the sketch slows down. That is the price of collisions.

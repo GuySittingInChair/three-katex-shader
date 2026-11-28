@@ -50,6 +50,8 @@ don't exist yet; until then the link goes to the closest page that does.
   neighbours make a flock. → [Hawks and Boids: in plain English](sketches/hawksAndBoids.md)
 - **Born rule**: in quantum mechanics, the chance of finding a particle somewhere is the square of its wave's
   size there. → [Double Slit, With Eraser: in plain English](sketches/doubleSlitEraser.md)
+- **bounded confidence**: being swayed only by people whose opinion is already close to yours (Hegselmann and
+  Krause, 2002). → [Hawks and Boids: in plain English](sketches/hawksAndBoids.md)
 - **breadth-first search**: exploring a network in rings: everything one step away, then two steps, and so on;
   finds the fewest steps to everywhere. → [Six Degrees of Poop: in plain English](sketches/smallWorld.md)
 - **buoyancy**: the upward push on something lighter than what surrounds it, such as warm air in cool air. →
@@ -110,6 +112,8 @@ don't exist yet; until then the link goes to the closest page that does.
   [Audio-Reactive Julia Set: in plain English](sketches/audioReactiveJulia.md) (math page *(planned)*)
 - **compression**: storing information in fewer bits by squeezing out repetition and predictability. → [She
   Sells Sea Shells, Compressed: in plain English](sketches/huffmanSeaShells.md)
+- **confusion effect**: a predator facing a crowd of identical prey struggles to pick and keep one target, so prey
+  in dense groups are safer. → [Hawks and Boids: in plain English](sketches/hawksAndBoids.md)
 - **connectome**: a wiring diagram of a brain: every neuron and who it talks to. → [Fly Connectome: in plain
   English](sketches/flyConnectome.md)
 - **const / let**: make a named value; `const` never changes, `let` can. → [Reading JavaScript 1: values,
@@ -128,6 +132,8 @@ don't exist yet; until then the link goes to the closest page that does.
   leave](galaxy-motions.md)
 - **Cosmicflows-4**: a catalogue of about 56,000 galaxy distances, and the map of matter and motion worked out
   from it (Courtois et al. 2023). → [Galaxy motions and the shapes they leave](galaxy-motions.md)
+- **cross product**: an arrow at right angles to two other arrows, as long as the area they span. → [Hawks and
+  Boids: in plain English](sketches/hawksAndBoids.md)
 - **crystal**: a solid whose atoms or molecules are arranged in a regular repeating pattern. → [Snowflake
   Growth: in plain English](sketches/snowflakeGrowth.md)
 - **ctx**: the bag of useful things the app hands a sketch: camera, scene, sliders, time. → [The frame loop:

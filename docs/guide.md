@@ -3192,30 +3192,35 @@ Plain-English version: `docs/wiki/sketches/emptyThrone.md`.
 
 File: `src/sketches/hawksAndBoids.js`
 
-Reynolds's boids (1987) rebuilt in 3D for up to 4,000 agents. Neighbour search is a CPU spatial hash (1.6 m
-cells, 16,384 buckets, counting sort per step); each bird keeps its k = 7 nearest by insertion (topological
-interaction, Ballerini et al. 2008), or everyone within 3 m (metric, Reynolds) via a slider. A rear blind cone
-(default 60°) filters neighbours and hawks. Steering: separation (1/d² inside 1 m), alignment to mean velocity,
-cohesion to mean offset, a weak pull to the global centroid beyond 4 m (keeps one murmuration after attacks),
-roost and ground bounds, painted wind gusts (Gaussian blobs), thermals (updraft + swirl). Acceleration capped at
-38 m/s² (×1.6 when alarmed); speeds 8–13 m/s.
+Reynolds's boids (1987) in 3D for up to 4,000 agents, revised (2026-11-28) so every input is something one bird
+could sense. Neighbour search: CPU spatial hash (1.6 m cells, 16,384 buckets, counting sort), exact k-nearest by
+expanding cube shells with a reach ≥ d_k stopping rule and per-search stamps against hash duplicates; each bird
+re-searches every third step and reuses its list in between. k = 7 topological (Ballerini et al. 2008) or metric
+3 m; rear blind cone (default 60°).
 
-**Panic contagion.** a_i ← max(sighting, c·max_{j∈N(i)} a_j) approached with reaction time 0.08 s, decaying
-with τ = 1.4 s; non-witnesses inherit the alarm-weighted mean escape direction of their neighbours. Witnesses
-flee mostly perpendicular to the hawk's velocity, partly radially and slightly backward: the fountain. Live
-counts separate witnesses ("saw it") from secondhand panic.
+**Cohesion without a global centroid.** Long-range: the flock binned into 8 m patches; each bird is pulled towards
+Σ cover_p d̂_p over visible patches beyond 6 m, cover_p = min(1, n_p·0.03 m²/d²) (a coarse version of the
+projected-view model of Pearce et al. 2014), gain 1500 capped at 10 m/s². Roost attraction horizontal beyond
+20 m. No hawks: one group (4 m linkage) throughout; under attack, largest group 82–99% in 10 of 12 runs.
 
-**Hawks.** Cruise 15 / attack 20 m/s, lateral acceleration 24·agility m/s². Strategies: nearest; lead pursuit
-(aim at p + v·t_go, t_go = d/v_attack ≤ 1.5 s); straggler (max distance to 7th neighbour within 45 m, 3 s lock).
-Catch radius 1 m, 2.5 s recovery. Decoys within 60 m override. Wakes: last 110 positions advected along an
-analytic curl field (divergence-free), displacement ∝ age².
+**Panic.** Excitable relay: a_i = 1 on sighting (always) or 0.05 s after seeing a visible neighbour with
+a_j > 1 − contagion, copying the alarm-weighted escape direction; decay τ = 1.2 s; refractory 8 s for relays
+(3 s allowed re-entrant spiral waves: 66k relays in 120 s). Sightings attenuated by e^(−τ), τ summed over patches
+on the line of sight (weak at this flock size). Wave speed from chain roots: 7–15 m/s (Attanasi et al. 2014
+measured 20–40 m/s). Relays are 41–68% of all panics.
 
-**Drawing.** One InstancedMesh per flock; per-instance phase/amplitude/alarm attributes; wings rotated in the
-vertex shader, amplitude from tangential acceleration + climb rate; bank = atan(a_lat/g). Three looks share the
-simulation: starlings at dusk, sardines and dolphins, and a rumour mill (information cascade).
+**Hawks.** Nearest (re-checked at 2 Hz); proportional navigation a = N V_c (Ω × r̂), Ω = r × v_rel / r², N = 3
+(Brighton et al. 2017), pure pursuit when V_c ≤ 0; straggler = argmax iso/(1 + d/15) within 45 m, locked ≤ 8 s
+or until iso < 1.8 m. Confusion: c = neighbours of the target within 2.5 m; switch rate 0.25·c per s (straggler
+mode re-picks), catch radius 1/(1 + c/3) m. Catches/min over 4 seeds × 150 s: nearest 6.4, PN 4.7, straggler
+4.6; metric neighbours raise straggler catches to 10.4 (one run). The straggler advantage expected from field
+studies does not emerge here.
 
-**Measured** (≈85 simulated s each): polarisation 0.97 with no hawks; with 2 hawks 0.64 / 0.51 / 0.28 and
-9.7 / 7.0 / 2.0 catches per minute for nearest / lead / straggler.
+**Rumour mill (separate rules).** Walkers on a plane with opinion o ∈ [−1, 1]; Hegselmann–Krause bounded
+confidence (ε = 0.4, μ = 0.8) over 7 nearest; headlines within 8 m push o by g_i = ±1 (60/40) at 0.9/s; word
+of mouth from strong neighbours (|o| > 0.6) within 1.5 m at half strength; Schelling-style repulsion between
+opposed people within 3 m; undecided stand still. Two seeds, 180 s: no undecided left, split equals the 60/40
+trait split, 99–100% same-camp neighbours, 113–205 people with secondhand opinions only.
 
 Plain-English version: `docs/wiki/sketches/hawksAndBoids.md`.
 
