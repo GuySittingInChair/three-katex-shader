@@ -15,6 +15,8 @@ don't exist yet; until then the link goes to the closest page that does.
   compared fairly. → [Parallax: measuring the distance to the stars](parallax-and-distance.md)
 - **actions**: extra buttons a sketch adds to the Params panel, like "Poke the dish". → [The sketch format:
   every field](sketch-format.md)
+- **adaptive landscape**: a map of possible animals where height is how well each would do; evolution climbs it.
+  Also called a fitness landscape. → [Adaptive landscapes](adaptive-landscape.md)
 - **additive blending**: overlapping light adds up and gets brighter, like overlapping torch beams. → [Colour
   2: blending, adding, dimming and gain](colour-blending-and-gain.md)
 - **agent-based model**: a simulation of many simple individuals (agents), each following its own rules, to
@@ -157,6 +159,8 @@ don't exist yet; until then the link goes to the closest page that does.
   a passing siren's pitch. → [Black Hole Lensing: in plain English](sketches/blackHoleLensing.md)
 - **eccentricity**: how stretched an oval orbit is: 0 is a circle, near 1 a very long thin oval. → [Kepler's
   Pizza: in plain English](sketches/keplersPizza.md)
+- **ecological incumbency**: whoever already holds a way of life keeps it, because newcomers must out-compete an
+  animal already good at the job. → [The Empty Throne: in plain English](sketches/emptyThrone.md)
 - **edge (graph)**: a link between two dots in a network. → [Force-Directed Graph: in plain
   English](sketches/forceDirectedGraph.md)
 - **ellipse**: an oval: the shape of every planet's orbit, with the star at one of two special points inside
@@ -189,6 +193,8 @@ don't exist yet; until then the link goes to the closest page that does.
   `await`)](js-promises-and-fetch.md)
 - **field**: one labelled box in a sketch file, like `name` or `update`. → [The sketch format: every
   field](sketch-format.md)
+- **fitness**: in biology, how many surviving young a kind of body leaves; not how athletic it is. → [Adaptive
+  landscapes](adaptive-landscape.md)
 - **flat shading**: lighting each triangle as one flat face, for a cut-gem look. → [Displaced Icosphere: in
   plain English](sketches/displacedIcosphere.md)
 - **float**: in GLSL, one number with a decimal point; write `1.0`, not `1`. → [GLSL basics: reading a
@@ -231,6 +237,8 @@ don't exist yet; until then the link goes to the closest page that does.
 - **genetic algorithm**: evolution by natural selection on a computer: test many candidates, keep the best,
   copy them with small random changes, repeat. → [Silly Walks, Evolved: in plain
   English](sketches/sillyWalksEvolved.md)
+- **genetic drift**: random change in a species from the luck of who happens to breed. → [Adaptive
+  landscapes](adaptive-landscape.md)
 - **geometry**: an object's shape, as corners and triangles. → [Drawing in 3D 2: mesh, geometry and
   material](mesh-geometry-material.md)
 - **glider**: a five-square pattern in the Game of Life that crawls diagonally forever. → [Conway's Game of
@@ -355,6 +363,8 @@ don't exist yet; until then the link goes to the closest page that does.
   and material](mesh-geometry-material.md)
 - **matrix**: a block of 16 numbers storing where something is, how it is turned and how big it is. → [Drawing
   in 3D 6: many copies of one shape (instancing)](instancing.md)
+- **megafauna**: big animals, usually meaning over 44 kg. → [The Empty Throne: in plain
+  English](sketches/emptyThrone.md)
 - **mesh**: a visible solid object: geometry plus material. → [Drawing in 3D 2: mesh, geometry and
   material](mesh-geometry-material.md)
 - **microlensing**: a star's gravity (and its planet's) bending and briefly brightening the light of a more
@@ -378,6 +388,8 @@ don't exist yet; until then the link goes to the closest page that does.
 - **Newton's method**: a way to solve an equation that can't be rearranged: guess, see how wrong the guess is,
   correct it, repeat. Each round roughly doubles the correct digits. → [Kepler's Pizza: in plain
   English](sketches/keplersPizza.md)
+- **niche**: a way of making a living: what an animal eats, where, and how. → [Adaptive
+  landscapes](adaptive-landscape.md)
 - **node**: a dot in a network. → [Force-Directed Graph: in plain English](sketches/forceDirectedGraph.md)
 - **noise**: smooth, natural-looking randomness, like a rumpled bedsheet rather than TV static. → [Noise:
   randomness that looks natural](noise.md)
@@ -536,6 +548,8 @@ don't exist yet; until then the link goes to the closest page that does.
   plain English](sketches/blackHoleRipples.md)
 - **sidereal day**: one turn of the Earth measured against the stars: 23 h 56 min, a little shorter than a day
   measured by the Sun. → [Foucault's Pendulum: in plain English](sketches/foucaultPendulum.md)
+- **sigmoid**: an S-shaped switch that goes smoothly from 0 to 1 around a chosen point. → [The Empty Throne: in
+  plain English](sketches/emptyThrone.md)
 - **sine (`sin`)**: a calculation that turns a steadily growing number into a smooth wave between −1 and +1;
   cosine (`cos`) is the same wave a quarter-turn ahead. → [Sine and cosine: the
   wave-makers](sine-and-cosine.md)

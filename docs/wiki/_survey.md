@@ -18,7 +18,7 @@ There are two **modes**, which decide how a sketch draws:
 | Mode | How many | What it means |
 |---|---|---|
 | `shader` | 88 | One flat picture filling the screen. A small program, the shader, picks the colour of every pixel. |
-| `3d` | 104 | A 3D scene with objects, a camera and often lights. Usually you can drag to look around. |
+| `3d` | 105 | A 3D scene with objects, a camera and often lights. Usually you can drag to look around. |
 
 A `2d` mode is reserved in `src/core/SketchRunner.js`, but no sketch uses it. Flat drawing happens in three
 other ways: `shader` mode; drawing onto a hidden 2D canvas that is then used as a picture ("canvas textures",
@@ -27,7 +27,7 @@ used by the sketches added on 2026-11-20 (see [The 2D stage](stage-2d.md)).
 
 **Categories.** Each sketch names one category, and `src/core/taxonomy.js` sorts categories into seven groups
 (Mathematics, Systems, Fields, Geometry, Rendering, Audio, Experiments). The categories in use: Fractals 43,
-Physics 32, Astronomy 17, Chaos 8, Biology 8, Optics 6, Waves 5, Topology 5, Graphs & Networks 5, Geometry 5,
+Physics 32, Astronomy 17, Chaos 8, Biology 9, Optics 6, Waves 5, Topology 5, Graphs & Networks 5, Geometry 5,
 Functional Analysis 4, Surfaces 3, Shaders 3, Reaction-Diffusion 3, Particles 3, Knots 3, Fluid Flow 3,
 Chemistry 3, Algorithms 3, Splines 2, Procedural Textures 2, Number Theory 2, Emergence 2, Dynamical Systems
 2, Algebraic Art 2, and one each for Waveforms, Voxels, Visualization, Vector Fields, Synthesis, Spectra, Ray
@@ -90,7 +90,8 @@ Depth and described in `docs/galaxy-engine.md`) are explained in that sketch's w
   pendulum, the Kuramoto–Sivashinsky equation, synchronisation (fireflies), predator and prey.
 - **Patterns in chemistry and biology:** reaction–diffusion (Belousov–Zhabotinsky, Brusselator, Gray–Scott),
   Liesegang rings, diffusion-limited growth, phyllotaxis (sunflowers), flocking (boids), a fruit-fly
-  connectome, epidemic models (SIR).
+  connectome, epidemic models (SIR), evolution on an adaptive landscape with a fossil speed limit (The Empty
+  Throne; see [Adaptive landscapes](adaptive-landscape.md)).
 - **Geometry and topology:** surfaces (Möbius strip, Klein bottle, Boy's surface, Enneper, helicoid, minimal
   surfaces), knots, the Hopf fibration, the tesseract (4D), hyperbolic and Penrose tilings, Voronoi cells,
   Bézier and NURBS curves, the brachistochrone.
@@ -370,3 +371,4 @@ day. "Walkthrough" links to the plain-English page where one exists.
 | 2026-11-21 | `darkSaturn.js` | Dark Saturn | 3d | Physics | [walkthrough](sketches/darkSaturn.md) |
 | 2026-11-21 | `soundsOfSpace.js` | Sounds of Space | 3d | Astronomy | [walkthrough](sketches/soundsOfSpace.md) |
 | 2026-11-23 | `blackHoleRipples.js` | Black Hole Ripples | 3d | Astronomy | [walkthrough](sketches/blackHoleRipples.md) |
+| 2026-11-27 | `emptyThrone.js` | The Empty Throne | 3d | Biology | [walkthrough](sketches/emptyThrone.md) |

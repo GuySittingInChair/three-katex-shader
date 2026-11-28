@@ -3158,7 +3158,37 @@ its own pause and speed bar.
 
 ---
 
-## 75. My notes
+## 75. The Empty Throne, annotated
+
+File: `src/sketches/emptyThrone.js`
+
+Ecological incumbency as a game you can watch. A 2D trait space z = (log₁₀ M, way of life) carries an adaptive
+landscape F: a broad "small generalist" hill, today's feral-pig niche, and five Gaussian peaks for big-animal
+niches (diver 200 kg, browser 350 kg, pack hunter 40 kg, apex predator 450 kg, scavenger 7 kg). Humans enter as
+−H·3.2·σ((log₁₀ M − log₁₀ 44)/0.22), a sigmoid crater over everything above the 44 kg megafauna line.
+
+**Dynamics (per 10 kyr step).** Lande's equation, Δz̄ = G∇F per generation, summed over the generations in the
+step, with T_gen = T₀(M/M₀)^¼ (quarter-power scaling), plus drift √(2D·gens)·ξ. Crowding subtracts a Gaussian
+kernel per neighbour, so taken peaks are lower for latecomers (priority effects: incumbency inside the model).
+Speciation λ = 0.9/My × (1 − n/26) per lineage; extinction μ = 0.12 + 1.2/(1 + e^{3(F − 0.2)}) per My.
+Body-plan fit multiplies each peak per lineage (assumed, not measured).
+
+**Speed limit.** Evans et al. 2012 (PNAS 109:4187): ≥1.6, 5.1, 10 M generations for 100×, 1000×, 5000× in
+mammals. log₁₀ fold since release is clamped to that piecewise-linear curve (after a free doubling); the live
+line shows the biggest species' fold, generations, and the Evans minimum. Borrowed for crows.
+
+**Runs.** One seeded history per loop for both worlds (same seed: identical prelude, diverging at t = 0).
+3,100 steps, 621 frames; the next loop is computed 60 steps per frame in the background. Node prototype over 8
+seeds, humans gone, at 30 My: rats 100–650 kg, pigs 0.6–1.3 t, crows ~15–25 kg flightless scavengers or still
+small; humans staying: nothing past ~40 kg.
+
+**Interaction.** A DOM panel: world toggle, lineage focus, a deep-time scrubber that writes `ctx.motionTime`,
+and a 2D-canvas creature drawer (body length ∝ M^⅓, proportions from the niche position, 1.75 m human ghost for
+scale). Tap a dot to select it (screen-space nearest within 28 px).
+
+Plain-English version: `docs/wiki/sketches/emptyThrone.md`.
+
+## 76. My notes
 
 Add your own findings, questions and discoveries here.
 

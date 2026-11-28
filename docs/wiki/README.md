@@ -122,6 +122,7 @@ Map projections (Mollweide, gnomonic), sky coordinates, degrees and ℓ.
 - [Parallax: measuring the distance to the stars](parallax-and-distance.md)
 - [Galaxy motions and the shapes they leave](galaxy-motions.md): where galaxies are heading, the film of the
   nearby universe, and the collisions behind ring and shell galaxies
+- [Adaptive landscapes](adaptive-landscape.md): evolution as a slow walk uphill on a map of ways to live
 
 Planned, one page per topic: the cosmic microwave background, spherical harmonics, power spectra, Cepheids,
 supernovae, rotation curves, exoplanets, gravitational waves and more. The full list is in [Survey of the
@@ -205,6 +206,7 @@ sketches, with which ones are done, is at the end of [Survey of the project](_su
 | [Dark Saturn](sketches/darkSaturn.md) | A black hole inside a black ring, in five-dimensional spacetime (black Saturn), with every number from the exact solution |
 | [Sounds of Space](sketches/soundsOfSpace.md) | Pulsars clicking, the Sun ringing, black holes merging, and two black holes humming through hot gas, rebuilt from Chandra X-ray data the way NASA made its black hole sound |
 | [Black Hole Ripples](sketches/blackHoleRipples.md) | Seventeen black holes humming through hot gas, from real Chandra X-ray data, played the NASA way and pitched down a little |
+| [The Empty Throne](sketches/emptyThrone.md) | Humans are the asteroid: lift us off the big-animal niches and rats, pigs and crows evolve into new giants, no faster than fossils allow |
 
 ## 16. [Glossary](glossary.md)
 
